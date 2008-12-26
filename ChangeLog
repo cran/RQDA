@@ -1,0 +1,152 @@
+2008-12-28
+	* RQDA needs gWidgets (>= 0.0-31), gWidgetsRGtk2 (>= 0.0-36). Add it to DESCRIPTION file.
+	
+2008-12-24
+	* Fix minor bugs of "Unmark", "AddTo", and "HL_ALL" buttons.
+	* add new content to documentation.html.
+	
+2008-12-21
+	* Fix latex related issue in SearchFiles.rd.
+	* Fix bug of C2Info: encoding issue.
+	* Add new content to documentation.html.
+	
+2008-12-18 (as version 0.1.6RC3)
+	* Rename CrossTable to CrossTwo
+	* New function of CrossCode
+
+2008-12-17
+	* Improve the relation function and revise MarkCodeFun accordingly.
+	* New function of CrossTable for inter-relationship between codes (The name of it may change in the future).
+
+2008-12-15
+	* Add help of GetCodingTable.
+	* Fix bugs of "Web Search-Baidu" and "Web Search-Sohu" of the case popup menu (now works for UTF-8 locale).
+	* Fix bugs of "Add to case/file category" of the fils popup menu.
+
+2008-12-14
+	* Add help of SearchFiles and GetFileId.
+	* Change the default of ask argument of undelete to TRUE.
+
+2008-12-13
+	* New function of gselect.list, gtk version of select.list (Thanks John).
+	* Add help of SummaryCoding, improve help of write.FileList.
+
+2008-12-12
+	* Fix bugs of SortByTime(), now should work for R < 2.8.0. Fix bug of GetCodingTable and SummaryCoding.
+	* New function of RunOnSelected. Use it to replace select.list.
+	* Now popup menu of add to case/ category can add multiple files at a time (Files Tab). 
+	* New Coding Button: C2Info
+
+2008-12-10
+	* New functions of SearchFiles.
+
+2008-12-09
+	* New functions to summary codings: SummaryCoding, GetCodingTable.
+	* Add documentation.
+	
+2008-12-08
+	* New function of OrderByTime() for computing time order explicitly.
+	* "Show Uncoded files only" popup menu will sort the uncoded file by imported time.
+	* Add "Show Coded files only" popup menu in Files Tabs and F-cat Tab.
+	* "Sort by ..." in the all the popup-menus call OrderByTime to sort the data.
+
+2008-12-07
+	* Better handler the issue of write permission in new project and open project button
+	* new function/button to backup project
+	* fix bug in close project button
+	* Popup menu of Files Tab: "Show uncoded files only" (useful when there are large number of files).
+	
+2008-12-06 (rc2 of v1.6)
+	* bugfix of Freecode rename button and others.
+	* Memo in Popup menu in Files Tab.
+	* Enhance Mark buttons, so it will not save duplicated information in database.
+	* New function relation() for caculating relation between two coding.
+	* Improve ViewFileFun() so the codings are highlighted when a file is opened.
+	* Add some popup menus.
+	* Improve pdelete(),list.deleted() and undelete(). New function of CleanProject().
+
+2008-12-05
+	* New functionality of add memo to File category and Code category.
+	* Reorganize the memo for Cases.  Now opem case memo by double-click or popup menu
+	* Unmark button for cases.
+	* Add Settings Tab, so user can change settings easily.
+	
+2008-12-04
+	* Better handler colors for coding and case-mark. Now can customize colors for coding-mark 
+	(set .rqda$fore.col, default is "blue") and case-mark (set .rqda$back.col, default is "gray92").
+	* Add selected file to File-category by popup menu in Files Tab.
+	* Popup menu in Cases tab to link files with selected case.
+	* Drop selected Files from Files.of.This.Case Widget by clicking popu menu.
+	
+2008-12-03
+	* Attached file to case by pop-up menu in Files Tab.
+	* Now can open associated files of a case from Cases Tab.
+	* new function of write.FileList() to import a batch of files.
+
+	
+2008-12-01
+	* enhance the rename buttons.
+	* bugfix of add buttons: continue only when click confirm in the ginput widget.
+	* New function write.FileList() to import files by batch.
+	* Enchance the retrieval2 function so coding on the file (openned by clicking back button) is possible.
+	
+2008-11-30
+	* fix some minor bugs.
+	
+2008-11-29
+	* enhancement of function list.deleted() and pdelete()
+	* better handle the encoding issue in ViewFileButton and handler for openning a file.
+	* Add F-Cat (file-category) to help organized the files.
+	* Add doubleclick handlers to CodeOfCat and FileOfCat to retrieve coding and open file.
+	* fix typo (Thanks Adrian Dusa)
+	* fix a minor bug of CodeNamesUpdate() and new_proj().
+	
+2008-11-25
+	* Take care of the warning from R CMD check
+	
+2008-11-24
+	* Can back to the original file from Retrieved text chunck (by retrieval2 function).
+	
+2008-11-23 (as version 0.1.5)
+	* Add AddTo/DropFrom Buttons for Code-Category.
+	* Improve the display of retrieved coding.
+	
+2008-11-22
+	* change "Add Code Category" Button to popup menu
+	* Open selected file by double click.
+	* Retrieve coding chuck by double click.
+	* Add/rename/delete Buttons for Code-Category.
+	
+2008-11-21
+	* Add WebSearch Case button (for convienence)
+	* Add "Add Code Category" Button
+	
+2008-11-19 (as verion 0.1.4)
+	* Add project memo
+	* rename of file/free code names
+	* reorganize the code for memo(s)
+	* Handle Encoding better (use UTF-8 for storage in date base)
+	* Add cases category
+	
+2008-11-01(as version 0.1.3)
+	* Add functionality of file/code/coding memo.
+	
+2008-10-31
+	* Add functionality of delete selected code.
+	* Add helper functions to show the temp deleted file/code/coding.
+	* Add helper functions to delete file/code/coding permanently.
+	* Add helper functions to undo the temporary deletion.
+	* Minor changes to the database structure, adding memo, owner and date.
+	* some minor bugs are fixed.
+	* Now, RQDA() will launch when the package is attached.
+
+2008-10-29
+	* Add functionality of delete selected file.
+
+2008-5-17
+	* Open coding text chunk is added.
+	* "Unmark" button works now.
+	
+2008-5-14
+	* Use /R/sysdata.rda to store meta data such as .rqda environment, so no need to generate it in .GlobalEnv.
+	* Add RQDA-package.rd in /man.
