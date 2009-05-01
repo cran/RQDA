@@ -6,13 +6,17 @@
   Search files according to the pattern.
 }
 \usage{
-SearchFiles(pattern, content = FALSE, Widget = NULL, is.UTF8 = FALSE)
+SearchFiles(pattern, content = FALSE, Fid = NULL, Widget = NULL,is.UTF8 = FALSE)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{pattern}{ The criterion of search, see examples section for examples.}
   \item{content}{ When it is TRUE, the content of files fitting the pattern will be returned as well.}
-  \item{Widget}{ The name of a gtable widget. If it is not NULL, the file names fitting the pattern will pushed to that gtable widget using \code{svalue} method. One useful value is .rqda\$fnames\_rqda, so the file names will be pushed to the Files Tab of RQDA. }
+  \item{Fid}{integer vector, the ids of subset of files to search.}
+  \item{Widget}{ Character, name of a gtable widget. If it is not NULL,
+    the file names fitting the pattern will pushed to that gtable widget
+    using \code{svalue} method. One useful value is ".fnames_rqda", so
+    the file names will be pushed to the Files Tab of RQDA. Others are
+    ".FileofCat" and ".FileofCase".}
   \item{is.UTF8}{ If the coding of pattern is UTF-8. If you are not sure, always use FLASE.}
 }
 \details{

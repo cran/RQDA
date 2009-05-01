@@ -32,7 +32,7 @@ ImportFile <- function(path,encoding=.rqda$encoding,con=.rqda$qdacon,...){
       dbGetQuery(con,sprintf("insert into source (name, file, id, status,date,owner )
                              values ('%s', '%s',%i, %i, '%s', '%s')",
                              Fname,content, nextid, 1,date(),.rqda$owner))
-    } 
+    }
   }
 }
 
@@ -54,84 +54,184 @@ FileNamesUpdate <- function(FileNamesWidget=.rqda$.fnames_rqda,sort=TRUE,decreas
 
 
 
-## UncodedFileNamesUpdate <- function(FileNamesWidget = .rqda$.fnames_rqda, sort=TRUE, decreasing = FALSE){
-## replaced by the general function of FileNameWigetUpdate() and GetFileId()
-## ## only show the uncoded file names in the .rqda$.fnames_rqda
-## ## The fnames will be sort if sort=TRUE
-##   fid <- dbGetQuery(.rqda$qdacon,"select id from source where status==1 group by id")$id
-##   if (!is.null(fid)){
-##     fid_coded <- dbGetQuery(.rqda$qdacon,"select fid from coding where status==1 group by fid")$fid
-##     fid_uncoded <- fid[! (fid %in% fid_coded)]
-##     source <- dbGetQuery(.rqda$qdacon,
-##                          sprintf("select name,date, id from source where status=1 and id in (%s)",
-##                                  paste(fid_uncoded,sep="",collapse=",")))
-##     if (nrow(source) != 0){
-##       fnames <- source$name
-##       Encoding(fnames) <- "UTF-8"
-##       if (sort){
-##       fnames <- fnames[OrderByTime(source$date,decreasing=decreasing)]
-##       }
-##     }
-##     tryCatch(FileNamesWidget[] <- fnames, error = function(e) {})
-##   }
-## }
-
-
-## setEncoding <- function(encoding="unknown"){
-  ## moved to utils.R
-##   ## specify what encoding is used in the imported files.
-##   .rqda$encoding <- encoding
-## }
-
-## enc <- function(x,encoding="UTF-8") {
-##   ## replace " with two '. to make insert smoothly.
-##   ## encoding is the encoding of x (character vector).
-##   ## moved to utils.R
-##   Encoding(x) <- encoding
-##   x <- gsub("'", "''", x)
-##   if (Encoding(x)!="UTF-8") {
-##     x <- iconv(x,to="UTF-8")
-##   }
-##   x
-## }
-
-
-ViewFileFun <- function(FileNameWidget){
+ViewFileFun <- function(FileNameWidget,hightlight=TRUE){
 ## FileNameWidget=.rqda$.fnames_rqda in Files Tab
 ## FileNameWidget=.rqda$.FileofCat in F-CAT Tab
-        if (is_projOpen(env = .rqda, conName = "qdacon")) {
-            if (length(svalue(FileNameWidget)) == 0) {
-                gmessage("Select a file first.", icon = "error", 
-                  con = TRUE)
-            }
-            else {
-                tryCatch(dispose(.rqda$.root_edit), error = function(e) {
-                })
-                SelectedFileName <- svalue(FileNameWidget)
-                assign(".root_edit", gwindow(title = SelectedFileName, 
-                  parent = c(395, 10), width = 600, height = 600), 
-                  env = .rqda)
-                .root_edit <- get(".root_edit", .rqda)
-                assign(".openfile_gui", gtext(container = .root_edit, 
-                  font.attr = c(sizes = "large")), env = .rqda)
-                Encoding(SelectedFileName) <- "unknown"
-                IDandContent <- dbGetQuery(.rqda$qdacon, sprintf("select id, file from source where name='%s'", 
-                  SelectedFileName))
-                content <- IDandContent$file
-                Encoding(content) <- "UTF-8"
-                W <- get(".openfile_gui", .rqda)
-                add(W, content, font.attr = c(sizes = "large"))
-                tryCatch(slot(W, "widget")@widget$SetEditable(FALSE),error=function(e){})
-                mark_index <-
-                  dbGetQuery(.rqda$qdacon,sprintf("select selfirst,selend from coding where fid=%i and status=1",IDandContent$id))
-                if (nrow(mark_index)!=0){
-                ## make sense only when there is coding there
-                  ClearMark(W ,0 , max(mark_index$selend))
-                  HL(W,index=mark_index)
-                }
-            }
-        }
+  if (is_projOpen(env = .rqda, conName = "qdacon")) {
+    if (length(svalue(FileNameWidget)) == 0) {
+      gmessage("Select a file first.", icon = "error",con = TRUE)
+    } else {
+      SelectedFileName <- svalue(FileNameWidget)
+      ViewFileFunHelper(SelectedFileName,hightlight=TRUE)
+    }}}
+
+
+ViewFileFunHelper <- function(FileName,hightlight=TRUE){
+  tryCatch(dispose(.rqda$.root_edit), error = function(e) {})
+  SelectedFileName <- FileName
+  gw <- gwindow(title = SelectedFileName,parent = getOption("widgetCoordinate"), width = 600, height = 600)
+  mainIcon <- system.file("icon", "mainIcon.png", package = "RQDA")
+  gw@widget@widget$SetIconFromFile(mainIcon)
+  assign(".root_edit", gw, env = .rqda)
+  .root_edit <- get(".root_edit", .rqda)
+  tmp <- gtext(container=.root_edit)
+  font <- pangoFontDescriptionFromString(.rqda$font)
+  gtkWidgetModifyFont(tmp@widget@widget,font)
+  tmp@widget@widget$SetPixelsBelowLines(5) ## set the spacing
+  tmp@widget@widget$SetPixelsInsideWrap(5) ## so the text looks more confortable.
+  assign(".openfile_gui", tmp, env = .rqda)
+  Encoding(SelectedFileName) <- "unknown"
+  IDandContent <- dbGetQuery(.rqda$qdacon, sprintf("select id, file from source where name='%s'",SelectedFileName))
+  content <- IDandContent$file
+  Encoding(content) <- "UTF-8"
+  W <- get(".openfile_gui", .rqda)
+  add(W, content)
+  slot(W, "widget")@widget$SetEditable(FALSE)
+  markidx <- dbGetQuery(.rqda$qdacon,sprintf("select coding.rowid,coding.selfirst,coding.selend,freecode.name from coding,freecode where coding.fid=%i and coding.status=1 and freecode.id==coding.cid and freecode.status==1",IDandContent$id))
+  anno <- RQDAQuery(sprintf("select position,rowid from annotation where status==1 and fid==%s",IDandContent$id))
+  buffer <- W@widget@widget$GetBuffer()
+  if (nrow(markidx)!=0){ ## make sense only when there is coding there
+    apply(markidx[,1:3],1,function(x){
+      iter <- gtkTextBufferGetIterAtOffset(buffer, x["selfirst"]) ## index to iter
+      buffer$CreateMark(sprintf("%s.1",x["rowid"]),where=iter$iter) ## insert marks
+      iter <- gtkTextBufferGetIterAtOffset(buffer, x["selend"])
+      buffer$CreateMark(sprintf("%s.2",x["rowid"]),where=iter$iter)
+    })} ## create marks
+  if (nrow(anno)!=0){
+    apply(anno,1,function(x){
+      iter <- gtkTextBufferGetIterAtOffset(buffer, x["position"]) ## index to iter
+      buffer$CreateMark(sprintf("%s.3",x["rowid"]),where=iter$iter) ## insert marks
+    })} ## creat marks for annotation
+  if (nrow(markidx)!=0){
+    sapply(markidx[, "rowid"], FUN = function(x) {
+      code <- enc(markidx[markidx$rowid == x, "name"],"UTF-8")
+      m1 <- buffer$GetMark(sprintf("%s.1", x))
+      iter1 <- buffer$GetIterAtMark(m1)
+      idx1 <- gtkTextIterGetOffset(iter1$iter)
+      InsertAnchor(.rqda$.openfile_gui, label = sprintf("%s<",code), index = idx1,handler=TRUE)
+      m2 <- buffer$GetMark(sprintf("%s.2", x))
+      iter2 <- buffer$GetIterAtMark(m2)
+      idx2 <- gtkTextIterGetOffset(iter2$iter)
+      InsertAnchor(.rqda$.openfile_gui, label = sprintf(">%s",code), index = idx2)
+    }) ## end of sapply -> insert code label
+    if (hightlight){
+      idx <- sapply(markidx[, "rowid"], FUN = function(x) {
+        m1 <- buffer$GetMark(sprintf("%s.1", x))
+        iter1 <- buffer$GetIterAtMark(m1)
+        idx1 <- gtkTextIterGetOffset(iter1$iter)
+        m2 <- buffer$GetMark(sprintf("%s.2", x))
+        iter2 <- buffer$GetIterAtMark(m2)
+        idx2 <- gtkTextIterGetOffset(iter2$iter)
+        return(c(idx1,idx2))
+      })## get offset for HL.
+      idx <- t(idx)
+      HL(W, idx, fore.col = .rqda$fore.col, back.col = NULL)
+    }}
+  if (nrow(anno)!=0){
+    apply(anno,1,function(x){
+      m <- buffer$GetMark(sprintf("%s.3", x["rowid"]))
+      iter <- buffer$GetIterAtMark(m)
+      idx <- gtkTextIterGetOffset(iter$iter)
+      InsertAnnotation(index=idx,fid=IDandContent$id, rowid=x["rowid"])
+    })}
+    buffer$PlaceCursor(buffer$getIterAtOffset(0)$iter) ## place cursor at the beginning
+}
+
+
+EditFileFun <- function(FileNameWidget=.rqda$.fnames_rqda){
+  ## FileNameWidget=.rqda$.fnames_rqda in Files Tab
+  ## FileNameWidget=.rqda$.FileofCat in F-CAT Tab
+  if (is_projOpen(env = .rqda, conName = "qdacon")) {
+    SelectedFileName <- svalue(FileNameWidget)
+    if (length(svalue(FileNameWidget)) == 0) {
+      gmessage("Select a file first.", icon = "error", con = TRUE)
     }
+    else {
+      tryCatch(dispose(.rqda$.root_edit),error=function(e) {})
+      assign(".root_edit",gwindow(title=SelectedFileName,parent=getOption("widgetCoordinate"),
+                                  width=600,height=600),env=.rqda)
+      assign(".root_edit2",gpanedgroup(horizontal = FALSE, con=.rqda$.root_edit),env=.rqda)
+      gbutton("Save File",con=.rqda$.root_edit2,handler=function(h,...){
+        content <-  svalue(.rqda$.openfile_gui)
+        RQDAQuery(sprintf("update source set file='%s', dateM='%s' where name='%s'",
+                          enc(content,"UTF-8"),date(),enc(svalue(.rqda$.root_edit),"UTF-8"))) ## update source table
+        if (nrow(mark_index)!=0){ ## only manipulate the coding when there is one.
+            idx <- apply(mark_index, 1, FUN = function(x) {
+            m1 <- buffer$GetMark(sprintf("%s.1", x[3]))
+            iter1 <- buffer$GetIterAtMark(m1)
+            idx1 <- gtkTextIterGetOffset(iter1$iter)
+            m2 <- buffer$GetMark(sprintf("%s.2", x[3]))
+            iter2 <- buffer$GetIterAtMark(m2)
+            idx2 <- gtkTextIterGetOffset(iter2$iter)
+            ans <- c(selfirst = idx1, selend = idx2,x[3])## matrix of 3x N (N=nrow(mark_index))
+        }) ## end of apply
+            apply(idx,2,FUN=function(x){
+                if (x[1]==x[2])  RQDAQuery(sprintf("update coding set status=0 where rowid=%i",x[3])) else {
+                    Encoding(content) <- "UTF-8"
+                    RQDAQuery(sprintf("update coding set seltext='%s',selfirst=%i, selend=%i where rowid=%i",
+                                      enc(substr(content,x[1],x[2]),"UTF-8"),x[1],x[2],x[3]))
+                }
+            })## update the coding table (seltext,selfirst, selend), on the rowid (use rowid to name the marks)
+        }
+        if (nrow(mark_idx_case)!=0){ ## only manipulate the coding when there is one.
+            idx_case <- apply(mark_idx_case, 1, FUN = function(x) {
+                m1 <- buffer$GetMark(sprintf("c%s.1", x["rowid"]))
+                iter1 <- buffer$GetIterAtMark(m1)
+                idx1 <- gtkTextIterGetOffset(iter1$iter)
+                m2 <- buffer$GetMark(sprintf("c%s.2", x["rowid"]))
+                iter2 <- buffer$GetIterAtMark(m2)
+                idx2 <- gtkTextIterGetOffset(iter2$iter)
+                ans <- c(selfirst = idx1, selend = idx2,x["rowid"])
+            }) ## end of apply
+            apply(idx_case,2,FUN=function(x){
+                if (x[1]==x[2])  RQDAQuery(sprintf("update caselinkage set status=0 where rowid=%i",x["rowid"])) else {
+                    RQDAQuery(sprintf("update caselinkage set selfirst=%i, selend=%i where rowid=%i",x[1],x[2],x[3]))
+                }
+            })## end of apply
+        }
+    })## end of save memo button
+      tmp <- gtext(container=.rqda$.root_edit2)
+      font <- pangoFontDescriptionFromString(.rqda$font)
+      gtkWidgetModifyFont(tmp@widget@widget,font)
+      assign(".openfile_gui", tmp, env = .rqda)
+      Encoding(SelectedFileName) <- "unknown"
+      IDandContent <- dbGetQuery(.rqda$qdacon, sprintf("select id, file from source where name='%s'",SelectedFileName))
+      content <- IDandContent$file
+      Encoding(content) <- "UTF-8"
+      W <- get(".openfile_gui", .rqda)
+      ## add(W, content, font.attr = c(sizes = "large"))
+      add(W, content)
+      buffer <- slot(W, "widget")@widget$GetBuffer() ## get text buffer.
+      mark_index <- dbGetQuery(.rqda$qdacon,sprintf("select selfirst,selend,rowid from coding where fid=%i and status=1",
+                                                    IDandContent$id))
+      if (nrow(mark_index)!=0){## make sense only when there is coding there
+        ClearMark(W ,0 , max(mark_index$selend),TRUE,FALSE)
+        HL(W,index=mark_index[,c("selfirst","selend")],.rqda$fore.col,NULL)
+        ## insert marks according to mark_index (use rowid to name the marks)
+        apply(mark_index,1,function(x){
+          iter <- gtkTextBufferGetIterAtOffset(buffer, x[1]) ## index to iter
+          mark <- buffer$CreateMark(sprintf("%s.1",x[3]),where=iter$iter)         ## insert marks
+          ## gtkTextMarkSetVisible(mark,TRUE)                   ## set itvisible
+          iter <- gtkTextBufferGetIterAtOffset(buffer, x[2]) ## index to iter
+          mark <- buffer$CreateMark(sprintf("%s.2",x[3]),where=iter$iter)         ## insert marks
+          ## gtkTextMarkSetVisible(mark,TRUE)                   ## set itvisible
+        }) ## end of apply
+    }
+      mark_idx_case<- dbGetQuery(.rqda$qdacon,sprintf("select selfirst,selend,rowid from caselinkage where fid=%i and status=1",
+                                                      IDandContent$id))
+      if (nrow(mark_idx_case)!=0){
+          ClearMark(W ,0 , max(mark_idx_case$selend),FALSE,TRUE)
+          HL(W,index=mark_idx_case[,c("selfirst","selend")],NULL,.rqda$back.col)
+          apply(mark_idx_case,1,function(x){
+              iter <- gtkTextBufferGetIterAtOffset(buffer, x["selfirst"])
+              mark <- buffer$CreateMark(sprintf("c%s.1",x["rowid"]),where=iter$iter)
+              gtkTextMarkSetVisible(mark,TRUE)
+              iter <- gtkTextBufferGetIterAtOffset(buffer, x["selend"])
+              mark <- buffer$CreateMark(sprintf("c%s.2",x["rowid"]),where=iter$iter)
+              gtkTextMarkSetVisible(mark,TRUE)
+          }) ## end of apply
+    }
+  }}}
 
 
 write.FileList <- function(FileList,encoding=.rqda$encoding,con=.rqda$qdacon,...){
@@ -199,8 +299,8 @@ ProjectMemoWidget <- function(){
                  )
     }
             )## end of save memo button
-    tmp <- gtext(container=.projmemo2,font.attr=c(sizes="large"))
-    font <- pangoFontDescriptionFromString("Sans 11")
+    tmp <- gtext(container=.projmemo2)
+    font <- pangoFontDescriptionFromString(.rqda$font)
     gtkWidgetModifyFont(tmp@widget@widget,font)
     assign(".projmemocontent",tmp,env=.rqda)
     prvcontent <- dbGetQuery(.rqda$qdacon, "select memo from project")[1,1]
@@ -306,31 +406,19 @@ GetFileId <- function(condition=c("unconditional","case","filecategory"),type=c(
     if (type=="selected"){
       selected <- svalue(.rqda$.FileofCat)
       ans <- dbGetQuery(.rqda$qdacon,
-                  sprintf("select id from source where status==1 and name in (%s)",
-                          paste(paste("'",selected,"'",sep=""),collapse=",")
-                          ))$id
-    } else {
-      Selected <- svalue(.rqda$.FileCatWidget)
-      if (length(Selected)==0){
-        ans <- NULL
-      } else {
-        if (length(Selected)>1) {gmessage("select one case only.",con=TRUE)
-                                 stop("more than one cases are selected")
-                               }
-        catid <- dbGetQuery(.rqda$qdacon,sprintf("select catid from filecat where status=1 and name='%s'",Selected))$catid
-        fidofcat <- dbGetQuery(.rqda$qdacon,sprintf("select fid from treefile where status==1 and catid==%i",catid))$fid
-        ## roll back to rev 90
-##         catid <- dbGetQuery(.rqda$qdacon,sprintf("select catid from filecat where status=1 and name in (%s)",
-##                                                  paste(paste("'",Selected,"'",sep=""),collapse=",")))$catid
-##         fidofcat <- dbGetQuery(.rqda$qdacon,sprintf("select fid from treefile where status==1 and catid in (%s)",
-##                                                     paste(paste("'",catid,"'",sep=""),collapse=",")))$fid
-        allfid <-  unconditionalFun(type=type)
-        ans <- intersect(fidofcat,allfid)
-      }
-      ans
+                        sprintf("select id from source where status==1 and name in (%s)",
+                                paste(paste("'",selected,"'",sep=""),collapse=",")
+                                ))$id
     }
+    allfid <- GetFileIdSets("filecategory","intersect")
+    if (type=="all") {ans <- allfid} else {
+      codedfid <- RQDAQuery(sprintf("select fid from coding where status==1 and fid in (%s) group by fid",paste(shQuote(allfid),collapse=",")))$fid
+      if (type=="coded") {ans <- codedfid}
+      if (type=="uncoded") { ans <-  setdiff(allfid,codedfid)}
+    }
+    ans
   }
-    
+  
   condition <- match.arg(condition)
   type <- match.arg(type)
   fid <- switch(condition,
@@ -338,7 +426,7 @@ GetFileId <- function(condition=c("unconditional","case","filecategory"),type=c(
                 case=FidOfCaseFun(type=type),
                 filecategory=FidOfCatFun(type=type)
                 )
-fid
+  fid
 }
 
 
@@ -375,38 +463,77 @@ GetFileIdSets <- function(set=c("case","filecategory"),relation=c("union","inter
   ans
 }
 
-AddToFileCategory<- function(Widget=.rqda$.fnames_rqda,updateWidget=TRUE){
+AddToFileCategory <- function(Widget=.rqda$.fnames_rqda,updateWidget=TRUE){
   ## filenames -> fid -> selfirst=0; selend=nchar(filesource)
   filename <- svalue(Widget)
   Encoding(filename) <- "unknown"
   query <- dbGetQuery(.rqda$qdacon,sprintf("select id, file from source where name in(%s) and status=1",paste("'",filename,"'",sep="",collapse=","))) ## multiple fid
   fid <- query$id
   Encoding(query$file) <- "UTF-8"
-  
   ## select a F-cat name -> F-cat id
   Fcat <- dbGetQuery(.rqda$qdacon,"select catid, name from filecat where status=1")
   if (nrow(Fcat)==0){gmessage("Add File Categroy first.",con=TRUE)} else{
     Encoding(Fcat$name) <- "UTF-8"
-    Selected <- gselect.list(Fcat$name,multiple=FALSE)
-    ## CurrentFrame <- sys.frame(sys.nframe())
-    ## RunOnSelected(Fcat$name,multiple=TRUE,enclos=CurrentFrame,expr={
-    if (Selected!=""){ ## must use Selected to represent the value of selected items. see RunOnSelected() for info.
-      ##Selected <- iconv(Selected,to="UTF-8")
-      Encoding(Selected) <- "UTF-8"
-      Fcatid <- Fcat$catid[Fcat$name %in% Selected]
-      exist <- dbGetQuery(.rqda$qdacon,sprintf("select fid from treefile where status=1 and fid in (%s) and catid=%i",paste("'",fid,"'",sep="",collapse=","),Fcatid))
-    if (nrow(exist)!=length(fid)){
-      ## write only when the selected file associated with specific f-cat is not there
-      DAT <- data.frame(fid=fid[!fid %in% exist$fid], catid=Fcatid, date=date(),dateM=date(),memo='',status=1)
-      ## should pay attention to the var order of DAT, must be the same as that of treefile table
-      success <- dbWriteTable(.rqda$qdacon,"treefile",DAT,row.name=FALSE,append=TRUE)
-      ## write to caselinkage table
-      if (success && updateWidget) {
-        UpdateFileofCatWidget()
+    Selecteds <- gselect.list(Fcat$name,multiple=TRUE)
+    if (length(Selecteds)>0 || Selecteds!=""){
+      Encoding(Selecteds) <- "UTF-8"
+      for (Selected in Selecteds) {
+        Fcatid <- Fcat$catid[Fcat$name %in% Selected]
+        exist <- dbGetQuery(.rqda$qdacon,sprintf("select fid from treefile where status=1 and fid in (%s) and catid=%i",paste("'",fid,"'",sep="",collapse=","),Fcatid))
+        if (nrow(exist)!=length(fid)){
+          ## write only when the selected file associated with specific f-cat is not there
+          DAT <- data.frame(fid=fid[!fid %in% exist$fid], catid=Fcatid, date=date(),dateM=date(),memo='',status=1)
+          ## should pay attention to the var order of DAT, must be the same as that of treefile table
+          success <- dbWriteTable(.rqda$qdacon,"treefile",DAT,row.name=FALSE,append=TRUE)
+          ## write to caselinkage table
+          if (success && updateWidget) {
+            UpdateFileofCatWidget()
+          }
+          if (!success) gmessage(sprintf("Fail to write to file category of %s",Selected))
+        }
       }
-      if (!success) gmessage("Fail to write to database.")
-    }
     }
   }
 }
-  
+
+
+## UncodedFileNamesUpdate <- function(FileNamesWidget = .rqda$.fnames_rqda, sort=TRUE, decreasing = FALSE){
+## replaced by the general function of FileNameWigetUpdate() and GetFileId()
+## ## only show the uncoded file names in the .rqda$.fnames_rqda
+## ## The fnames will be sort if sort=TRUE
+##   fid <- dbGetQuery(.rqda$qdacon,"select id from source where status==1 group by id")$id
+##   if (!is.null(fid)){
+##     fid_coded <- dbGetQuery(.rqda$qdacon,"select fid from coding where status==1 group by fid")$fid
+##     fid_uncoded <- fid[! (fid %in% fid_coded)]
+##     source <- dbGetQuery(.rqda$qdacon,
+##                          sprintf("select name,date, id from source where status=1 and id in (%s)",
+##                                  paste(fid_uncoded,sep="",collapse=",")))
+##     if (nrow(source) != 0){
+##       fnames <- source$name
+##       Encoding(fnames) <- "UTF-8"
+##       if (sort){
+##       fnames <- fnames[OrderByTime(source$date,decreasing=decreasing)]
+##       }
+##     }
+##     tryCatch(FileNamesWidget[] <- fnames, error = function(e) {})
+##   }
+## }
+
+
+## setEncoding <- function(encoding="unknown"){
+  ## moved to utils.R
+##   ## specify what encoding is used in the imported files.
+##   .rqda$encoding <- encoding
+## }
+
+## enc <- function(x,encoding="UTF-8") {
+##   ## replace " with two '. to make insert smoothly.
+##   ## encoding is the encoding of x (character vector).
+##   ## moved to utils.R
+##   Encoding(x) <- encoding
+##   x <- gsub("'", "''", x)
+##   if (Encoding(x)!="UTF-8") {
+##     x <- iconv(x,to="UTF-8")
+##   }
+##   x
+## }

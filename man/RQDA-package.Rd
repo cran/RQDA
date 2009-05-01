@@ -12,9 +12,11 @@
 \tabular{ll}{
 Package: \tab RQDA\cr
 Type: \tab Package\cr
-Version: \tab 0.1-7\cr
-Date: \tab 2009-05-01\cr
-Depends: \tab DBI, RSQLite, RGtk2, gWidgets, gWidgetsRGtk2\cr
+Version: \tab 0.1-8\cr
+Date: \tab 2009-09-12\cr
+Depends: \tab R (>= 2.5.0), DBI, RSQLite, gWidgets (>= 0.0-31), gWidgetsRGtk2 (>= 0.0-36),igraph \cr
+Imports: \tab RGtk2 (>= 2.12.8), methods \cr
+Suggests: \tab tm, tcltk \cr
 License: \tab New style BSD License\cr
 LazyLoad: \tab yes\cr
 URL: \tab \url{http://rqda.r-forge.r-project.org/} \cr

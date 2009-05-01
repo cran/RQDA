@@ -1,36 +1,184 @@
-2009-04-26
+2009-09-14 (version 0.1-8)
+	* document all the exported function, ready for CRAN.
+
+2009-08-01
+	* Add "Close all codings" button. 
+
+2009-07-28
+	*  clean "file of case" widget when project is closed.
+
+2009-07-09
+	*  "show case with memo only", correct some mismatch in Rd files.
+
+2009-06-17
+	* AddToFileCategory() can add multiple files to multiple categories at one time.
+
+2009-06-17
+	* RGtk2 (>=2.12.8), thanks Gaua for feedback.
+
+2009-06-12
+	* Improve ShowFileProperty function.
+	* Fix bug of "Add Anno" button.
+	* Fix bug of countAnchorsWithFileName()
+	* New function of Query.
+
+2009-06-11
+	* "Show last coded file" in popup menu of Files Tab.
+	* Revision of "Find a word" menu according to new method of
+	highlighting coding.
+	
+2009-06-10
+	* change GetFileId() according change of 2009-06-05.
+	
+2009-06-06
+	* use font from "font setting" to set font of journal widget.
+
+2009-06-05
+	* When select multiple file categories, "files of this category"
+	shows the intersect of files from these categories.
+	
+	
+2009-06-03
+	* use gcombox rather than gtext to set colors in settings Tab.
+	
+2009-05-31
+	* set default coder name to username of OS.
+	* Add number of files in the title of retrieved codings widget and
+	similarly revision of ExportCodings().
+	* upgrade database structure to version "0.1.8" (Old version of
+	RQDA does not work with new *.rqda for the attributes). NOTE: add
+	status column to caseAttr and fileAttr tables.
+	
+2009-05-30
+	* New function of ExportCodings() for exporting codings to a html file.
+	* Other minor improvements.
+
+2009-05-29
+	* new function of Annotation() and "Add Ann" button.
+	* "Hightlight all codings" moved to popup menu.
+	* "Highlight codings with memo" popup menu.
+	* Merge AttributesWidget.R with Attributes.R, annotation.R with
+	CodesFun.R,GUIHandler.R with root_gui.R
+	* Revise HL_Case(),Mark case and Unmark case buttons accordingly.
+	* Revise MarkCodeFun() accodingly, so insert code label as mark
+	after data is written to database and delete unused code label too
+	(when new and old code are overlapped).
+		
+2009-05-28
+	* new function of countAnchorsWithFileName(), different way to do
+	things as countAnchors(), faster.
+	
+2009-05-27
+	* Rewrite retrieval() according to revision of 2009-05-26.
+
+2009-05-26
+	* Use Anchor to mark the codings in the File Widget.
+	* improvement of AddTo button in code categories Tab.
+
+2009-05-25
+	* add an icon for the main programme.
+
+2009-05-22
+	* plot code categories.
+
+2009-05-21
+	* improve "search file..." menu, to keep the last search pattern.
+
+2009-05-20
+	* add some tooltips of buttons in Code Tab (Tooltips under Linux
+	need RGtk2-2.12.12).
+	* font-setting for memo widget.
+
+2009-05-19
+	* Use glabel to display current project rather than a button.
+	* Improve EditFileFun to place cursor at the beginning by default.
+	* new argument x and y of gselect.list, to specify the position of the dialog widget.
+
+2009-05-18
+	* use options(widgetCoordinate=c(400,2)) to adjust the position of ViewFileFun widget etc.
+
+2009-05-17
+	* Minor improvement of GUI according to Kevin Brubeck Unhammer (see the mail list for details).
+
+2009-05-12
+	* improve UpdateFileofCaseWidget() to sort the items by time or	name.
+
+2009-05-11
+	* Could do coding within the C-cat Tab.
+	* Improvement of popup menu of Case Tab.
+
+2009-05-08
+	* add Fid argument to SearchFiles().
+	* fix bugs in addSettings() related to change of mark() etc.
+
+2009-05-07
+	* improve MemoWiget() to warning when close without saving.
+	* fix bug of EditFileFun.
+	* can handle subset of attributes only by selected subset of them.
+
+2009-05-06
+	* add arguments to UpdateTableWidget() to sort the items according to name or time -> by default, f-cat and c-cat are sorted by name.
+	* Can edit a selected file (popup menu of Files/Case/F-cat Tab).
+	* ShowSubset is generic now.
+
+2009-05-05
+	* add new argument to retrieval().
+	* improvement of UpdateWidge to scroll the approriate position.
+	* Use UpdateWidge after del/rename files and codes.
+	* Improvement of add case button: Scroll to the new added case.
+	* Show file property by click .fnames_rqda .FileofCat and .FileofCase.
+	* add double click handler of journal widget.
+
+2009-05-04
+	* Project memo and journal editor will issue a dialogue if the 	memo is changed but not saved.
+	* Class button to set class of attributes.
+	* GetAttr convert the numeric variable into class of numeric.
+
+2009-05-03
+	* MemoWidget() will issue a dialogue if the memo is changed but not saved.
+	* Improvement of SearchFiles().
+	* GetFileName() and UpdateWidget(). UpdateWidget() updates the widget without accessing the database.
+
+2009-05-01
+	* mergeCodes() to merge the codings of two code, and add to popup menu of coding Tab.
+
+2009-04-27
+	* Bugfixes of HL_Case() and delete arributes button.
+	* Bugfixes: when delete a file, delete related coding, caselinkage and treefile accordingly.
+
+2009-04-26 (version 0.1-7, submitted to CRAN)
 	* "Show selected file property" popup menu.
 	* Rd file of GetCaseId, GetCaseName and RQDAQuery.
-	
+
 2009-04-24
 	* Add more to the popup menu of F-cat Tab (e.g. "move selected files to  F-cat...").
-	
+
 2009-04-21
 	* Split GetCaseId to GetCaseId and GetCaseName.
 	* New function of RQDAQuery to wrap a call to dbGetQuery.
-	
+
 2009-04-20
 	* New function of GetCaseId(): the name may be changed in the future.
-	
+
 2009-04-19
 	* New function of GetFileIdSets, can be used to do more complex conditional retrieval.
-	
+
 2009-04-18
 	* Minor bugfix related to naming with "'".
 	* Add "Clean Project" button.
-	
+
 2009-04-17
 	* Add documents of RQDA2tm.Rd,retrieval.Rd and GetAttr.Rd.
 
 2009-04-16
 	* GetFileId() can return fid of selected files now.
-	
+
 2009-04-15
 	* "Add To ..." popup menu of files.of.category Widget.
 	* bugfixes of codes Tab and Attrs Tab: now can handle code containing "'" correctly.
 	* reorganization of files: rename.r is merged to utils.R; Variables.R is renamed to Atrributes.R; AddVarWidget.R is renamed to AttributesWidget.R (rev 87).
 	* retrieval() is exported for conditional coding-retrieval.
-	
+
 2009-04-14
 	* Delete multiple files at a time now.
 	* "Delete selected file" and "rename selected file" popup menu of files.of.category Widget.
@@ -51,7 +199,7 @@
 
 2009-04-08
 	* Add journal Tab (rename button is not implemented yet).
-	
+
 2009-04-07
 	* Modify MemoWidget() to set the default fontsize as 11pt.
 	* Fix all bugs caused by change of enc(): encoding issue.
@@ -63,13 +211,13 @@
 	* gselect.list() is documented and exported.
 	* new function of GetAttr().
 	* Minor bugfix of rename() and RenameAttrButton(): handling the duplicated name correctly now.
-	
+
 2009-04-01
 	* gselect.list has two new argument: width and height.
 
 2009-03-28
 	* new function of RQDA2tm (contributed by J-P Mueller).
-	
+
 2009-03-22
 	* add memo of attributes table.
 
@@ -77,7 +225,7 @@
 	* Another critical bugfix of CaseAttrFun() and FileAttrFun().
 	* View variables of case/file.
 	* change version number to 0.1-7.
-	
+
 2009-03-20
 	* Find a word and highlight it in the open file (via popup menu in File Tab).
 	* critical bugfix of CaseAttrFun() and FileAttrFun().
@@ -85,7 +233,7 @@
 
 2009-03-19
 	* Add/modify File/Case attributes from popup menu.
-	
+
 2009-03-18
 	* upgrade databaseversion to "0.1.6" (three tables are added for attributes by UpgradeTables()).
 	* Attrs Tab for case/file attributes.
@@ -95,7 +243,7 @@
 	* Variable/Attributes of Case.
 	* Improvement of mark case button.
 	* The default order of case is alphabetical,that is sort(case).
-	
+
 2009-03-16
 	* The default order of codes is alphabetical.
 	* minor bug of "Add" buttons.
@@ -112,23 +260,23 @@
 
 2009-01-14
 	* Add citation file.
-	
+
 2009-01-09
 	* Add namespace
 	* RQDA-internal.rd is no loner needed (can be found in rev 57 or version 0.1-6)
-	
+
 2008-12-28 (as 0.1.6, submitted to CRAN)
 	* RQDA needs gWidgets (>= 0.0-31), gWidgetsRGtk2 (>= 0.0-36). Add it to DESCRIPTION file.
-	
+
 2008-12-24
 	* Fix minor bugs of "Unmark", "AddTo", and "HL_ALL" buttons.
 	* add new content to documentation.html.
-	
+
 2008-12-21
 	* Fix latex related issue in SearchFiles.rd.
 	* Fix bug of C2Info: encoding issue.
 	* Add new content to documentation.html.
-	
+
 2008-12-18 (as version 0.1.6RC3)
 	* Rename CrossTable to CrossTwo
 	* New function of CrossCode
@@ -153,7 +301,7 @@
 2008-12-12
 	* Fix bugs of SortByTime(), now should work for R < 2.8.0. Fix bug of GetCodingTable and SummaryCoding.
 	* New function of RunOnSelected. Use it to replace select.list.
-	* Now popup menu of add to case/ category can add multiple files at a time (Files Tab). 
+	* Now popup menu of add to case/ category can add multiple files at a time (Files Tab).
 	* New Coding Button: C2Info
 
 2008-12-10
@@ -162,7 +310,7 @@
 2008-12-09
 	* New functions to summary codings: SummaryCoding, GetCodingTable.
 	* Add documentation.
-	
+
 2008-12-08
 	* New function of OrderByTime() for computing time order explicitly.
 	* "Show Uncoded files only" popup menu will sort the uncoded file by imported time.
@@ -174,7 +322,7 @@
 	* new function/button to backup project
 	* fix bug in close project button
 	* Popup menu of Files Tab: "Show uncoded files only" (useful when there are large number of files).
-	
+
 2008-12-06 (rc2 of v1.6)
 	* bugfix of Freecode rename button and others.
 	* Memo in Popup menu in Files Tab.
@@ -189,29 +337,29 @@
 	* Reorganize the memo for Cases.  Now opem case memo by double-click or popup menu
 	* Unmark button for cases.
 	* Add Settings Tab, so user can change settings easily.
-	
+
 2008-12-04
-	* Better handler colors for coding and case-mark. Now can customize colors for coding-mark 
+	* Better handler colors for coding and case-mark. Now can customize colors for coding-mark
 	(set .rqda$fore.col, default is "blue") and case-mark (set .rqda$back.col, default is "gray92").
 	* Add selected file to File-category by popup menu in Files Tab.
 	* Popup menu in Cases tab to link files with selected case.
 	* Drop selected Files from Files.of.This.Case Widget by clicking popu menu.
-	
+
 2008-12-03
 	* Attached file to case by pop-up menu in Files Tab.
 	* Now can open associated files of a case from Cases Tab.
 	* new function of write.FileList() to import a batch of files.
 
-	
+
 2008-12-01
 	* enhance the rename buttons.
 	* bugfix of add buttons: continue only when click confirm in the ginput widget.
 	* New function write.FileList() to import files by batch.
 	* Enchance the retrieval2 function so coding on the file (openned by clicking back button) is possible.
-	
+
 2008-11-30
 	* fix some minor bugs.
-	
+
 2008-11-29
 	* enhancement of function list.deleted() and pdelete()
 	* better handle the encoding issue in ViewFileButton and handler for openning a file.
@@ -219,37 +367,37 @@
 	* Add doubleclick handlers to CodeOfCat and FileOfCat to retrieve coding and open file.
 	* fix typo (Thanks Adrian Dusa)
 	* fix a minor bug of CodeNamesUpdate() and new_proj().
-	
+
 2008-11-25
 	* Take care of the warning from R CMD check
-	
+
 2008-11-24
 	* Can back to the original file from Retrieved text chunck (by retrieval2 function).
-	
+
 2008-11-23 (as version 0.1.5)
 	* Add AddTo/DropFrom Buttons for Code-Category.
 	* Improve the display of retrieved coding.
-	
+
 2008-11-22
 	* change "Add Code Category" Button to popup menu
 	* Open selected file by double click.
 	* Retrieve coding chuck by double click.
 	* Add/rename/delete Buttons for Code-Category.
-	
+
 2008-11-21
 	* Add WebSearch Case button (for convienence)
 	* Add "Add Code Category" Button
-	
+
 2008-11-19 (as verion 0.1.4)
 	* Add project memo
 	* rename of file/free code names
 	* reorganize the code for memo(s)
 	* Handle Encoding better (use UTF-8 for storage in date base)
 	* Add cases category
-	
+
 2008-11-01(as version 0.1.3)
 	* Add functionality of file/code/coding memo.
-	
+
 2008-10-31
 	* Add functionality of delete selected code.
 	* Add helper functions to show the temp deleted file/code/coding.
@@ -265,7 +413,7 @@
 2008-5-17
 	* Open coding text chunk is added.
 	* "Unmark" button works now.
-	
+
 2008-5-14
 	* Use /R/sysdata.rda to store meta data such as .rqda environment, so no need to generate it in .GlobalEnv.
 	* Add RQDA-package.rd in /man.

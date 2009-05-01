@@ -1,7 +1,10 @@
-export(CleanProject,CrossCode,CrossTwo,gselect.list,GetAttr,GetCaseId,GetCaseName,
-       GetCodingTable,GetFileId,GetFileIdSets,
-       list.deleted,pdelete,relation,retrieval,RQDA,RQDA2tm,RQDAQuery,
+export(CleanProject,CrossCode,CrossTwo,ExportCoding,gselect.list,GetAttr,GetCaseId,GetCaseName,
+       GetCodingTable,GetFileId,GetFileIdSets,GetFileName,
+       list.deleted,pdelete,Query,relation,retrieval,RQDA,RQDA2tm,RQDAQuery,
        SearchFiles,ShowSubset,SummaryCoding,undelete,write.FileList)
 S3method(print,SummaryCoding)
+S3method(ShowSubset,default)
+S3method(ShowSubset,CaseAttr)
+S3method(ShowSubset,FileAttr)
 import(RGtk2)
-
+import(gWidgetsRGtk2)

@@ -1,17 +1,22 @@
 \name{GetFileId}
 \alias{GetFileId}
+\alias{GetFileName}
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{ Get the id of files list }
+\title{ Get the ids or names of files list }
 \description{
-  Get the id of files list.
+  Get the ids or names of files list.
 }
 \usage{
-GetFileId(condition = c("unconditional", "case", "filecategory"), type = c("all", "coded", "uncoded","selected"))
+GetFileId(condition = c("unconditional", "case", "filecategory"), type =
+c("all", "coded", "uncoded","selected"))
+
+GetFileName(fid = GetFileId())
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{condition}{Any one of "unconditional", "case" or "filecategory".}
   \item{type}{Any one of "all", "coded" or "uncoded","selected".}
+  \item{fid}{integer vector, the id of files.}
 }
 \details{
   The imported files are stored in a data base table (called source) in

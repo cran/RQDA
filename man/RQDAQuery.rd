@@ -17,11 +17,11 @@ RQDAQuery(sql)
   }
 }
 \details{
-  It is a wrapped version of \code{\link[RSQLite]{dbGetQuery}}, to make it more
+  It is a wrapped version of \code{\link[RSQLite]{dbSendQuery-methods}}, to make it more
   convenient to submit and execute a SQL statement.
 }
 \value{
-  The same of \code{\link[RSQLite]{dbGetQuery}}, possible NULL (for the side effects of
+  The same of \code{\link[RSQLite]{dbSendQuery-methods}}, possible NULL (for the side effects of
   sql on the *.rqda file) or a data.frame with the output (if any) of
   the query.
 }
@@ -32,7 +32,7 @@ RQDAQuery(sql)
 HUANG Ronggui
 }
 \seealso{
-   See Also as \code{\link[RSQLite]{dbGetQuery}}
+   See Also as \code{\link[RSQLite]{dbSendQuery-methods}}
 }
 \examples{
 \dontrun{

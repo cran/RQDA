@@ -6,12 +6,15 @@
 Get the attributes of case or file.
 }
 \usage{
-GetAttr(type = c("case", "file"))
-ShowSubset(x)
+GetAttr(type = c("case", "file"),attrs = svalue(.rqda$.AttrNamesWidget))
+
+ShowSubset(x,...)
 }
 \arguments{
   \item{type}{Type of attributes.}
+  \item{attrs}{character vector, subset of attributes to retrieve.}
   \item{x}{an object from \code{GetAttr}}
+  \item{\ldots}{Not used currently.}
 }
 \details{
 You can add and modify the attributes of cases or files. \code{GetAttr}

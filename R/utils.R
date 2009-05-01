@@ -18,12 +18,43 @@ rename <- function(from,to,table=c("source","freecode","cases","codecat","fileca
   }
 }
 
+UpdateWidget <- function(widget,from,to=NULL){
+  ## widget is character of length 1.
+  items <- eval(parse(text=sprintf(".rqda$%s[]",widget)))
+  if (length(items)!= 0){
+    Encoding(items) <- "UTF-8"
+    idx <- as.character(which(items %in%  from[1])) ## note the position, before manipulation of items
+    if (is.null(to)) {
+      items <- items[! items %in% from]
+    } else {
+      if (length(from) == length(to))
+        items[items %in% from] <- to
+    }
+    ## eval(parse(text=sprintf(".rqda$%s[] <- items",widget)))
+    tryCatch(eval(parse(text = sprintf(".rqda$%s[] <- items", widget))),
+             error = function(e) cat("warning msg from the replacement.\n"))
+    path <-gtkTreePathNewFromString(idx)
+    gtkTreeViewScrollToCell(slot(slot(get(widget,env=.rqda),"widget"),"widget"),
+                            path,use.align=TRUE,row.align = 0.07)
+  }
+}
+
+ScrollToItem <- function(widget,item=svalue(widget)){
+  items <- widget[]
+  if (length(items)!= 0){
+    Encoding(items) <- "UTF-8"
+    idx <- as.character(which(items %in% item) - 1)
+    if (length(idx)!=0){
+      path <-gtkTreePathNewFromString(idx)
+      gtkTreeViewScrollToCell(slot(slot(widget,"widget"),"widget"), path,use.align=TRUE,row.align = 0.07)
+    }}}
+
 enc <- function(x,encoding="UTF-8") {
   ## replace " with two '. to make insert smoothly.
   ## encoding is the encoding of x (character vector).
   Encoding(x) <- encoding
   x <- gsub("'", "''", x)
-  if (Encoding(x)!="UTF-8") {
+  if (all(Encoding(x)!="UTF-8")) {
     x <- iconv(x,to="UTF-8")
   }
   x
@@ -53,57 +84,75 @@ OrderByTime <- function(date,decreasing = FALSE)
 MemoWidget <- function(prefix,widget,dbTable){
   ## prefix of window tile. E.g. "Code" ->  tile of gwindow becomes "Code Memo:"
   ## widget of the F-cat/C-cat list, such as widget=.rqda$.fnames_rqda
-  
+
   if (is_projOpen(env=.rqda,"qdacon")) {
       Selected <- svalue(widget)
       if (length(Selected)==0){
         gmessage("Select first.",icon="error",con=TRUE)
       }
       else {
-        tryCatch(eval(parse(text=sprintf("dispose(.rqda$.%smemo)",prefix))),error=function(e) {})
-        assign(sprintf(".%smemo",prefix),gwindow(title=sprintf("%s Memo:%s",prefix,Selected),
-                                   parent=c(395,10),width=600,height=600),env=.rqda)
-        assign(sprintf(".%smemo2",prefix),
-               gpanedgroup(horizontal = FALSE, con=get(sprintf(".%smemo",prefix),env=.rqda)),
-               env=.rqda)
-        gbutton("Save Memo",con=get(sprintf(".%smemo2",prefix),env=.rqda),handler=function(h,...){
-          newcontent <- svalue(W)
-          ## Encoding(newcontent) <- "UTF-8"
-          newcontent <- enc(newcontent,encoding="UTF-8") ## take care of double quote.
-          ## Encoding(Selected) <- "UTF-8"
-          Selected <- enc(Selected,encoding="UTF-8")
-          dbGetQuery(.rqda$qdacon,sprintf("update %s set memo='%s' where name='%s'",dbTable,newcontent,Selected))
-        }
-                )## end of save memo button
-        tmp <- gtext(container=get(sprintf(".%smemo2",prefix),env=.rqda))
-        font <- pangoFontDescriptionFromString("Sans 10")
-        gtkWidgetModifyFont(tmp@widget@widget,font)## set the default fontsize
-        assign(sprintf(".%smemoW",prefix),tmp,env=.rqda)
-        prvcontent <- dbGetQuery(.rqda$qdacon, sprintf("select memo from %s where name='%s'",dbTable,Selected))[1,1]
-        if (is.na(prvcontent)) prvcontent <- ""
-        Encoding(prvcontent) <- "UTF-8"
-        W <- get(sprintf(".%smemoW",prefix),env=.rqda)
-        ## add(W,prvcontent,font.attr=c(sizes="large"),do.newline=FALSE)
-        add(W,prvcontent,do.newline=FALSE)
-      }
-    }
-  }
+          CloseYes <- function(currentCode){
+              withinWidget <- svalue(get(sprintf(".%smemoW",prefix),env=.rqda))
+              InRQDA <- dbGetQuery(.rqda$qdacon, sprintf("select memo from %s where name='%s'",dbTable, currentCode))[1, 1]
+              if (isTRUE(all.equal(withinWidget,InRQDA))) {
+                  return(TRUE) } else {
+                      val <- gconfirm("The memo has bee change, Close anyway?",con=TRUE)
+                      return(val)
+                  }
+          } ## helper function
+          IsOpen <- tryCatch(eval(parse(text=sprintf("svalue(.rqda$.%smemoW)",prefix))),error=function(e) simpleError("No opened memo widget."))
+          if (!inherits(IsOpen,"simpleError")){ ## if a widget is open
+              prvSelected <- sub(sprintf("^%s Memo:",prefix),"",enc(svalue(get(sprintf(".%smemo",prefix),env=.rqda)),"UTF-8"))
+              prvSelected <- iconv(prvSelected,to="UTF-8")
+              IfCont <- CloseYes(currentCode=prvSelected)}
+          if ( inherits(IsOpen,"simpleError") || IfCont){ ## if not open or the same.
+              tryCatch(eval(parse(text=sprintf("dispose(.rqda$.%smemo)",prefix))),error=function(e) {})
+              gw <- gwindow(title=sprintf("%s Memo:%s",prefix,Selected),
+                     parent=getOption("widgetCoordinate"),width=600,height=600)
+              mainIcon <- system.file("icon", "mainIcon.png", package = "RQDA")
+              gw@widget@widget$SetIconFromFile(mainIcon)
+              assign(sprintf(".%smemo",prefix),gw,env=.rqda)
+              assign(sprintf(".%smemo2",prefix),
+                     gpanedgroup(horizontal = FALSE, con=get(sprintf(".%smemo",prefix),env=.rqda)),
+                     env=.rqda)
+              gbutton("Save Memo",con=get(sprintf(".%smemo2",prefix),env=.rqda),handler=function(h,...){
+                  newcontent <- svalue(W)
+                  ## Encoding(newcontent) <- "UTF-8"
+                  newcontent <- enc(newcontent,encoding="UTF-8") ## take care of double quote.
+                  ## Encoding(Selected) <- "UTF-8"
+                  Selected <- enc(Selected,encoding="UTF-8")
+                  dbGetQuery(.rqda$qdacon,sprintf("update %s set memo='%s' where name='%s'",dbTable,newcontent,Selected))
+              }
+                      )## end of save memo button
+              tmp <- gtext(container=get(sprintf(".%smemo2",prefix),env=.rqda))
+              font <- pangoFontDescriptionFromString(.rqda$font)
+              gtkWidgetModifyFont(tmp@widget@widget,font)## set the default fontsize
+              assign(sprintf(".%smemoW",prefix),tmp,env=.rqda)
+              prvcontent <- dbGetQuery(.rqda$qdacon, sprintf("select memo from %s where name='%s'",dbTable,Selected))[1,1]
+              if (is.na(prvcontent)) prvcontent <- ""
+              Encoding(prvcontent) <- "UTF-8"
+              W <- get(sprintf(".%smemoW",prefix),env=.rqda)
+              ## add(W,prvcontent,font.attr=c(sizes="large"),do.newline=FALSE)
+              add(W,prvcontent,do.newline=FALSE)
+              ## add handler to make sure the change is not lost when closed
+              addHandlerUnrealize(get(sprintf(".%smemo",prefix),env=.rqda),handler <- function(h,...)  {!CloseYes(Selected)})
+          }}}}
 
 ## summary coding information
 GetCodingTable <- function(){
   ## test when any table is empty
   ## http://archives.postgresql.org/pgsql-sql/2004-01/msg00160.php
   if ( isIdCurrent(.rqda$qdacon)) {
-   ## Codings <- dbGetQuery(.rqda$qdacon,"select freecode.name as codename, freecode.id as cid, 
+   ## Codings <- dbGetQuery(.rqda$qdacon,"select freecode.name as codename, freecode.id as cid,
    ##         coding.cid as cid2,coding.fid as fid,source.id as fid2, source.name as filename,
    ##         coding.selend - coding.selfirst as CodingLength,coding.selend, coding.selfirst
-   ##         from coding, freecode, source 
+   ##         from coding, freecode, source
    ##         where coding.status==1 and freecode.id=coding.cid and coding.fid=source.id")
    Codings <- dbGetQuery(.rqda$qdacon,"select coding.cid, coding.fid, freecode.name as codename, source.name as filename,
                                        coding.selfirst as index1, coding.selend as index2,
                                        coding.selend - coding.selfirst as CodingLength
                                       from coding left join freecode on (coding.cid=freecode.id)
-                                                  left join source on (coding.fid=source.id) 
+                                                  left join source on (coding.fid=source.id)
                                       where coding.status==1 and source.status=1 and freecode.status=1")
 
     if (nrow(Codings)!=0){
@@ -156,39 +205,28 @@ print.SummaryCoding <- function(x,...){
 }
 
 
-SearchFiles <- function(pattern,content=FALSE,Widget=NULL,is.UTF8=FALSE){
+SearchFiles <- function(pattern,content=FALSE,Fid=NULL,Widget=NULL,is.UTF8=FALSE){
 ##SearchFiles("file like '%新民晚报%'")
 ##SearchFiles("name like '%物权法%'")
 ##SearchFiles("file like '%新民晚报%'",Widget=.rqda$.fnames_rqda)
-  if ( isIdCurrent(.rqda$qdacon)) {
-if(!is.UTF8){
-pattern <- iconv(pattern,to="UTF-8")
+    if ( isIdCurrent(.rqda$qdacon)) {
+        if(!is.UTF8){ pattern <- iconv(pattern,to="UTF-8")}
+        Encoding(pattern) <- "unknown"
+        if (!is.null(Fid)) pattern <- sprintf("(%s) and id in (%s)",pattern,paste(shQuote(Fid),collapse=","))
+        if (content){
+            ans <- dbGetQuery(.rqda$qdacon,sprintf("select id, name,file from source where status==1 and %s",pattern))
+        } else {
+            ans <- dbGetQuery(.rqda$qdacon,sprintf("select id, name from source where status==1 and %s",pattern))
+        }
+        if (nrow(ans)>0) Encoding(ans$name) <- "UTF-8"
+        if (!is.null(ans$file)) Encoding(ans$file) <- "UTF-8"
+        if (!is.null(Widget))  {
+            eval(parse(text=sprintf(".rqda$%s[] <- ans$name",Widget)))
+            ## eval(substitute(widget[] <- ans$name,list(widget=quote(Widget))))
+        }
+        invisible(ans)
+    } else cat("Open a project first.\n")
 }
-Encoding(pattern) <- "unknown"
-if (content){
-ans <- dbGetQuery(.rqda$qdacon,sprintf("select id, name,file from source where status==1 and %s",pattern))
-} else {
-ans <- dbGetQuery(.rqda$qdacon,sprintf("select id, name from source where status==1 and %s",pattern))
-}
-if (nrow(ans)>0) Encoding(ans$name) <- "UTF-8"
-if (!is.null(ans$file)) Encoding(ans$file) <- "UTF-8"
-if (!is.null(Widget)) eval(substitute(widget[] <- ans$name,list(widget=quote(Widget))))
-invisible(ans)
-  } else cat("Open a project first.\n")
-}
-
-## select <- function(x,multiple=TRUE,title=NULL,...){
-## ## select a method for selecting items conditional on the OS, to maxizied the chance of GUI-style of selection.
-## ## use as replacement of  select.list.
-##   if (.Platform$OS.type == "unix" && capabilities("tcltk") && capabilities("X11"))
-##     {
-##       ans <- tcltk::tk_select.list(x,multiple=multiple,title=title,...)
-##     } else {
-##       ans <- select.list(x,multiple=multiple,title=title,...)
-##     }
-##   return(list(selected=ans))
-## }
-
 
 RunOnSelected <- function(x,multiple=TRUE,expr,enclos,title=NULL,...){
   if (is.null(title)) title <- ifelse(multiple,"Select one or more","Select one")
@@ -216,17 +254,50 @@ RunOnSelected <- function(x,multiple=TRUE,expr,enclos,title=NULL,...){
 }
 
 
-gselect.list <- function(list,multiple=TRUE,title=NULL,width=200, height=500,...){
+gselect.list <- function(list,multiple=TRUE,title=NULL,width=200, height=500,x=420,y=2,...){
   ## gtk version of select.list()
   ## Thanks go to John Verzani for his help.
   title <- ifelse(multiple,"Select one or more","Select one")
-  
   helper <- function(){
     ans<-new.env()
     x1<-ggroup(horizontal=FALSE) # no parent container here
     x2<-gtable(list,multiple=multiple,con=x1,expand=TRUE)
     gtkWidgetSetSizeRequest(x1@widget@widget, width=width, height=height)
-    ret <- gbasicdialog(title=title,widget=x1,handler=function(h,...){
+    gbasicdialog2 <- function(title="Dialog",widget,action=NULL,handler=NULL,x,y,..., toolkit=guiToolkit()){
+      parent <- gtkWindowNew(show=FALSE) ## modified from gbasicdialog of gWidgetRGtk2
+      dlg = gtkDialog(title,
+        parent=parent,
+        c("modal"),
+        "gtk-cancel", GtkResponseType["cancel"],
+        "gtk-ok", GtkResponseType["ok"])
+      dlg$SetTitle(title)
+      dlg$GrabFocus()
+      dlg$GetWindow()$Move(as.integer(x),as.integer(y))
+      dlg$GetWindow()$Raise()
+      tag(widget,"dlg") <- dlg
+      group = ggroup()
+      add(group, widget, expand=TRUE)
+      dlg$GetVbox()$PackStart(group@widget@block)
+      response = dlg$Run()
+      h = list(obj=widget, action=action)
+      if(response == GtkResponseType["cancel"] ||
+         response == GtkResponseType["close"] ||
+         response == GtkResponseType["delete-event"]) {
+        dlg$Destroy()
+        return(FALSE)
+      } else if(response == GtkResponseType["ok"]) {
+        if(!is.null(handler))
+          handler(h)
+        dlg$Destroy()
+        return(TRUE)
+      } else {
+        gwCat("Don't know this response")
+        print(response)
+        dlg$Destroy()
+        invisible(NA)
+      }
+    }
+    ret <- gbasicdialog2(title=title,widget=x1,x=x,y=y,handler=function(h,...){
       value <- svalue(x2)
       assign("selected",value,env=h$action$env)
       dispose(x1)
@@ -248,6 +319,12 @@ gselect.list <- function(list,multiple=TRUE,title=NULL,width=200, height=500,...
 ##x<-list(1:3,3:5,6:3)
 ##intersect2(x)
 
+GetFileName <- function(fid=GetFileId()){
+  ans <-  dbGetQuery(.rqda$qdacon,sprintf("select name from source where status=1 and id in (%s)",paste(shQuote(fid),collapse=",")))$name
+  if (length(ans)>0) Encoding(ans) <- "UTF-8"
+  ans}
+
+
 GetCaseId <- function(fid=GetFileId(),nFiles=FALSE){
   ## if (caseName){
   if (nFiles) {
@@ -262,28 +339,71 @@ GetCaseId <- function(fid=GetFileId(),nFiles=FALSE){
   ans
 }
 
+
 GetCaseName <- function(caseId=GetCaseId(nFiles=FALSE)){
   ans <-  dbGetQuery(.rqda$qdacon,sprintf("select name from cases where status=1 and id in (%s)",paste(shQuote(caseId),collapse=",")))$name
   if (length(ans)>0) Encoding(ans) <- "UTF-8"
   ans
 }
 
-RQDAQuery <- function(sql){
-  ans <- dbGetQuery(.rqda$qdacon,sql)
-  ans
+RQDAQuery <- function(sql){dbGetQuery(.rqda$qdacon,sql)}
+
+ShowSubset <- function(x,...){
+  UseMethod("ShowSubset")
+}
+ShowSubset.default <- function(x,widget=".rqda$.fnames_rqda",...){
+  widget <- substitute(widget)
+  eval(parse(text=sprintf("%s[] <- x",widget)))
+}
+ShowSubset.CaseAttr <- function(x,...){
+  tryCatch(.rqda$.CasesNamesWidget[] <- x$case, error = function(e) {})
+}
+ShowSubset.FileAttr <- function(x,...){
+  tryCatch(.rqda$.fnames_rqda[] <- x$file, error = function(e) {})
 }
 
-## ShowSubset <- function(name=NULL,widget=NULL,...){
-##   UseMethod("ShowSubset")
-## }
-## ShowSubset.default <- function(name=NULL,widget=NULL,...){
-##   widget[] <- name
-## }
+
+ShowFileProperty <- function(Fid = GetFileId(,"selected"),focus=TRUE) {
+  if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
+    if (is.null(Fid)) val <- "No files are selected."
+    if (length(Fid)==1) {
+      Fcat <- RQDAQuery(sprintf("select name from filecat where catid in (select catid from treefile where fid=%i and status=1) and status=1",Fid))$name
+      Case <- RQDAQuery(sprintf("select name from cases where id in (select caseid from caselinkage where fid=%i and status=1) and status=1",Fid))$name
+      if (!is.null(Fcat)) Encoding(Fcat) <- "UTF-8"
+      if (!is.null(Case)) Encoding(Case) <- "UTF-8"
+      fcat <- paste(strwrap(sprintf("File Category is %s",paste(shQuote(Fcat),collapse=",\n")),105,exdent=4),collpase="\n")
+      val <- sprintf(" File ID is %i \n %s Case is %s",Fid,fcat,paste(shQuote(Case),collapse=", "))
+    }
+    if (length(Fid)>1) val <- "Please select one file only."
+    tryCatch(svalue(.rqda$.sfp) <- val,error=function(e){
+      gw <- gwindow("File Property",parent=getOption("widgetCoordinate")+c(0,635),width=600,height=50)
+      mainIcon <- system.file("icon", "mainIcon.png", package = "RQDA")
+      gw@widget@widget$SetIconFromFile(mainIcon)
+      sfp <- glabel(val,cont=gw)
+      assign(".sfp",sfp,env=.rqda)
+      "focus<-"(gw,value=focus)
+    })
+  }}
 
 
-ShowSubset <- function(x){
-## change name from PushBack to ShowSubset()
- if (inherits(x,"CaseAttr")) tryCatch(.rqda$.CasesNamesWidget[] <- x$case, error = function(e) {})
- if (inherits(x,"FileAttr")) tryCatch(.rqda$.fnames_rqda[] <- x$file, error = function(e) {})
- if (inherits(x,"CaseId") && isTRUE(attr(x,"caseName"))) tryCatch(.rqda$.CasesNamesWidget[] <- x$name, error = function(e) {})
+Query <- function(or,and=NULL,not=NULL){
+ or <- gsub("or",",",or)
+ if (!is.null(and))  and <- gsub("or",",",and)
+ if (!is.null(not))  not <- gsub("or",",",not)
+  fnamesOR <- RQDAQuery(sprintf("select name from source where status==1 and id in (
+select fid from coding where cid in %s and status==1 group by fid)",or))$name
+ if (!is.null(and)){
+ fnamesAND <- RQDAQuery(sprintf("select name from source where status==1 and id in (
+select fid from coding where cid in %s and status==1 group by fid)",and))$name
+ } else  fnamesAND <- fnamesOR
+ if (!is.null(not)) {
+  fnamesNOT <- RQDAQuery(sprintf("select name from source where status==1 and id in (
+select fid from coding where cid in %s and status==1 group by fid)",not))$name
+} else  fnamesNOT <- NULL
+fnames <- setdiff(intersect(fnamesOR,fnamesAND),fnamesNOT)
+  if (!is.null(fnames)){
+    fnames <- enc(fnames,"UTF-8")
+    .rqda$.fnames_rqda[] <- fnames
+  }
+  invisible(fnames)
 }

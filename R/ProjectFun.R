@@ -2,7 +2,7 @@ new_proj <- function(path, conName="qdacon",assignenv=.rqda,...){
   ## sucess <- file.create(tmpNamme <- tempfile(pattern = "file", tmpdir = dirname(path)))
   sucess <- (file.access(names=dirname(path),mode=2)==0)
   if (!sucess) {
-    gmessage("No write permission.",icon="error",container=TRUE) 
+    gmessage("No write permission.",icon="error",container=TRUE)
   }
   else{
     ## unlink(tmpNamme)
@@ -19,10 +19,10 @@ new_proj <- function(path, conName="qdacon",assignenv=.rqda,...){
     if (!fexist | override ){
       ## close con in assignmenv first.
       tryCatch(close_proj(conName=conName,assignenv=assignenv),error=function(e){})
-      
+
       assign(conName,dbConnect(drv=dbDriver("SQLite"),dbname=path),envir=assignenv)
       con <- get(conName,assignenv)
-      
+
       if (dbExistsTable(con,"source")) dbRemoveTable(con, "source")
       ## interview record
       dbGetQuery(con,"create table source (name text, id integer,
@@ -58,10 +58,12 @@ new_proj <- function(path, conName="qdacon",assignenv=.rqda,...){
                                             selfirst real, selend real, status integer,
                                             owner text, date text, memo text)")
       if (dbExistsTable(con,"project")) dbRemoveTable(con, "project")
-      ## coding: information about the project
-      dbGetQuery(con,"create table project  (encoding text, databaseversion text, date text,dateM text,
-                                             memo text,BOM integer)")
-      dbGetQuery(con,sprintf("insert into project (databaseversion,date,memo) values ('0.1.6','%s','')",date()))
+      ##dbGetQuery(con,"create table project  (encoding text, databaseversion text, date text,dateM text,
+      ##                                       memo text,BOM integer)")
+      dbGetQuery(con,"create table project  (databaseversion text, date text,dateM text,
+                                             memo text,about text)")
+      dbGetQuery(con,sprintf("insert into project (databaseversion,date,about,memo) values ('0.1.8','%s',
+                            'Database created by RQDA (http://rqda.r-forge.r-project.org/)','')",date()))
       if (dbExistsTable(con,"cases")) dbRemoveTable(con, "cases")
       dbGetQuery(con,"create table cases  (name text, memo text,
                                            owner text,date text,dateM text,
@@ -70,7 +72,7 @@ new_proj <- function(path, conName="qdacon",assignenv=.rqda,...){
       dbGetQuery(con,"create table caselinkage  (caseid integer, fid integer,
                                                 selfirst real, selend real, status integer,
                                             owner text, date text, memo text)")
-
+      
       if (dbExistsTable(con,"attributes")) dbRemoveTable(con, "attributes")
       dbGetQuery(.rqda$qdacon,"create table attributes (name text, status integer, date text, dateM text, owner text,memo text)")
       if (dbExistsTable(con,"caseAttr")) dbRemoveTable(con, "caseAttr")
@@ -79,6 +81,13 @@ new_proj <- function(path, conName="qdacon",assignenv=.rqda,...){
       dbGetQuery(.rqda$qdacon,"create table fileAttr (variable text, value text, fileID integer, date text, dateM text, owner text)")
       if (dbExistsTable(con,"journal")) dbRemoveTable(con, "journal")
       dbGetQuery(.rqda$qdacon,"create table journal (name text, journal text, date text, dateM text, owner text,status integer)")
+      RQDAQuery("alter table project add column imageDir text")
+      try(RQDAQuery("alter table attributes add column class text"),TRUE)
+      RQDAQuery("alter table caseAttr add column status integer")
+      RQDAQuery("alter table fileAttr add column status integer")
+      try(RQDAQuery("create table annotation (fid integer,position integer,annotation text, owner text, date text,dateM text, status integer)"),TRUE)
+      RQDAQuery("create table image (name text, id integer, date text, dateM text, owner text,status integer)")
+      RQDAQuery("create table imageCoding (cid integer,iid integer,x1 integer, y1 integer, x2 integer, y2 integer, memo text, date text, dateM text, owner text,status integer)")
     }
   }
 }
@@ -100,10 +109,38 @@ UpgradeTables <- function(){
     ## attributes table
     dbGetQuery(.rqda$qdacon,"create table journal (name text, journal text, date text, dateM text, owner text,status integer)")
     ## journal table
-    dbGetQuery(.rqda$qdacon,"update project set databaseversion='0.1.6'")
+    RQDAQuery("alter table project add column about text")
+    dbGetQuery(.rqda$qdacon,"update project set about='Database created by RQDA (http://rqda.r-forge.r-project.org/)'")
+    dbGetQuery(.rqda$qdacon,"update project set databaseversion='0.1.8'")
     ## reset the version.
+    ## added for version 0.1.8
+    ## (no version 0.1.7 to make the version number consistent with RQDA version)
+    RQDAQuery("alter table project add column imageDir text")
+    try(RQDAQuery("alter table attributes add column class text"),TRUE)
+    RQDAQuery("alter table caseAttr add column status integer")
+    RQDAQuery("alter table fileAttr add column status integer")
+    RQDAQuery("update caseAttr set status==1")
+    RQDAQuery("update fileAttr set status==1")
+    try(RQDAQuery("create table annotation (fid integer,position integer,annotation text, owner text, date text,dateM text, status integer)"),TRUE)
+    RQDAQuery("create table image (name text, id integer, date text, dateM text, owner text,status integer)")
+    RQDAQuery("create table imageCoding (cid integer,iid integer,x1 integer, y1 integer, x2 integer, y2 integer, memo text, date text, dateM text, owner text,status integer)")
+  }
+  if (currentVersion=="0.1.6"){
+    RQDAQuery("alter table project add column about text")
+    dbGetQuery(.rqda$qdacon,"update project set about='Database created by RQDA (http://rqda.r-forge.r-project.org/)'")
+    dbGetQuery(.rqda$qdacon,"update project set databaseversion='0.1.8'")
+    RQDAQuery("alter table project add column imageDir text")
+    try(RQDAQuery("alter table attributes add column class text"),TRUE)
+    RQDAQuery("alter table caseAttr add column status integer")
+    RQDAQuery("update caseAttr set status==1")
+    RQDAQuery("alter table fileAttr add column status integer")
+    RQDAQuery("update fileAttr set status==1")
+    try(RQDAQuery("create table annotation (fid integer,position integer,annotation text, owner text, date text,dateM text, status integer)"),TRUE)
+    RQDAQuery("create table image (name text, id integer, date text, dateM text, owner text,status integer)")
+    RQDAQuery("create table imageCoding (cid integer,iid integer,x1 integer, y1 integer, x2 integer, y2 integer, memo text, date text, dateM text, owner text,status integer)")
   }
 }
+
 
 open_proj <- function(path,conName="qdacon",assignenv=.rqda,...){
   tryCatch({ con <- get(conName,assignenv)
@@ -127,9 +164,13 @@ close_proj <- function(conName="qdacon",assignenv=.rqda,...){
   tryCatch({
     con <- get(conName,assignenv)
     if (isIdCurrent(con)) {
-      if (!dbDisconnect(con)) {
+        tryCatch(dispose(.rqda$.sfp),error=function(e){})
+        tryCatch(dispose(.rqda$.root_edit),error=function(e){})
+        WidgetList <- ls(envir=RQDA:::.rqda,pattern="^[.]codingsOf",all=TRUE)
+        for (i in WidgetList) tryCatch(dispose(get(i,env=.rqda)),error=function(e){})
+        if (!dbDisconnect(con)) {
         gmessage("Closing project failed.",icon="waring",con=TRUE)
-      } 
+      }
     }
   } ,error=function(e){})
 }
@@ -142,7 +183,7 @@ is_projOpen <- function(env=.rqda,conName="qdacon",message=TRUE){
   tryCatch({
     con <- get(conName,env)
     open <- open + isIdCurrent(con)
-  } ,error=function(e){}) 
+  } ,error=function(e){})
   if (!open & message) gmessage("No Project is Open.",icon="warning",con=TRUE)
   return(open)
 }
@@ -166,7 +207,7 @@ ProjectMemoWidget <- function(){
     tryCatch(dispose(.rqda$.projmemo),error=function(e) {})
     ## Close the open project memo first, then open a new one
     ## .projmemo is the container of .projmemocontent,widget for the content of memo
-    assign(".projmemo",gwindow(title="Project Memo", parent=c(395,10),width=600,height=400),env=.rqda)
+    assign(".projmemo",gwindow(title="Project Memo", parent=getOption("widgetCoordinate"),width=600,height=400),env=.rqda)
     .projmemo <- get(".projmemo",.rqda)
     .projmemo2 <- gpanedgroup(horizontal = FALSE, con=.projmemo)
     ## use .projmemo2, so can add a save button to it.
@@ -182,7 +223,7 @@ ProjectMemoWidget <- function(){
     }
             )## end of save memo button
     tmp <- gtext(container=.projmemo2,font.attr=c(sizes="large"))
-    font <- pangoFontDescriptionFromString("Sans 10")
+    font <- pangoFontDescriptionFromString(.rqda$font)
     gtkWidgetModifyFont(tmp@widget@widget,font)
     assign(".projmemocontent",tmp,env=.rqda)
     prvcontent <- dbGetQuery(.rqda$qdacon, "select memo from project")[1,1]
@@ -198,6 +239,23 @@ ProjectMemoWidget <- function(){
     add(W,prvcontent,do.newline=FALSE)
     ## do.newline:do not add a \n (new line) at the beginning
     ## push the previous content to the widget.
+    addHandlerUnrealize(get(".projmemo",env=.rqda),handler <- function(h,...){
+      withinWidget <- svalue(get(".projmemocontent",env=.rqda))
+      InRQDA <- dbGetQuery(.rqda$qdacon, "select memo from project where rowid=1")[1, 1]
+      if (isTRUE(all.equal(withinWidget,InRQDA))) {
+        return(FALSE) } else {
+          val <- gconfirm("The memo has bee change, Close anyway?",con=TRUE)
+          return(!val)
+        }
+    }
+                        )
     }
 }
 
+close_AllCodings <- function(){
+  obj <- ls(.rqda,all=TRUE,pat="^.codingsOf")
+  if (length(obj)!=0) {
+    for (i in obj){tryCatch(dispose(get(i,env=.rqda)),error=function(e){})
+                 }
+  }
+}
