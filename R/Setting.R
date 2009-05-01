@@ -33,7 +33,12 @@ Setting <- list(type = "ggroup",
                             label = "Color for Case",
                             type = "gedit",width=width,
                             text = .rqda$back.col
-                            )
+                            ),
+                      list(name = "TOR",
+                           type="gcombobox",
+                           label = "Type of retrieval",
+                           items = c(.rqda$TOR, "case", "filecategory")
+                           )
                        )
                      )
                 )
@@ -61,10 +66,12 @@ addHandlerChanged(resetButton, function(h,...) {
   tryCatch(svalue(SettingFL[]$owner) <- "default",error=function(e){})
   tryCatch(svalue(SettingFL[]$back.col) <- "gray92",error=function(e){})
   tryCatch(svalue(SettingFL[]$fore.col) <- "blue",error=function(e){})
+  tryCatch(svalue(SettingFL[]$TOR) <- "unconditional",error=function(e){})
   assign("BOM",FALSE,env=.rqda)
   assign("encoding","unknown",env=.rqda)
   assign("owner","default",env=.rqda)
   assign("back.col","gray92",env=.rqda)
   assign("fore.col","blue",env=.rqda)
+  assign("TOR","unconditional",env=.rqda)
 })}
 

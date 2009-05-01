@@ -2,8 +2,9 @@ AddCaseButton <- function(label="ADD"){
   gbutton(label,handler=function(h,...) {
     if (is_projOpen(env=.rqda,conName="qdacon")) {
       CaseName <- ginput("Enter new Case Name. ", icon="info")
-      if (CaseName!="") {
-        Encoding(CaseName) <- "UTF-8"
+      if (!is.na(CaseName)) {
+        ## Encoding(CaseName) <- "UTF-8"
+        CaseName <- enc(CaseName,encoding="UTF-8")
         AddCase(CaseName)
         CaseNamesUpdate()
       }
@@ -21,7 +22,8 @@ DeleteCaseButton <- function(label="Delete"){
               del <- gconfirm("Really delete the Case?",icon="question")
               if (isTRUE(del)){
                 SelectedCase <- svalue(.rqda$.CasesNamesWidget)
-                Encoding(SelectedCase) <- "UTF-8"
+                ## Encoding(SelectedCase) <- "UTF-8"
+                SelectedCase <- enc(SelectedCase, "UTF-8")
                 caseid <- dbGetQuery(.rqda$qdacon,sprintf("select id from cases where name=='%s'",SelectedCase))$id
                 dbGetQuery(.rqda$qdacon,sprintf("update cases set status=0 where name=='%s'",SelectedCase))
                 ## set status in table freecode to 0
@@ -42,13 +44,14 @@ Case_RenameButton <- function(label="Rename",CaseNamesWidget=.rqda$.CasesNamesWi
       ## if project is open, then continue
       selectedCaseName <- svalue(CaseNamesWidget)
       if (length(selectedCaseName)==0){
-        gmessage("Select a Case first.",text=selectedCaseName,icon="error",con=TRUE)
+        gmessage("Select a Case first.",icon="error",con=TRUE)
       }
       else {
         ## get the new file names
         NewName <- ginput("Enter new Case name. ", text=selectedCaseName, icon="info")
-        if (NewName != ""){
-          Encoding(NewName) <- "UTF-8"
+        if (!is.na(NewName)){
+          NewName <- enc(NewName,"UTF-8")
+          selectedCaseName <- enc(selectedCaseName,"UTF-8")
           rename(selectedCaseName,NewName,"cases")
           CaseNamesUpdate()
         }
@@ -75,11 +78,12 @@ CaseMemoButton <- function(label="Memo",...){
                                    parent=c(370,10),width=600,height=400),env=.rqda)
         .casememo <- .rqda$.casememo
         .casememo2 <- gpanedgroup(horizontal = FALSE, con=.casememo)
+        currentCase <- enc(currentCase, encoding="UTF-8")
         gbutton("Save Case Memo",con=.casememo2,handler=function(h,...){
           newcontent <- svalue(W)
-          Encoding(newcontent) <- "UTF-8"
-          newcontent <- enc(newcontent) ## take care of double quote.
-          Encoding(currentCase) <- "UTF-8"
+          ## Encoding(newcontent) <- "UTF-8"
+          newcontent <- enc(newcontent,encoding="UTF-8") ## take care of double quote.
+          ## Encoding(currentCase) <- "UTF-8"
           dbGetQuery(.rqda$qdacon,sprintf("update cases set memo='%s' where name='%s'",newcontent,currentCase))
         }
                 )## end of save memo button
@@ -98,7 +102,10 @@ CaseMemoButton <- function(label="Memo",...){
 
 CaseMark_Button<-function(){
   gbutton("Mark",
-          handler=function(h,...) {MarkCaseFun()}
+          handler=function(h,...) {
+           MarkCaseFun()
+           UpdateFileofCaseWidget()
+          }
           )
 }
 
@@ -111,11 +118,13 @@ MarkCaseFun <- function(){
       if (ans$start != ans$end){ 
         ## when selected no text, makes on sense to do anything.
         SelectedCase <- svalue(.rqda$.CasesNamesWidget)
-        Encoding(SelectedCase) <- "UTF-8"
+        ## Encoding(SelectedCase) <- "UTF-8"
+        SelectedCase <- enc(SelectedCase,encoding="UTF-8")
         currentCid <-  dbGetQuery(con,sprintf("select id from cases where name=='%s'",
                                               SelectedCase))[,1]
         SelectedFile <- svalue(.rqda$.root_edit)
-        Encoding(SelectedFile) <- "UTF-8"
+        ##Encoding(SelectedFile) <- "UTF-8"
+        SelectedFile <- enc(SelectedFile,encoding="UTF-8")
         currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'",
                                               SelectedFile))[,1]
         ## Query of caselinkage
@@ -178,10 +187,10 @@ CaseUnMark_Button<-function(label="Unmark"){
               if (!is.null(sel_index)) {
                 SelectedCase <- svalue(.rqda$.CasesNamesWidget)
                 if (length(SelectedCase)==0) {gmessage("Select a case first.",con=TRUE)} else{
-                ## Encoding(SelectedCase) <- "UTF-8"
+                SelectedCase <- enc(SelectedCase,"UTF-8")
                 caseid <-  dbGetQuery(.rqda$qdacon,sprintf("select id from cases where name=='%s'",SelectedCase))[,1]
                 SelectedFile <- svalue(.rqda$.root_edit)
-                ## Encoding(SelectedFile) <- "UTF-8"
+                SelectedFile <- enc(SelectedFile,"UTF-8")
                 currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'", SelectedFile))[,1]
                 codings_index <-  dbGetQuery(con,sprintf("select rowid, caseid, fid, selfirst, selend from caselinkage where caseid==%i and fid==%i", caseid, currentFid))
                 ## should only work with those related to current case and current file.
@@ -223,6 +232,7 @@ CaseNamesWidgetMenu <- list()
 CaseNamesWidgetMenu$"Add File(s)"$handler <- function(h, ...) {
   if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
     SelectedCase <- svalue(.rqda$.CasesNamesWidget)
+    SelectedCase <- enc(SelectedCase,"UTF-8")
     caseid <- dbGetQuery(.rqda$qdacon,sprintf("select id from cases where status=1 and name='%s'",SelectedCase))[,1]
     freefile <-  dbGetQuery(.rqda$qdacon,"select name, id, file from source where status=1")
     fileofcase <- dbGetQuery(.rqda$qdacon,sprintf("select fid from caselinkage where status=1 and caseid=%i",caseid))
@@ -238,10 +248,10 @@ CaseNamesWidgetMenu$"Add File(s)"$handler <- function(h, ...) {
     ## The value of them depends on where they evaluated, should not placed inside RunOnSelected()
     RunOnSelected(fileoutofcase[['name']],multiple=TRUE,enclos=CurrentFrame,expr={
       if (length(Selected)> 0) {
-        Selected <- iconv(Selected,to="UTF-8")
+        Encoding(Selected) <- "UTF-8"
         fid <- fileoutofcase[fileoutofcase$name %in% Selected,"id"]
         selend <- nchar(fileoutofcase[fileoutofcase$name %in% Selected,"file"])
-        Dat <- data.frame(caseid=caseid,fid=fid,selfirst=0,selend,status=1,owner=.rqda$owner,date=date(),memo="")
+        Dat <- data.frame(caseid=caseid,fid=fid,selfirst=0,selend,status=1,owner=.rqda$owner,date=date(),memo=NA)
         dbWriteTable(.rqda$qdacon,"caselinkage",Dat,row.names=FALSE,append=TRUE)
         UpdateFileofCaseWidget()
       }})
@@ -252,6 +262,20 @@ CaseNamesWidgetMenu$"Case Memo"$handler <- function(h,...){
   if (is_projOpen(env=.rqda,conName="qdacon")) {
     MemoWidget("Case",.rqda$.CasesNamesWidget,"cases")
     ## see CodeCatButton.R  for definition of MemoWidget
+  }
+}
+CaseNamesWidgetMenu$"Add/modify Attributes..."$handler <- function(h,...){
+  if (is_projOpen(env=.rqda,conName="qdacon")) {
+    SelectedCase <- svalue(.rqda$.CasesNamesWidget)
+    if (length(SelectedCase!=0)){
+    SelectedCase <- enc(SelectedCase,"UTF-8")
+    caseid <- dbGetQuery(.rqda$qdacon,sprintf("select id from cases where status=1 and name='%s'",SelectedCase))[,1]
+    CaseAttrFun(caseId=caseid,title=SelectedCase)
+  }
+}}
+CaseNamesWidgetMenu$"View Attributes"$handler <- function(h,...){
+  if (is_projOpen(env=.rqda,conName="qdacon")) {
+   viewCaseAttr()
   }
 }
 CaseNamesWidgetMenu$"Sort by created time"$handler <- function(h,...){
@@ -301,6 +325,8 @@ FileofCaseWidgetMenu$"Drop Selected File(s)"$handler <- function(h, ...) {
       if (isTRUE(del)){
         SelectedCase <- svalue(.rqda$.CasesNamesWidget)
         ## Encoding(SelectedCase) <- Encoding(FileOfCat)<- "UTF-8"
+        SelectedCase <- enc(SelectedCase,"UTF-8")
+        FileOfCat <- enc(FileOfCat,"UTF-8")
         caseid <- dbGetQuery(.rqda$qdacon,sprintf("select id from cases where status=1 and name='%s'",SelectedCase))[,1]
         for (i in FileOfCat){
           fid <- dbGetQuery(.rqda$qdacon,sprintf("select id from source where status=1 and name='%s'",i))[,1]
@@ -333,5 +359,16 @@ if (is_projOpen(env=.rqda,conName="qdacon")) {
    fid <- GetFileId(condition="case",type="all")
    FileNameWidgetUpdate(FileNamesWidget=.rqda$.FileofCase,FileId=fid)
  }
+}
+FileofCaseWidgetMenu$"Show Selected File Property"$handler <- function(h, ...) {
+  if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
+    Fid <- GetFileId("case","selected")
+    Fcat <- RQDAQuery(sprintf("select name from filecat where catid in (select catid from treefile where fid=%i and status=1) and status=1",Fid))$name
+    Case <- RQDAQuery(sprintf("select name from cases where id in (select caseid from caselinkage where fid=%i and status=1) and status=1",Fid))$name
+    if (!is.null(Fcat)) Encoding(Fcat) <- "UTF-8"
+    if (!is.null(Case)) Encoding(Case) <- "UTF-8"
+    glabel(sprintf(" File ID is %i \n File Category is %s\n Case is %s",
+                   Fid,paste(shQuote(Fcat),collapse=", "),paste(shQuote(Case),collapse=", ")),cont=TRUE)
+  }
 }
 

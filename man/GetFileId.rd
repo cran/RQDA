@@ -6,21 +6,31 @@
   Get the id of files list.
 }
 \usage{
-GetFileId(condition = c("unconditional", "case", "filecategory"), type = c("all", "coded", "uncoded"))
+GetFileId(condition = c("unconditional", "case", "filecategory"), type = c("all", "coded", "uncoded","selected"))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{condition}{Any one of "unconditional", "case" or "filecategory".}
-  \item{type}{Any one of "all", "coded" or "uncoded".}
+  \item{type}{Any one of "all", "coded" or "uncoded","selected".}
 }
 \details{
-  The imported files are stored in a data base table (called source) in the *.rqda file. Every file in the source table has a unique id. Besides, a: every file can be assigned to a case or file category. b: they may be either coded or uncoded. \code{GetFileId} return the id of files which fit the combined criterion of a and b. The argument "condition" describe the criterion of a, and "type" describes that of b. When "condition" is "case" or "filecategory", \code{GetFileId} returns the id of files associated with the selected case or file category, which means you have to select a case or file category; otherwise the result is NULL.
+  The imported files are stored in a data base table (called source) in
+  the *.rqda file. Every file in the source table has a unique
+  id. Besides, every file can be assigned to a case or file category.
+
+  Given that files meet the \code{condition}, the \code{type} argument
+  "all" means all files, "coded" means the coded files, "uncoded" means
+  the uncoded files and "selected" means the selected files; in "files"
+  widget, "files of case" widget and "files of category" widget respectively.
+  
+  \code{GetFileId} returns the id of files which fit the combined
+  criterion of \code{condition} and \code{type}.
 }
 \value{
 Normally, it is a numeric vector of file id. If condition is "case" or "filecategory" but no case or file category is selected, it retuns NULL.
 }
 \author{ HUANG Ronggui}
-%\seealso{ ~~objects to See Also as \code{\link{help}}, ~~~ }
+\seealso{ \code{\link{retrieval}}, \code{\link{GetFileIdSets}}}
 \examples{
 \dontrun{
 GetFileId() ## Id of all files
@@ -29,7 +39,3 @@ GetFileId("case","uncoded") ## id of uncoded files for the selected case.
 GetFileId("filecategory","all") ## id of all files in the selected file category.
 }
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-%\keyword{ ~kwd1 }
-%\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

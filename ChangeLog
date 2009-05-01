@@ -1,4 +1,123 @@
-2008-12-28
+2009-04-26
+	* "Show selected file property" popup menu.
+	* Rd file of GetCaseId, GetCaseName and RQDAQuery.
+	
+2009-04-24
+	* Add more to the popup menu of F-cat Tab (e.g. "move selected files to  F-cat...").
+	
+2009-04-21
+	* Split GetCaseId to GetCaseId and GetCaseName.
+	* New function of RQDAQuery to wrap a call to dbGetQuery.
+	
+2009-04-20
+	* New function of GetCaseId(): the name may be changed in the future.
+	
+2009-04-19
+	* New function of GetFileIdSets, can be used to do more complex conditional retrieval.
+	
+2009-04-18
+	* Minor bugfix related to naming with "'".
+	* Add "Clean Project" button.
+	
+2009-04-17
+	* Add documents of RQDA2tm.Rd,retrieval.Rd and GetAttr.Rd.
+
+2009-04-16
+	* GetFileId() can return fid of selected files now.
+	
+2009-04-15
+	* "Add To ..." popup menu of files.of.category Widget.
+	* bugfixes of codes Tab and Attrs Tab: now can handle code containing "'" correctly.
+	* reorganization of files: rename.r is merged to utils.R; Variables.R is renamed to Atrributes.R; AddVarWidget.R is renamed to AttributesWidget.R (rev 87).
+	* retrieval() is exported for conditional coding-retrieval.
+	
+2009-04-14
+	* Delete multiple files at a time now.
+	* "Delete selected file" and "rename selected file" popup menu of files.of.category Widget.
+
+2009-04-13
+	* improve retrieval2() to place cursor at the beginning of the retrieved coding widget.
+	* Add cliked handler to C2Info widget.
+
+2009-04-12
+	* Double-click handler of Attrs and Journal Tabs.
+	* "Show coded/uncoded files only" popup menu for File Category.
+	* conditional retrieval.
+
+2009-04-10
+	* rename button of journal Tab
+	* bugfixes of Attrs Tab.
+	* change the name of PushBack() to ShowSubset(): avoid the confusion of base:::pushBack().
+
+2009-04-08
+	* Add journal Tab (rename button is not implemented yet).
+	
+2009-04-07
+	* Modify MemoWidget() to set the default fontsize as 11pt.
+	* Fix all bugs caused by change of enc(): encoding issue.
+	* new function of PushBack().
+
+2009-04-06
+	* Minor bugfix of write.FileList() which is caused by change of enc().
+	* Minor bugfixes of AddTo buttons in C-cat and F-cat Tabs.
+	* gselect.list() is documented and exported.
+	* new function of GetAttr().
+	* Minor bugfix of rename() and RenameAttrButton(): handling the duplicated name correctly now.
+	
+2009-04-01
+	* gselect.list has two new argument: width and height.
+
+2009-03-28
+	* new function of RQDA2tm (contributed by J-P Mueller).
+	
+2009-03-22
+	* add memo of attributes table.
+
+2009-03-21
+	* Another critical bugfix of CaseAttrFun() and FileAttrFun().
+	* View variables of case/file.
+	* change version number to 0.1-7.
+	
+2009-03-20
+	* Find a word and highlight it in the open file (via popup menu in File Tab).
+	* critical bugfix of CaseAttrFun() and FileAttrFun().
+	* fix bug of "add files..." to case popup menu.
+
+2009-03-19
+	* Add/modify File/Case attributes from popup menu.
+	
+2009-03-18
+	* upgrade databaseversion to "0.1.6" (three tables are added for attributes by UpgradeTables()).
+	* Attrs Tab for case/file attributes.
+	* fix some minor bugs.
+
+2009-03-17
+	* Variable/Attributes of Case.
+	* Improvement of mark case button.
+	* The default order of case is alphabetical,that is sort(case).
+	
+2009-03-16
+	* The default order of codes is alphabetical.
+	* minor bug of "Add" buttons.
+	* minor modification of OpenProjectButton() to make it more informative.
+
+2009-03-12
+	* Fix minor bug of "Search File..." of popup menu in File Tab.
+
+2009-03-11
+	* New function of AddNewFileFun, Add new file from popup menu of file Tab.
+	* Fix minor bug of enc().
+	* Show files with/without memo only (from popup menu of file tab).
+	* Show codes with/without memo only (from popup menu of code tab).
+
+2009-01-14
+	* Add citation file.
+	
+2009-01-09
+	* Add namespace
+	* RQDA-internal.rd is no loner needed (can be found in rev 57 or version 0.1-6)
+	
+2008-12-28 (as 0.1.6, submitted to CRAN)
 	* RQDA needs gWidgets (>= 0.0-31), gWidgetsRGtk2 (>= 0.0-36). Add it to DESCRIPTION file.
 	
 2008-12-24

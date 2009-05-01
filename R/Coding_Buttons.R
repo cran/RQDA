@@ -3,10 +3,10 @@ AddCodeButton <- function(label="Add"){
           handler=function(h,...) {
             if (is_projOpen(env=.rqda,conName="qdacon")) {
               codename <- ginput("Enter new code. ", icon="info")
-              if (codename!=""){
-                Encoding(codename) <- "UTF-8"
+              if (!is.na(codename)){
+                codename <- enc(codename,encoding="UTF-8")
                 addcode(codename)
-                CodeNamesUpdate()
+                CodeNamesUpdate(sortByTime=FALSE)
               }
             }
           }
@@ -24,13 +24,13 @@ DeleteCodeButton <- function(label="Delete"){
               del <- gconfirm("Really delete the code?",icon="question")
               if (isTRUE(del)){
                 SelectedCode <- svalue(.rqda$.codes_rqda)
-                Encoding(SelectedCode) <- "UTF-8"
+                SelectedCode <- enc(SelectedCode,encoding="UTF-8")
                 cid <- dbGetQuery(.rqda$qdacon,sprintf("select id from freecode where name=='%s'",SelectedCode))$id
                 dbGetQuery(.rqda$qdacon,sprintf("update freecode set status=0 where name=='%s'",SelectedCode))
                 ## set status in table freecode to 0
                 dbGetQuery(.rqda$qdacon,sprintf("update coding set status=0 where cid==%i",cid))
                 ## set status in table coding to 0
-                CodeNamesUpdate()
+                CodeNamesUpdate(sortByTime=FALSE)
               }
                                  }
           }
@@ -41,21 +41,21 @@ RetrievalButton <- function(label){
   gbutton(label,
           handler=function(h,...) {
             if (is_projOpen(env=.rqda,conName="qdacon")) {
-              retrieval()
+              retrieval2(CodeNameWidget=.rqda$.codes_rqda,type=.rqda$TOR)
             }
           }
           )
 }
 
-ExtendButton <- function(label){
-  gbutton(label,
-          handler=function(h,...) {
-            if (is_projOpen(env=.rqda,conName="qdacon")) {
-              retrieval2(CodeNameWidget=.rqda$.codes_rqda)
-            }
-          }
-          )
-}
+##ExtendButton <- function(label){
+##  gbutton(label,
+##          handler=function(h,...) {
+##            if (is_projOpen(env=.rqda,conName="qdacon")) {
+##              retrieval2(CodeNameWidget=.rqda$.codes_rqda,type=.rqda$TOR)
+##            }
+##          }
+##          )
+##}
 
 
 HL_ALLButton <- function(){
@@ -65,7 +65,8 @@ HL_ALLButton <- function(){
               con <- .rqda$qdacon
               SelectedFile <- tryCatch(svalue(.rqda$.root_edit),error=function(e){NULL})
               if (!is.null(SelectedFile)) {
-              Encoding(SelectedFile) <- "UTF-8"
+              ## Encoding(SelectedFile) <- "UTF-8"
+              SelectedFile <- enc(SelectedFile,"UTF-8")
               currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'",SelectedFile))[,1]
               W <- tryCatch( get(h$action$widget,.rqda),
                             error=function(e) {}
@@ -104,14 +105,16 @@ MarkCodeFun <- function(){
       if (ans$start != ans$end){ 
         ## when selected no text, makes on sense to do anything.
         SelectedCode <- svalue(.rqda$.codes_rqda)
-        Encoding(SelectedCode) <- "UTF-8"
+        ## Encoding(SelectedCode) <- "UTF-8"
+        SelectedCode <- enc(SelectedCode,encoding="UTF-8")
         currentCid <-  dbGetQuery(con,sprintf("select id from freecode where name=='%s'",SelectedCode))[,1]
         SelectedFile <- svalue(.rqda$.root_edit)
-        Encoding(SelectedFile) <- "UTF-8"
+        ## Encoding(SelectedFile) <- "UTF-8"
+        SelectedFile <- enc(SelectedFile,encoding="UTF-8")
         currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'",SelectedFile))[,1]
         Exist <-  dbGetQuery(con,sprintf("select rowid, selfirst, selend from coding where cid==%i and fid=%i and status=1",currentCid,currentFid))
         DAT <- data.frame(cid=currentCid,fid=currentFid,seltext=ans$text,selfirst=ans$start,selend=ans$end,status=1,
-                          owner=.rqda$owner,date=date(),memo="")
+                          owner=.rqda$owner,date=date(),memo=NA)
         if (nrow(Exist)==0){
           success <- dbWriteTable(.rqda$qdacon,"coding",DAT,row.name=FALSE,append=TRUE)
           if (!success) gmessage("Fail to write to database.")
@@ -140,7 +143,9 @@ MarkCodeFun <- function(){
                 memo <- paste(memo,collapse="",sep="")
                 dbGetQuery(.rqda$qdacon,sprintf("delete from coding where rowid in (%s)",
                                                 paste(Exist$rowid[del],collapse=",",sep="")))
-                tt <- svalue(W); Encoding(tt) <- "UTF-8"
+                tt <- svalue(W)
+                ## tt <- enc(tt,encoding="UTF-8") 
+                Encoding(tt) <- "UTF-8"
                 DAT <- data.frame(cid=currentCid,fid=currentFid,seltext=substr(tt,Sel[1],Sel[2]),
                                   selfirst=Sel[1],selend=Sel[2],status=1,
                                   owner=.rqda$owner,date=date(),memo=memo)
@@ -170,12 +175,12 @@ Unmark_Button <- function(){
                                    if (!is.null(sel_index)) {
                                      SelectedCode <- svalue(.rqda$.codes_rqda)
                                      if (length(SelectedCode)==0) {gmessage("Select a code first.",con=TRUE)} else{
-                                     Encoding(SelectedCode) <- "UTF-8"
+                                     SelectedCode <- enc(SelectedCode,"UTF-8") ## Encoding(SelectedCode) <- "UTF-8"
                                      currentCid <-  dbGetQuery(.rqda$qdacon,
                                                                sprintf("select id from freecode where name=='%s'",
                                                                        SelectedCode))[,1]
                                      SelectedFile <- svalue(.rqda$.root_edit)
-                                     Encoding(SelectedFile) <- "UTF-8"
+                                     SelectedFile <- enc(SelectedFile,"UTF-8") ## Encoding(SelectedFile) <- "UTF-8"
                                      currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'",
                                                                            SelectedFile))[,1]
 codings_index <-  dbGetQuery(con,sprintf("select rowid, cid, fid, selfirst, selend from coding where cid==%i and fid==%i",
@@ -255,12 +260,14 @@ CodingMemoButton <- function(label="C2Memo")
       sel_index <- tryCatch(sindex(W),error=function(e) {}) ## if the not file is open, it doesn't work.
       if (is.null(sel_index)) {gmessage("Open a file first!",con=TRUE)}
       else {
-        SelectedCode <- svalue(.rqda$.codes_rqda); Encoding(SelectedCode) <- "UTF-8"
+        SelectedCode <- svalue(.rqda$.codes_rqda)## ; Encoding(SelectedCode) <- "UTF-8"
+        SelectedCode <- enc(SelectedCode,"UTF-8")
         if (length(SelectedCode)==0) gmessage("Select a code first!") else {
           currentCid <-  dbGetQuery(con,sprintf("select id from freecode where name=='%s'",SelectedCode))[,1]
           ## SelectedFile <- svalue(.rqda$.fnames_rqda); Encoding(SelectedFile) <- "UTF-8"
           ## confused when selected file is not the open one
-          SelectedFile <- svalue(.rqda$.root_edit); Encoding(SelectedFile) <- "UTF-8" ## more reliable
+          SelectedFile <- svalue(.rqda$.root_edit) ##; Encoding(SelectedFile) <- "UTF-8" ## more reliable
+          SelectedFile <- enc(SelectedFile,encoding="UTF-8")
           currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'",SelectedFile))[,1]
           codings_index <-  dbGetQuery(con,sprintf("select rowid, cid, fid, selfirst, selend from coding where
                                                    cid==%i and fid==%i ",currentCid, currentFid))
@@ -283,8 +290,8 @@ CodingMemoButton <- function(label="C2Memo")
             .codingmemo2 <- gpanedgroup(horizontal = FALSE, con=.codingmemo)
             gbutton("Save Coding Memo",con=.codingmemo2,handler=function(h,...){
               newcontent <- svalue(W)
-              Encoding(newcontent) <- "UTF-8"
-              newcontent <- enc(newcontent) ## take care of double quote.
+              ## Encoding(newcontent) <- "UTF-8"
+              newcontent <- enc(newcontent,encoding="UTF-8") ## take care of double quote.
               dbGetQuery(con,sprintf("update coding set memo='%s' where rowid=%i",newcontent,rowid))
             }
                     )## end of save memo button
@@ -292,6 +299,7 @@ CodingMemoButton <- function(label="C2Memo")
             prvcontent <- dbGetQuery(con, sprintf("select memo from coding where rowid=%i",rowid))[1,1]
             if (is.na(prvcontent)) prvcontent <- ""
             Encoding(prvcontent) <- "UTF-8"
+            ## prvcontent <- enc(prvcontent,"UTF-8")
             W <- get(".cdmemocontent",env=.rqda)
             add(W,prvcontent,font.attr=c(sizes="large"),do.newline=FALSE)
           }
@@ -317,18 +325,28 @@ FreeCode_RenameButton <- function(label="Rename",CodeNamesWidget=.rqda$.codes_rq
       else {
         ## get the new file names
         NewCodeName <- ginput("Enter new code name. ", text=selectedCodeName, icon="info")
-        if (NewCodeName != "") {
-          Encoding(NewCodeName) <- "UTF-8"
+        if (!is.na(NewCodeName)) {
+          ## Encoding(NewCodeName) <- "UTF-8"
+          NewCodeName <- enc(NewCodeName,encoding="UTF-8")
+          selectedCodeName <- enc(selectedCodeName,encoding="UTF-8")
           ## update the name in source table by a function
           rename(selectedCodeName,NewCodeName,"freecode")
           ## (name is the only field should be modifed, as other table use ID rather than name)
-          CodeNamesUpdate()
+          CodeNamesUpdate(sortByTime=FALSE)
         }
       }
     }
   }
           )
 }
+
+
+CodingInfoButton <- function(label="C2Info")
+{
+  gbutton(label,handler= function(h,...) c2InfoFun())
+}
+
+## c2InfoFun() moved to CodesFun.R
 
 ## popup-menu
 CodesNamesWidgetMenu <- list()
@@ -337,44 +355,38 @@ CodesNamesWidgetMenu$"Code Memo"$handler <- function(h, ...) {
     MemoWidget("code",.rqda$.codes_rqda,"freecode")
     }
   }
-CodesNamesWidgetMenu$"Sort by created time"$handler <- function(h, ...) {
+CodesNamesWidgetMenu$"Show All By Created Time"$handler <- function(h, ...) {
     if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
-     CodeNamesUpdate()
+     CodeNamesUpdate(sortByTime=TRUE)
     }
   }
-
-
-CodingInfoButton <- function(label="C2Info")
-{
-  gbutton(label,handler= function(h,...) c2InfoFun())
+CodesNamesWidgetMenu$"Show Codes With Memo"$handler <- function(h, ...) {
+  if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
+    cid <- dbGetQuery(.rqda$qdacon,"select id from freecode where memo is not null")
+    if (nrow(cid)!=0) {
+    cid <- cid[[1]]
+    CodeNamesWidgetUpdate(CodeNamesWidget=.rqda$.codes_rqda,CodeId=cid,sortByTime=FALSE)
+  } else gmessage("No Code with memo.",con=TRUE)
+  }
+}
+CodesNamesWidgetMenu$"Show Codes Without Memo"$handler <- function(h, ...) {
+  if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
+    cid <- dbGetQuery(.rqda$qdacon,"select id from freecode where memo is null")
+    if (nrow(cid)!=0) {
+      cid <- cid[[1]]
+      CodeNamesWidgetUpdate(CodeNamesWidget=.rqda$.codes_rqda,CodeId=cid,sortByTime=FALSE)
+    } else gmessage("No Code with memo.",con=TRUE)
+  }
+}
+CodesNamesWidgetMenu$"Merge Selected with...(Dun use it.)"$handler <- function(h, ...) {
+  if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
+    Selected1 <- svalue(.rqda$.codes_rqda)
+    cid1 <- dbGetQuery(.rqda$qdacon,sprintf("select id from freecode where name=='%s'",Selected1))[1,1]
+    Selected2 <- gselect.list(as.character(.rqda$.codes_rqda[]))
+    if (Selected2!="" && Selected1!=Selected2) cid2 <- dbGetQuery(.rqda$qdacon,sprintf("select id from freecode where name=='%s'",Selected2))[1,1]
+    mergeCodes(cid1,cid2)
+    CodeNamesWidgetUpdate()
+  }
 }
 
-c2InfoFun <- function(){
-    con <- .rqda$qdacon
-    if (is_projOpen(env=.rqda,conName="qdacon")) {
-      W <- tryCatch( get(".openfile_gui",env=.rqda), error=function(e){})
-      ## get the widget for file display. If it does not exist, then return NULL.
-      sel_index <- tryCatch(sindex(W),error=function(e) {})
-      ## if the not file is open, it doesn't work.
-      if (is.null(sel_index)) {gmessage("Open a file first!",con=TRUE)}
-      else {
-          CodeTable <-  dbGetQuery(con,"select id,name from freecode where status==1")
-          SelectedFile <- svalue(.rqda$.root_edit); Encoding(SelectedFile) <- "UTF-8" ##file title
-          currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'",SelectedFile))[,1]
-          codings_index <-  dbGetQuery(con,sprintf("select rowid, cid, fid, selfirst, selend from coding where fid==%i ", currentFid))
-          ## should only work with those related to current code and current file.
-          rowid <- codings_index$rowid[(codings_index$selfirst  >= sel_index$startN) &
-                                       (codings_index$selend  <= sel_index$endN)
-                                       ] ## determine which codes correspond to the selection
-          cid <- codings_index$cid[codings_index$rowid %in% rowid]
-          Codes <- CodeTable$name[CodeTable$id %in% cid]
-          ## should not use data frame as x, otherwise, svalue(c2infoWidget) is a factor rather than a character
-          if (length(Codes)!=0){
-            Encoding(Codes) <- "UTF-8"
-            tryCatch(dispose(.rqda$.c2info),error=function(e){})
-            gw <- gwindow(title="Associted code-list.",heigh=min(33*length(Codes),600),parent=.rqda$.openfile_gui)
-            c2infoWidget <- gtable(Codes,con=gw)
-            assign(".c2info",gw,env=.rqda)
-            addhandlerdoubleclick(c2infoWidget,handler=function(h,...) retrieval(CodeNameWidget=c2infoWidget))
-          }
-        }}}
+

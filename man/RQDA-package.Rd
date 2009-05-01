@@ -12,8 +12,8 @@
 \tabular{ll}{
 Package: \tab RQDA\cr
 Type: \tab Package\cr
-Version: \tab 0.1-6\cr
-Date: \tab 2008-12-26\cr
+Version: \tab 0.1-7\cr
+Date: \tab 2009-05-01\cr
 Depends: \tab DBI, RSQLite, RGtk2, gWidgets, gWidgetsRGtk2\cr
 License: \tab New style BSD License\cr
 LazyLoad: \tab yes\cr

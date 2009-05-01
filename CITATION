@@ -1,0 +1,10 @@
+To cite package 'RQDA' in publications use:
+
+Huang Ronggui. 2009. RQDA: R-based Qualitative Data Analysis. R package version 0.1-7.http://rqda.r-forge.r-project.org/.
+
+@Manual{RQDA_rgHUANG,
+    title = {RQDA: R-based Qualitative Data Analysis},
+    author = {Ronggui HUANG},
+    year = {2009},   
+    url = {http://rqda.r-forge.r-project.org/}
+}

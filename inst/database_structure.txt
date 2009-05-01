@@ -1,4 +1,0 @@
-table coding
-	linkage of code and text chuck.
-	When delete, set status=0
-

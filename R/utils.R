@@ -1,3 +1,34 @@
+rename <- function(from,to,table=c("source","freecode","cases","codecat","filecat","journal")){
+  ## rename name field in table source and freecode (other tables can be added futher)
+  ## source is the file name, freecode is the free code name
+  table <- match.arg(table)
+  if (to!=""){ ## if to is "", makes no sense to rename
+##     dbGetQuery(.rqda$qdacon, sprintf("update %s set name = %s where name == %s ",
+##                                      table,
+##                                      paste("'",to,"'",collapse="",sep=""),
+##                                      paste("'",from,"'",collapse="",sep="")
+##                                      )
+    exists <- dbGetQuery(.rqda$qdacon, sprintf("select * from %s where name == '%s' ",table, to))
+    ## should check it there is any dupliation in the table
+    if (nrow(exists) > 0) {
+      gmessage("The new name is duplicated. Please use another new name.",container=TRUE)
+    } else {
+      dbGetQuery(.rqda$qdacon, sprintf("update '%s' set name = '%s' where name == '%s' ",table, to, from))
+    }
+  }
+}
+
+enc <- function(x,encoding="UTF-8") {
+  ## replace " with two '. to make insert smoothly.
+  ## encoding is the encoding of x (character vector).
+  Encoding(x) <- encoding
+  x <- gsub("'", "''", x)
+  if (Encoding(x)!="UTF-8") {
+    x <- iconv(x,to="UTF-8")
+  }
+  x
+}
+
 OrderByTime <- function(date,decreasing = FALSE)
 {
   ## return tbe permutation of the date which is get by sql "select date from ..."
@@ -31,25 +62,29 @@ MemoWidget <- function(prefix,widget,dbTable){
       else {
         tryCatch(eval(parse(text=sprintf("dispose(.rqda$.%smemo)",prefix))),error=function(e) {})
         assign(sprintf(".%smemo",prefix),gwindow(title=sprintf("%s Memo:%s",prefix,Selected),
-                                   parent=c(395,10),width=600,height=400),env=.rqda)
+                                   parent=c(395,10),width=600,height=600),env=.rqda)
         assign(sprintf(".%smemo2",prefix),
                gpanedgroup(horizontal = FALSE, con=get(sprintf(".%smemo",prefix),env=.rqda)),
                env=.rqda)
         gbutton("Save Memo",con=get(sprintf(".%smemo2",prefix),env=.rqda),handler=function(h,...){
           newcontent <- svalue(W)
-          Encoding(newcontent) <- "UTF-8"
-          newcontent <- enc(newcontent) ## take care of double quote.
-          Encoding(Selected) <- "UTF-8"
+          ## Encoding(newcontent) <- "UTF-8"
+          newcontent <- enc(newcontent,encoding="UTF-8") ## take care of double quote.
+          ## Encoding(Selected) <- "UTF-8"
+          Selected <- enc(Selected,encoding="UTF-8")
           dbGetQuery(.rqda$qdacon,sprintf("update %s set memo='%s' where name='%s'",dbTable,newcontent,Selected))
         }
                 )## end of save memo button
-        assign(sprintf(".%smemoW",prefix),gtext(container=get(sprintf(".%smemo2",prefix),env=.rqda),
-                                              font.attr=c(sizes="large")),env=.rqda)
+        tmp <- gtext(container=get(sprintf(".%smemo2",prefix),env=.rqda))
+        font <- pangoFontDescriptionFromString("Sans 10")
+        gtkWidgetModifyFont(tmp@widget@widget,font)## set the default fontsize
+        assign(sprintf(".%smemoW",prefix),tmp,env=.rqda)
         prvcontent <- dbGetQuery(.rqda$qdacon, sprintf("select memo from %s where name='%s'",dbTable,Selected))[1,1]
         if (is.na(prvcontent)) prvcontent <- ""
         Encoding(prvcontent) <- "UTF-8"
         W <- get(sprintf(".%smemoW",prefix),env=.rqda)
-        add(W,prvcontent,font.attr=c(sizes="large"),do.newline=FALSE)
+        ## add(W,prvcontent,font.attr=c(sizes="large"),do.newline=FALSE)
+        add(W,prvcontent,do.newline=FALSE)
       }
     }
   }
@@ -181,7 +216,7 @@ RunOnSelected <- function(x,multiple=TRUE,expr,enclos,title=NULL,...){
 }
 
 
-gselect.list <- function(x,multiple=TRUE,title=NULL,...){
+gselect.list <- function(list,multiple=TRUE,title=NULL,width=200, height=500,...){
   ## gtk version of select.list()
   ## Thanks go to John Verzani for his help.
   title <- ifelse(multiple,"Select one or more","Select one")
@@ -189,7 +224,8 @@ gselect.list <- function(x,multiple=TRUE,title=NULL,...){
   helper <- function(){
     ans<-new.env()
     x1<-ggroup(horizontal=FALSE) # no parent container here
-    x2<-gtable(x,multiple=multiple,con=x1,expand=TRUE)
+    x2<-gtable(list,multiple=multiple,con=x1,expand=TRUE)
+    gtkWidgetSetSizeRequest(x1@widget@widget, width=width, height=height)
     ret <- gbasicdialog(title=title,widget=x1,handler=function(h,...){
       value <- svalue(x2)
       assign("selected",value,env=h$action$env)
@@ -202,3 +238,52 @@ gselect.list <- function(x,multiple=TRUE,title=NULL,...){
   items
 }
 
+## intersect2 <- function(x) {
+##   if ((n<-length(x))>1) {
+##     x[[n-1]] <- intersect(x[[n]],x[[n-1]])
+##     x[n] <- NULL
+##     Recall(x)
+##   } else { x[[1]] }
+## }
+##x<-list(1:3,3:5,6:3)
+##intersect2(x)
+
+GetCaseId <- function(fid=GetFileId(),nFiles=FALSE){
+  ## if (caseName){
+  if (nFiles) {
+    ## ans <-  dbGetQuery(.rqda$qdacon,sprintf(" select name,id from cases where status=1 and id in (select caseid from caselinkage where status=1 and fid in (%s) group by caseid )",paste(shQuote(fid),collapse=",")))
+    ## if (nrow(ans)>0) Encoding(ans$name) <- "UTF-8"
+    ans <- dbGetQuery(.rqda$qdacon,sprintf("select caseid, count(caseid) as nFiles from caselinkage where status=1 and fid in (%s) group by caseid",paste(shQuote(fid),collapse=",")))
+  } else {
+    ans <- dbGetQuery(.rqda$qdacon,sprintf("select caseid from caselinkage where status=1 and fid in (%s) group by caseid",paste(shQuote(fid),collapse=",")))$caseid
+  }
+  ## attr(ans,"caseName") <- caseName
+  ## class(ans) <- c("data.frame","CaseId")
+  ans
+}
+
+GetCaseName <- function(caseId=GetCaseId(nFiles=FALSE)){
+  ans <-  dbGetQuery(.rqda$qdacon,sprintf("select name from cases where status=1 and id in (%s)",paste(shQuote(caseId),collapse=",")))$name
+  if (length(ans)>0) Encoding(ans) <- "UTF-8"
+  ans
+}
+
+RQDAQuery <- function(sql){
+  ans <- dbGetQuery(.rqda$qdacon,sql)
+  ans
+}
+
+## ShowSubset <- function(name=NULL,widget=NULL,...){
+##   UseMethod("ShowSubset")
+## }
+## ShowSubset.default <- function(name=NULL,widget=NULL,...){
+##   widget[] <- name
+## }
+
+
+ShowSubset <- function(x){
+## change name from PushBack to ShowSubset()
+ if (inherits(x,"CaseAttr")) tryCatch(.rqda$.CasesNamesWidget[] <- x$case, error = function(e) {})
+ if (inherits(x,"FileAttr")) tryCatch(.rqda$.fnames_rqda[] <- x$file, error = function(e) {})
+ if (inherits(x,"CaseId") && isTRUE(attr(x,"caseName"))) tryCatch(.rqda$.CasesNamesWidget[] <- x$name, error = function(e) {})
+}

@@ -128,6 +128,7 @@ pdelete <- function(type=c("file","code","case","codecategory","filecategory","c
         } else {
         del <- del[,1]
       }
+        del <- enc(del,encoding="UTF-8")
       switch(type,
              ## use switch to run Fun
              file=fileFun(del=del),
@@ -233,6 +234,7 @@ undelete <- function(type=c("file","code","case","codecategory","filecategory"),
         del <- del[,1]
       }
       if (del!=""){
+        del <- enc(del,encoding="UTF-8")
         switch(type,
              ## use switch to run Fun
              file=fileFun(del=del),

@@ -31,12 +31,13 @@ RQDA <- function() {
   ## project memo button
   ProjectInforButton(container=.proj_gui)
   BackupProjectButton(container=.proj_gui)
+  CleanProjButton(container=.proj_gui)
   gbutton("About",container=.proj_gui, handler=function(h,...) {browseURL("http://rqda.r-forge.r-project.org/")})
-
+  
   glabel(
 "Author: <ronggui.huang@gmail.com>\n
-License: New style BSD License\n
-Version: 0.1-6\n",
+License: BSD License\n
+Version: 0.1-7\n",
          container=.proj_gui
         )
 
@@ -71,8 +72,8 @@ Version: 0.1-6\n",
   .codes_button[1,5]<- CodingMemoButton(label="C2Memo")
   .codes_button[2,1]<- CodingInfoButton()
   .codes_button[2,2]<- HL_ALLButton()
- # .codes_button[2,2]<- RetrievalButton("Retrieval")
-  .codes_button[2,3]<- ExtendButton("Retrieval")
+  .codes_button[2,3]<- RetrievalButton("Retrieval")
+ ## .codes_button[2,3]<- ExtendButton("Retrieval")
   .codes_button[2,4]<- Unmark_Button()
   .codes_button[2,5]<- Mark_Button()
 
@@ -81,7 +82,7 @@ Version: 0.1-6\n",
   ".case_pan" <- gpanedgroup(container=.nb_rqdagui,horizontal=FALSE,label="Cases")
   ".case_buttons" <- glayout(container=.case_pan)
   ".case_PW" <- ggroup(cont=.case_pan,horizontal = FALSE)
-  ".CasesNamesWidget" <- gtable("Please click Update",container=.case_PW,expand=TRUE,multiple=FALSE)
+  ".CasesNamesWidget" <- gtable("Please click Update",container=.case_PW,expand=TRUE,multiple=TRUE)
   .CasesNamesWidget[] <- NULL ; names(.CasesNamesWidget) <- "Cases"
   ".FileofCase" <- gtable("Please click Update",container=.case_PW,expand=TRUE,multiple=TRUE)
   .FileofCase[] <- NULL;names(.FileofCase)<-"Files of This Case"
@@ -94,6 +95,18 @@ Version: 0.1-6\n",
   .case_buttons[1,5] <- CaseMark_Button()
   ##.case_buttons[2,3] <- AddWebSearchButton("WebSearch") # use popup menu instead
   
+
+########################### GUI for Attributes
+###########################
+  ".attr_pan" <- gpanedgroup(container=.nb_rqdagui,horizontal=FALSE,label="Attrs")
+  ".attr_buttons" <- glayout(container=.attr_pan)
+  ".attr_PW" <- ggroup(cont=.attr_pan,horizontal = FALSE)
+  ".AttrNamesWidget" <- gtable("Please click Update",container=.attr_PW,expand=TRUE,multiple=FALSE)
+  .AttrNamesWidget[] <- NULL ; names(.AttrNamesWidget) <- "Attributes"
+  .attr_buttons[1,1] <- AddAttrButton()
+  .attr_buttons[1,2] <- DeleteAttrButton()
+  .attr_buttons[1,3] <- RenameAttrButton()
+  .attr_buttons[1,4] <- AttrMemoButton()
 
 ######################### GUI  for C-cat
 #########################
@@ -115,7 +128,7 @@ Version: 0.1-6\n",
   ".filecat_pan" <- gpanedgroup(container=.nb_rqdagui,horizontal=FALSE,label="F-Cat")
   ".filecat_buttons" <- glayout(container=.filecat_pan)
   ".Fcat_PW" <- ggroup(cont=.filecat_pan,horizontal = FALSE)## parent Widget of F-cat
-  ".FileCatWidget" <- gtable("Please click Update",container=.Fcat_PW,expand=TRUE)
+  ".FileCatWidget" <- gtable("Please click Update",container=.Fcat_PW,expand=TRUE,multiple=TRUE)
    .FileCatWidget[] <- NULL; names(.FileCatWidget)<-"File Category"
    ".FileofCat" <- gtable("Please click Update",container=.Fcat_PW,expand=TRUE,multiple=TRUE)
    .FileofCat[] <- NULL;names(.FileofCat)<-"Files of This Category"
@@ -134,6 +147,17 @@ Version: 0.1-6\n",
 ##  .fsearch_rqda[] <-NULL # get around of the text argument.
 ##  names(.fsearch_rqda) <- "Files Search"
 
+########################### GUI for Journal
+###########################
+  ".journal_pan" <- gpanedgroup(container=.nb_rqdagui,horizontal=FALSE,label="Journals")
+  ".journal_buttons" <- glayout(container=.journal_pan)
+  ".journal_PW" <- ggroup(cont=.journal_pan,horizontal = FALSE)
+  ".JournalNamesWidget" <- gtable("Please click Update",container=.journal_PW,expand=TRUE,multiple=FALSE)
+  .JournalNamesWidget[] <- NULL ; names(.JournalNamesWidget) <- "Journals"
+  .journal_buttons[1,1] <- AddJournalButton()
+  .journal_buttons[1,2] <- DeleteJournalButton()
+  .journal_buttons[1,3] <-  OpenJournalButton()
+  .journal_buttons[1,4] <-  RenameJournalButton()
  
 ######################### GUI  for settings
 #########################
@@ -153,6 +177,8 @@ assign(".codes_rqda",.codes_rqda,env=.rqda)
 assign(".fnames_rqda",.fnames_rqda,env=.rqda)
 ##assign(".fsearch_rqda",.fsearch_rqda,env=.rqda)
 assign(".CasesNamesWidget",.CasesNamesWidget,env=.rqda)
+assign(".AttrNamesWidget",.AttrNamesWidget,env=.rqda)
+assign(".JournalNamesWidget",.JournalNamesWidget,env=.rqda)
 assign(".FileofCase",.FileofCase,env=.rqda)
 assign(".CodeCatWidget",.CodeCatWidget,env=.rqda)
 assign(".CodeofCat",.CodeofCat,env=.rqda)
@@ -165,6 +191,7 @@ svalue(.codes_pan) <- 0.13
 svalue(.codecat_pan)<-0.07
 svalue(.filecat_pan)<-0.07
 svalue(.case_pan)<-0.07
+svalue(.attr_pan)<-0.07
 
 ##########################
 Handler()

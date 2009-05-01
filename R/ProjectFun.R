@@ -59,9 +59,9 @@ new_proj <- function(path, conName="qdacon",assignenv=.rqda,...){
                                             owner text, date text, memo text)")
       if (dbExistsTable(con,"project")) dbRemoveTable(con, "project")
       ## coding: information about the project
-      dbGetQuery(con,"create table project  (encoding text, detabaseversion text, date text,dateM text,
+      dbGetQuery(con,"create table project  (encoding text, databaseversion text, date text,dateM text,
                                              memo text,BOM integer)")
-      dbGetQuery(con,sprintf("insert into project (detabaseversion,date,memo) values ('0.1.5','%s','')",date()))
+      dbGetQuery(con,sprintf("insert into project (databaseversion,date,memo) values ('0.1.6','%s','')",date()))
       if (dbExistsTable(con,"cases")) dbRemoveTable(con, "cases")
       dbGetQuery(con,"create table cases  (name text, memo text,
                                            owner text,date text,dateM text,
@@ -70,11 +70,40 @@ new_proj <- function(path, conName="qdacon",assignenv=.rqda,...){
       dbGetQuery(con,"create table caselinkage  (caseid integer, fid integer,
                                                 selfirst real, selend real, status integer,
                                             owner text, date text, memo text)")
+
+      if (dbExistsTable(con,"attributes")) dbRemoveTable(con, "attributes")
+      dbGetQuery(.rqda$qdacon,"create table attributes (name text, status integer, date text, dateM text, owner text,memo text)")
+      if (dbExistsTable(con,"caseAttr")) dbRemoveTable(con, "caseAttr")
+      dbGetQuery(.rqda$qdacon,"create table caseAttr (variable text, value text, caseID integer, date text, dateM text, owner text)")
+      if (dbExistsTable(con,"fileAttr")) dbRemoveTable(con, "fileAttr")
+      dbGetQuery(.rqda$qdacon,"create table fileAttr (variable text, value text, fileID integer, date text, dateM text, owner text)")
+      if (dbExistsTable(con,"journal")) dbRemoveTable(con, "journal")
+      dbGetQuery(.rqda$qdacon,"create table journal (name text, journal text, date text, dateM text, owner text,status integer)")
     }
   }
 }
 
-
+UpgradeTables <- function(){
+  Fields <- dbListFields(.rqda$qdacon,"project")
+  if (!"databaseversion" %in% Fields) {
+    dbGetQuery(.rqda$qdacon,"alter table project add column databaseversion text")
+    dbGetQuery(.rqda$qdacon,"update project set databaseversion=='0.1.5'")
+  }
+  currentVersion <- dbGetQuery(.rqda$qdacon,"select databaseversion from project")[[1]]
+  if (currentVersion=="0.1.5") {
+    ##from="0.1.5"
+    dbGetQuery(.rqda$qdacon,"create table caseAttr (variable text, value text, caseID integer, date text, dateM text, owner text)")
+    ## caseAttr table
+    dbGetQuery(.rqda$qdacon,"create table fileAttr (variable text, value text, fileID integer, date text, dateM text, owner text)")
+    ## fileAttr table
+    dbGetQuery(.rqda$qdacon,"create table attributes (name text, status integer, date text, dateM text, owner text, memo text)")
+    ## attributes table
+    dbGetQuery(.rqda$qdacon,"create table journal (name text, journal text, date text, dateM text, owner text,status integer)")
+    ## journal table
+    dbGetQuery(.rqda$qdacon,"update project set databaseversion='0.1.6'")
+    ## reset the version.
+  }
+}
 
 open_proj <- function(path,conName="qdacon",assignenv=.rqda,...){
   tryCatch({ con <- get(conName,assignenv)
@@ -129,3 +158,46 @@ gmessage("Succeeded!",con=TRUE,icon="info")
 gmessage("Fail to back up the project.",con=TRUE,icon="error")
 }
 }
+
+ProjectMemoWidget <- function(){
+  if (is_projOpen(env=.rqda,"qdacon")) {
+    ## use enviroment, so you can refer to the same object easily, this is the beauty of environment
+    ## if project is open, then continue
+    tryCatch(dispose(.rqda$.projmemo),error=function(e) {})
+    ## Close the open project memo first, then open a new one
+    ## .projmemo is the container of .projmemocontent,widget for the content of memo
+    assign(".projmemo",gwindow(title="Project Memo", parent=c(395,10),width=600,height=400),env=.rqda)
+    .projmemo <- get(".projmemo",.rqda)
+    .projmemo2 <- gpanedgroup(horizontal = FALSE, con=.projmemo)
+    ## use .projmemo2, so can add a save button to it.
+    gbutton("Save memo",con=.projmemo2,handler=function(h,...){
+      ## send the new content of memo back to database
+      newcontent <- svalue(W)
+      ## Encoding(newcontent) <- "UTF-8"
+      newcontent <- enc(newcontent,encoding="UTF-8") ## take care of double quote.
+      dbGetQuery(.rqda$qdacon,sprintf("update project set memo='%s' where rowid==1", ## only one row is needed
+                                      newcontent)
+                 ## have to quote the character in the sql expression
+                 )
+    }
+            )## end of save memo button
+    tmp <- gtext(container=.projmemo2,font.attr=c(sizes="large"))
+    font <- pangoFontDescriptionFromString("Sans 10")
+    gtkWidgetModifyFont(tmp@widget@widget,font)
+    assign(".projmemocontent",tmp,env=.rqda)
+    prvcontent <- dbGetQuery(.rqda$qdacon, "select memo from project")[1,1]
+    ## [1,1]turn data.frame to 1-length character. Existing content of memo
+    if (length(prvcontent)==0) {
+      dbGetQuery(.rqda$qdacon,"replace into project (memo) values('')")
+      prvcontent <- ""
+      ## if there is no record in project table, it fails to save memo, so insert sth into it
+    }
+    W <- .rqda$.projmemocontent
+    Encoding(prvcontent) <- "UTF-8"
+    ## add(W,prvcontent,font.attr=c(sizes="large"),do.newline=FALSE)
+    add(W,prvcontent,do.newline=FALSE)
+    ## do.newline:do not add a \n (new line) at the beginning
+    ## push the previous content to the widget.
+    }
+}
+

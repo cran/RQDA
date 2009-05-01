@@ -3,7 +3,7 @@ AddFileCatButton <- function(label="ADD"){
   gbutton(label,handler=function(h,...) {
     if (is_projOpen(env=.rqda,conName="qdacon")) {
       item <- ginput("Enter new File Category. ", icon="info")
-      if (item != ""){
+      if (!is.na(item)){
         Encoding(item) <- "UTF-8"
         AddTodbTable(item,"filecat",Id="catid") ## FILE CATegory
         UpdateTableWidget(Widget=.rqda$.FileCatWidget,FromdbTable="filecat")
@@ -90,33 +90,34 @@ FileCatAddToButton <- function(label="AddTo",Widget=.rqda$.FileCatWidget,...)
     if (length(SelectedFileCat)==0) {gmessage("Select a file category first.",con=TRUE)} else{
     catid <- dbGetQuery(.rqda$qdacon,sprintf("select catid from filecat where status=1 and name='%s'",SelectedFileCat))[,1]
     freefile <-  dbGetQuery(.rqda$qdacon,"select name, id from source where status=1")
+    if (nrow(freefile) == 0){gmessage("No files Yet.",cont=.rqda$.FileCatWidget)} else {
     Encoding(SelectedFileCat) <- Encoding(freefile[['name']]) <- "UTF-8"
     fileofcat <- dbGetQuery(.rqda$qdacon,sprintf("select fid from treefile where status=1 and catid=%i",catid))
     if (nrow(fileofcat)!=0){
     fileoutofcat <- subset(freefile,!(id %in% fileofcat$fid))
   } else  fileoutofcat <- freefile
-##    Selected <- select.list(fileoutofcat[['name']],multiple=TRUE)
-##     if (length(Selected)!=0){
-##       Selected <- iconv(Selected,to="UTF-8")
-##       fid <- fileoutofcat[fileoutofcat$name %in% Selected,"id"]
-##       Dat <- data.frame(fid=fid,catid=catid,date=date(),dateM=date(),memo="",status=1)
-##       dbWriteTable(.rqda$qdacon,"treefile",Dat,row.names=FALSE,append=TRUE)
-##       UpdateFileofCatWidget()
-##     }
-    CurrentFrame <- sys.frame(sys.nframe())
+    Selected <- gselect.list(fileoutofcat[['name']],multiple=TRUE)
+    if (Selected != ""){
+      ## Selected <- iconv(Selected,to="UTF-8") ## already Encoded as UTF-8.
+      fid <- fileoutofcat[fileoutofcat$name %in% Selected,"id"]
+      Dat <- data.frame(fid=fid,catid=catid,date=date(),dateM=date(),memo=NA,status=1)
+      dbWriteTable(.rqda$qdacon,"treefile",Dat,row.names=FALSE,append=TRUE)
+      UpdateFileofCatWidget()
+    }
+   ## CurrentFrame <- sys.frame(sys.nframe())
     ## sys.frame(): get the frame of n
     ## nframe(): get n of current frame
     ## The value of them depends on where they evaluated, should not placed inside RunOnSelected()
-    RunOnSelected(fileoutofcat[['name']],multiple=TRUE,expr={
-    if (length(Selected)!=0){
-      Selected <- iconv(Selected,to="UTF-8")
-      fid <- fileoutofcat[fileoutofcat$name %in% Selected,"id"]
-      Dat <- data.frame(fid=fid,catid=catid,date=date(),dateM=date(),memo="",status=1)
-      dbWriteTable(.rqda$qdacon,"treefile",Dat,row.names=FALSE,append=TRUE)
-      UpdateFileofCatWidget()
-    }},enclos=CurrentFrame)
-    
-}
+    ##RunOnSelected(fileoutofcat[['name']],multiple=TRUE,expr={
+    ##if (length(Selected)!=0){
+    ## Selected <- iconv(Selected,to="UTF-8")
+    ## fid <- fileoutofcat[fileoutofcat$name %in% Selected,"id"]
+    ##Dat <- data.frame(fid=fid,catid=catid,date=date(),dateM=date(),memo="",status=1)
+    ##dbWriteTable(.rqda$qdacon,"treefile",Dat,row.names=FALSE,append=TRUE)
+    ##UpdateFileofCatWidget()
+    ##}},enclos=CurrentFrame)
+  }
+  }
   }
           )
 }
@@ -139,7 +140,8 @@ FileCatDropFromButton <- function(label="DropFrom",Widget=.rqda$.FileofCat,...)
       dbGetQuery(.rqda$qdacon,sprintf("update treefile set status==0 where catid==%i and fid==%i",catid,fid))
     }
         ## update .CodeofCat Widget
-        UpdateFileofCatWidget()
+        .rqda$.FileofCat[] <- setdiff(.rqda$.FileofCat[],FileOfCat)
+        ## UpdateFileofCatWidget()
       }
     }
   }
@@ -185,49 +187,142 @@ FileCatDropFromButton <- function(label="DropFrom",Widget=.rqda$.FileofCat,...)
 FileCatWidgetMenu <- list()
 FileCatWidgetMenu$Memo$handler <- function(h,...){
  if (is_projOpen(env=.rqda,conName="qdacon")) {
- MemoWidget("FileCat",.rqda$.FileCatWidget,"filecat")
-## see CodeCatButton.R  for definition of MemoWidget
+   MemoWidget("FileCat",.rqda$.FileCatWidget,"filecat")
+   ## see CodeCatButton.R  for definition of MemoWidget
+ }
 }
+FileCatWidgetMenu$"Delete all files of selected category"$handler <- function(h,...){
+  if (is_projOpen(env=.rqda,conName="qdacon")) {
+    fid <- GetFileId("file")
+    if (length(fid)>0){
+      dbGetQuery(.rqda$qdacon,sprintf("update source set status=0 where id in (%s)",paste(shQuote(fid),collapse=",")))
+    }
+  }
 }
 FileCatWidgetMenu$"Sort by created time"$handler <- function(h,...)
 {
- if (is_projOpen(env=.rqda,conName="qdacon")) {
- UpdateTableWidget(Widget=.rqda$.FileCatWidget,FromdbTable="filecat")
- }
+  if (is_projOpen(env=.rqda,conName="qdacon")) {
+    UpdateTableWidget(Widget=.rqda$.FileCatWidget,FromdbTable="filecat")
+  }
 }
+
 
 ## popup menu for files of this category
 FileofCatWidgetMenu <- list()
-FileofCatWidgetMenu$"File Memo"$handler <- function(h,...){
- if (is_projOpen(env=.rqda,conName="qdacon")) {
- MemoWidget("File",.rqda$.FileofCat,"source")
+FileofCatWidgetMenu$"Add To Case ..."$handler <- function(h, ...) {
+  if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
+      AddFileToCaselinkage(Widget=.rqda$.FileofCat)
+      UpdateFileofCaseWidget()
+    }
 }
+FileofCatWidgetMenu$"Add To File Category ..."$handler <- function(h, ...) {
+  if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
+    AddToFileCategory(Widget=.rqda$.FileofCat,updateWidget=FALSE)
+  }
+}
+FileofCatWidgetMenu$"Move To File Category ..."$handler <- function(h, ...) {
+  if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
+    fcatname <- svalue(.rqda$.FileCatWidget) ## should select one only
+    fcatid <- dbGetQuery(.rqda$qdacon,sprintf("select catid from filecat where name='%s'",fcatname))$catid
+    fid <- GetFileId("file","select")
+    AddToFileCategory(Widget=.rqda$.FileofCat,updateWidget=FALSE)
+    dbGetQuery(.rqda$qdacon,sprintf("update treefile set status=0 where fid in (%s) and catid='%s'",
+                                    paste(shQuote(fid),collapse=","),
+                                    fcatid))
+    .rqda$.FileofCat[] <- setdiff(.rqda$.FileofCat[],svalue(.rqda$.FileofCat))
+  }
+}
+FileofCatWidgetMenu$"File Memo"$handler <- function(h,...){
+  if (is_projOpen(env=.rqda,conName="qdacon")) {
+    MemoWidget("File",.rqda$.FileofCat,"source")
+  }
 }
 FileofCatWidgetMenu$"Open Selected File"$handler <- function(h,...){
-ViewFileFun(FileNameWidget=.rqda$.FileofCat)
+  ViewFileFun(FileNameWidget=.rqda$.FileofCat)
 }
-FileofCatWidgetMenu$"Show Uncoded Files Only (Sorted)"$handler <- function(h,...){
- if (is_projOpen(env=.rqda,conName="qdacon")) {
-   fid <- GetFileId(condition="filecategory",type="uncoded")
-   FileNameWidgetUpdate(FileNamesWidget=.rqda$.FileofCat,FileId=fid)
- }
-}
-FileofCatWidgetMenu$"Show Coded Files Only (Sorted)"$handler <- function(h,...){
+FileofCatWidgetMenu$"Delete selected File"$handler <- function(h,...){
   if (is_projOpen(env=.rqda,conName="qdacon")) {
-    fid <- GetFileId(condition="filecategory",type="coded")
+    SelectedFile <- svalue(.rqda$.FileofCat)
+    Encoding(SelectedFile) <- "UTF-8"
+    for (i in SelectedFile){
+      fid <- dbGetQuery(.rqda$qdacon, sprintf("select id from source where name='%s'",i))$id
+      dbGetQuery(.rqda$qdacon, sprintf("update source set status=0 where name='%s'",i))
+      dbGetQuery(.rqda$qdacon, sprintf("update caselinkage set status=0 where fid=%i",fid))
+      dbGetQuery(.rqda$qdacon, sprintf("update treefile set status=0 where fid=%i",fid))
+    }
+    ## UpdateFileofCatWidget()
+    .rqda$.FileofCat[] <- setdiff(.rqda$.FileofCat[],SelectedFile)
+  }
+}
+## FileofCatWidgetMenu$"Delete selected File Without Updating Widget"$handler <- function(h,...){
+##   if (is_projOpen(env=.rqda,conName="qdacon")) {
+##     SelectedFile <- svalue(.rqda$.FileofCat)
+##     Encoding(SelectedFile) <- "UTF-8"
+##     for (i in SelectedFile){
+##       fid <- dbGetQuery(.rqda$qdacon, sprintf("select id from source where name='%s'",i))$id
+##       dbGetQuery(.rqda$qdacon, sprintf("update source set status=0 where name='%s'",i))
+##       dbGetQuery(.rqda$qdacon, sprintf("update caselinkage set status=0 where fid=%i",fid))
+##       dbGetQuery(.rqda$qdacon, sprintf("update treefile set status=0 where fid=%i",fid))
+##     }
+##   }
+## }
+FileofCatWidgetMenu$"Rename selected File"$handler <- function(h,...){
+  if (is_projOpen(env=.rqda,conName="qdacon")) {
+    selectedFN <- svalue(.rqda$.FileofCat)
+    if (length(selectedFN)==0){
+      gmessage("Select a file first.",icon="error",con=TRUE)
+    }
+    else {
+      NewFileName <- ginput("Enter new file name. ",text=selectedFN, icon="info")
+      if (!is.na(NewFileName)) {
+        Encoding(NewFileName) <- "UTF-8"
+        rename(selectedFN,NewFileName,"source")
+        ## UpdateFileofCatWidget()
+        Fnames <- .rqda$.FileofCat[]
+        Fnames[Fnames==selectedFN] <- NewFileName
+        .rqda$.FileofCat[] <- Fnames
+      }
+    }}}
+## FileofCatWidgetMenu$"Show ..."$"Show Uncoded Files Only Sorted By Imported Time"$handler <- function(h,...){
+##  if (is_projOpen(env=.rqda,conName="qdacon")) {
+##    fid <- GetFileId(condition="filecategory",type="uncoded")
+##    FileNameWidgetUpdate(FileNamesWidget=.rqda$.FileofCat,FileId=fid)
+##  }
+## }
+## FileofCatWidgetMenu$"Show ..."$"Show Coded Files Only Sorted By Imported Time"$handler <- function(h,...){
+##   if (is_projOpen(env=.rqda,conName="qdacon")) {
+##     fid <- GetFileId(condition="filecategory",type="coded")
+##     FileNameWidgetUpdate(FileNamesWidget=.rqda$.FileofCat,FileId=fid)
+##   }
+## }
+FileofCatWidgetMenu$"Show ..."$"Show All By Imported Time"$handler <- function(h,...)
+{
+  if (is_projOpen(env=.rqda,conName="qdacon")) {
+    fid <- GetFileId(condition="filecategory",type="all")
     FileNameWidgetUpdate(FileNamesWidget=.rqda$.FileofCat,FileId=fid)
   }
 }
-## FileofCatWidgetMenu$"Sort All By Created Time"$handler <- function(h,...)
-## {
-##  if (is_projOpen(env=.rqda,conName="qdacon")) {
-##       UpdateFileofCatWidget()
-##  }
-## }
-FileofCatWidgetMenu$"Sort All By Created Time"$handler <- function(h,...)
-{
- if (is_projOpen(env=.rqda,conName="qdacon")) {
-   fid <- GetFileId(condition="filecategory",type="all")
-   FileNameWidgetUpdate(FileNamesWidget=.rqda$.FileofCat,FileId=fid)
- }
+FileofCatWidgetMenu$"Show ..."$"Show Coded Files Sorted by Imported time"$handler <- function(h,...){
+  if (is_projOpen(env=.rqda,conName="qdacon")) {
+    FileNameWidgetUpdate(FileNamesWidget=.rqda$.FileofCat,FileId=GetFileId(condition="filecat",type="coded"))
+  }
 }
+FileofCatWidgetMenu$"Show ..."$"Show Uncoded Files Sorted by Imported time"$handler <- function(h, ...) {
+  if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
+    ## UncodedFileNamesUpdate(FileNamesWidget = .rqda$.fnames_rqda)
+    FileNameWidgetUpdate(FileNamesWidget=.rqda$.FileofCat,FileId=GetFileId(condition="filecat",type="uncoded"))
+    ## By default, the file names in the widget will be sorted.
+  }
+}
+FileofCatWidgetMenu$"Show Selected File Property"$handler <- function(h, ...) {
+  if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
+    Fid <- GetFileId("file","selected")
+    Fcat <- RQDAQuery(sprintf("select name from filecat where catid in (select catid from treefile where fid=%i and status=1) and status=1",Fid))$name
+    Case <- RQDAQuery(sprintf("select name from cases where id in (select caseid from caselinkage where fid=%i and status=1) and status=1",Fid))$name
+    if (!is.null(Fcat)) Encoding(Fcat) <- "UTF-8"
+    if (!is.null(Case)) Encoding(Case) <- "UTF-8"
+    glabel(sprintf(" File ID is %i \n File Category is %s\n Case is %s",
+                   Fid,paste(shQuote(Fcat),collapse=", "),paste(shQuote(Case),collapse=", ")),cont=TRUE)
+  }
+}
+

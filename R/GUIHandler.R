@@ -76,40 +76,12 @@ Handler <- function(){
 ##                         )
 
   addhandlerdoubleclick(.rqda$.codes_rqda,handler=function(h,...) {
-            if (is_projOpen(env=.rqda,conName="qdacon"))  retrieval(.rqda$.codes_rqda)
+            if (is_projOpen(env=.rqda,conName="qdacon"))  retrieval2(.rqda$.codes_rqda,type=.rqda$TOR)
           }
                         )
   add3rdmousepopupmenu(.rqda$.codes_rqda,CodesNamesWidgetMenu)
   
-  addHandlerClicked(.rqda$.codes_rqda,handler <- function(h,...){
-    if (is_projOpen(env=.rqda,conName="qdacon")){
-      ## CodeNamesUpdate(CodeNamesWidget=.rqda$.codes_rqda)
-      con <- .rqda$qdacon
-      SelectedCode <- currentCode <- svalue(.rqda$.codes_rqda)
-      if (length(SelectedCode)!=0) {
-        Encoding(SelectedCode) <- Encoding(currentCode) <- "UTF-8"
-        currentCid <- dbGetQuery(con,sprintf("select id from freecode where name=='%s'",SelectedCode))[,1]
-        SelectedFile <- tryCatch(svalue(.rqda$.root_edit)  ## use root_edit is more reliable
-                                 ,error=function(e){})
-        if (!is.null(SelectedFile)) {
-          Encoding(SelectedFile) <- "UTF-8"
-          currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'",SelectedFile))[,1]
-          ## following code: Only mark the text chuck according to the current code.
-          tryCatch({
-            widget <- get(h$action$marktxtwidget,.rqda)
-        ## if widget is not open, then error;which means no need to highlight anything.
-            sel_index <-  dbGetQuery(con,sprintf("select selfirst, selend from coding where
-                                                   cid==%i and fid==%i and status==1",currentCid, currentFid))
-            Maxindex <- dbGetQuery(con, sprintf("select max(selend) from coding where fid==%i", currentFid))[1,1]
-            ClearMark(widget,min=0,max=Maxindex,clear.fore.col = TRUE, clear.back.col =FALSE)
-        if (nrow(sel_index)>0){
-          HL(widget,index=sel_index,fore.col=.rqda$fore.col,back.col=NULL)}
-          },error=function(e){}) # end of mark text chuck
-        }
-      }
-    }},action=list(marktxtwidget=".openfile_gui")
-                    )
-  
+  addHandlerClicked(.rqda$.codes_rqda,handler <- function(h,...){ClickHandlerFun()})
 
 ##  addHandlerMouseMotion(.rqda$.CasesNamesWidget, handler <- function(h, ...) {
 ##    if (is_projOpen(env = .rqda, conName ="qdacon",message = FALSE)) {
@@ -125,32 +97,36 @@ Handler <- function(){
     con <- .rqda$qdacon
     SelectedCase <- currentCase <- svalue(.rqda$.CasesNamesWidget)
     if (length(SelectedCase)!=0) {
-    Encoding(SelectedCase) <- Encoding(currentCase) <- "UTF-8"
-    currentCid <- dbGetQuery(con,sprintf("select id from cases where name=='%s'",SelectedCase))[,1]
-    SelectedFile <- tryCatch(svalue(.rqda$.root_edit)  ## use root_edit is more reliable
-                             ,error=function(e){})
-    if (!is.null(SelectedFile)) {
-      Encoding(SelectedFile) <- "UTF-8"
-      currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'",SelectedFile))[,1]
-      ## following code: Only mark the text chuck according to the current code.
-      tryCatch({
-        widget <- get(h$action$marktxtwidget,.rqda)
-        ## if widget is not open, then error;which means no need to highlight anything.
-        sel_index <-  dbGetQuery(con,sprintf("select selfirst, selend from caselinkage where
+      ## Encoding(SelectedCase) <- Encoding(currentCase) <- "UTF-8"
+      currentCase <- SelectedCase <- enc(SelectedCase,encoding="UTF-8")
+      currentCid <- dbGetQuery(con,sprintf("select id from cases where name=='%s'",SelectedCase))[,1]
+      SelectedFile <- tryCatch(svalue(.rqda$.root_edit)  ## use root_edit is more reliable
+                               ,error=function(e){})
+      if (!is.null(SelectedFile)) {
+        ## Encoding(SelectedFile) <- "UTF-8"
+        SelectedFile <- enc(SelectedFile,encoding="UTF-8")
+        currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'",SelectedFile))[,1]
+        ## following code: Only mark the text chuck according to the current code.
+        tryCatch({
+          widget <- get(h$action$marktxtwidget,.rqda)
+          ## if widget is not open, then error;which means no need to highlight anything.
+          sel_index <-  dbGetQuery(con,sprintf("select selfirst, selend from caselinkage where
                                                    caseid==%i and fid==%i and status==1",currentCid, currentFid))
-        Maxindex <- dbGetQuery(con, sprintf("select max(selend) from caselinkage where fid==%i", currentFid))[1,1]
-        ClearMark(widget,min=0,max=Maxindex,clear.fore.col=FALSE,clear.back.col=TRUE)
-        if (nrow(sel_index)>0){
-          HL(widget,index=sel_index,fore.col=NULL,back.col=.rqda$back.col)}
-      },error=function(e){}) # end of mark text chuck
+          Maxindex <- dbGetQuery(con, sprintf("select max(selend) from caselinkage where fid==%i", currentFid))[1,1]
+          ClearMark(widget,min=0,max=Maxindex,clear.fore.col=FALSE,clear.back.col=TRUE)
+          if (nrow(sel_index)>0){
+            HL(widget,index=sel_index,fore.col=NULL,back.col=.rqda$back.col)}
+        },error=function(e){}) # end of mark text chuck
+      }
     }
-  }
   },action=list(marktxtwidget=".openfile_gui")
                     )
-
+  
   addHandlerClicked(.rqda$.CodeCatWidget,handler <- function(h,...){
     UpdateCodeofCatWidget(con=.rqda$qdacon,Widget=.rqda$.CodeofCat)
 })
+
+ addhandlerdoubleclick(.rqda$.AttrNamesWidget, handler=function(h,...) MemoWidget("Attributes",.rqda$.AttrNamesWidget,"attributes"))
 
  addhandlerdoubleclick(.rqda$.CodeCatWidget, handler=function(h,...) MemoWidget("CodeCat",.rqda$.CodeCatWidget,"codecat"))
  add3rdmousepopupmenu(.rqda$.CodeCatWidget, CodeCatWidgetMenu)
@@ -170,7 +146,6 @@ addhandlerdoubleclick(.rqda$.FileCatWidget, handler=function(h,...) MemoWidget("
 
 add3rdmousepopupmenu(.rqda$.FileCatWidget, FileCatWidgetMenu)
 
-
 addhandlerdoubleclick(.rqda$.FileofCat, handler <- function(h,...) ViewFileFun(FileNameWidget=.rqda$.FileofCat))
 
 add3rdmousepopupmenu(.rqda$.FileofCat,FileofCatWidgetMenu)
@@ -187,6 +162,8 @@ ViewFileFun(FileNameWidget=.rqda$.FileofCase)
 HL_Case()
 }
 )
+
+addhandlerdoubleclick(.rqda$.JournalNamesWidget, handler <- function(h,...) ViewJournalWidget())
 
 }
 

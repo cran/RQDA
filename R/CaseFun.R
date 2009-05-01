@@ -1,13 +1,16 @@
-CaseNamesUpdate <- function(CaseNamesWidget=.rqda$.CasesNamesWidget,decreasing=FALSE,...)
+CaseNamesUpdate <- function(CaseNamesWidget=.rqda$.CasesNamesWidget,sortByTime=FALSE,decreasing=FALSE,...)
 {
   if (isIdCurrent(.rqda$qdacon)){
+##  CaseName <- dbGetQuery(.rqda$qdacon, "select name, id,date from cases where status=1 order by lower(name)")
   CaseName <- dbGetQuery(.rqda$qdacon, "select name, id,date from cases where status=1")
   if (nrow(CaseName)==0) {
     case <- NULL
   } else {
     case <- CaseName$name
     Encoding(case) <- "UTF-8"
+    if (!sortByTime) {case <- sort(case)} else {
     case <- case[OrderByTime(CaseName$date,decreasing=decreasing)]
+    }
   }
      tryCatch(CaseNamesWidget[] <- case, error=function(e){})
   }
@@ -36,9 +39,9 @@ AddCase <- function(name,conName="qdacon",assignenv=.rqda,...) {
 }
 
 
-AddFileToCaselinkage <- function(){
+AddFileToCaselinkage <- function(Widget=.rqda$.fnames_rqda){
   ## filenames -> fid -> selfirst=0; selend=nchar(filesource)
-  filename <- svalue(.rqda$.fnames_rqda)
+  filename <- svalue(Widget)
   Encoding(filename) <- "unknown"
   query <- dbGetQuery(.rqda$qdacon,sprintf("select id, file from source where name in (%s) and status=1",
   paste("'",filename,"'",sep="",collapse=",")))
