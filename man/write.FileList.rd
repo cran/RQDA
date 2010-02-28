@@ -30,11 +30,9 @@ files.
 \author{Huang Ronggui}
 \examples{
 \dontrun{
-Files <- list("File name one"="content of first File.","File name two"="content of the second File.")
+Files <- list("File name one"="content of first File.",
+              "File name two"="content of the second File.")
 write.FileList(Files) ## Please launch RQDA(), and open a project first.
 }
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 % \keyword{ ~kwd1 }
-% \keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

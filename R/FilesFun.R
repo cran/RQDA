@@ -55,19 +55,21 @@ FileNamesUpdate <- function(FileNamesWidget=.rqda$.fnames_rqda,sort=TRUE,decreas
 
 
 ViewFileFun <- function(FileNameWidget,hightlight=TRUE){
-## FileNameWidget=.rqda$.fnames_rqda in Files Tab
-## FileNameWidget=.rqda$.FileofCat in F-CAT Tab
-  if (is_projOpen(env = .rqda, conName = "qdacon")) {
-    if (length(svalue(FileNameWidget)) == 0) {
-      gmessage("Select a file first.", icon = "error",con = TRUE)
-    } else {
-      SelectedFileName <- svalue(FileNameWidget)
-      ViewFileFunHelper(SelectedFileName,hightlight=TRUE)
-    }}}
+    ## FileNameWidget=.rqda$.fnames_rqda in Files Tab
+    ## FileNameWidget=.rqda$.FileofCat in F-CAT Tab
+    if (is_projOpen(env = .rqda, conName = "qdacon")) {
+        if (length(svalue(FileNameWidget)) == 0) {
+            gmessage("Select a file first.", icon = "error",con = TRUE)
+        } else {
+            SelectedFileName <- svalue(FileNameWidget)
+            ViewFileFunHelper(SelectedFileName,hightlight=TRUE)
+        }}}
 
 
 ViewFileFunHelper <- function(FileName,hightlight=TRUE){
-  tryCatch(dispose(.rqda$.root_edit), error = function(e) {})
+  if (exists(".root_edit",env=.rqda) && isExtant(.rqda$.root_edit)) {
+    dispose(.rqda$.root_edit)
+  }
   SelectedFileName <- FileName
   gw <- gwindow(title = SelectedFileName,parent = getOption("widgetCoordinate"), width = 600, height = 600)
   mainIcon <- system.file("icon", "mainIcon.png", package = "RQDA")
@@ -81,13 +83,14 @@ ViewFileFunHelper <- function(FileName,hightlight=TRUE){
   tmp@widget@widget$SetPixelsInsideWrap(5) ## so the text looks more confortable.
   assign(".openfile_gui", tmp, env = .rqda)
   Encoding(SelectedFileName) <- "unknown"
-  IDandContent <- dbGetQuery(.rqda$qdacon, sprintf("select id, file from source where name='%s'",SelectedFileName))
+  IDandContent <- dbGetQuery(.rqda$qdacon, sprintf("select id, file from source where name='%s'",
+                                                   enc(SelectedFileName)))
   content <- IDandContent$file
   Encoding(content) <- "UTF-8"
   W <- get(".openfile_gui", .rqda)
   add(W, content)
   slot(W, "widget")@widget$SetEditable(FALSE)
-  markidx <- dbGetQuery(.rqda$qdacon,sprintf("select coding.rowid,coding.selfirst,coding.selend,freecode.name from coding,freecode where coding.fid=%i and coding.status=1 and freecode.id==coding.cid and freecode.status==1",IDandContent$id))
+  markidx <- dbGetQuery(.rqda$qdacon,sprintf("select coding.rowid,coding.selfirst,coding.selend,freecode.name,freecode.color, freecode.id from coding,freecode where coding.fid=%i and coding.status=1 and freecode.id==coding.cid and freecode.status==1",IDandContent$id))
   anno <- RQDAQuery(sprintf("select position,rowid from annotation where status==1 and fid==%s",IDandContent$id))
   buffer <- W@widget@widget$GetBuffer()
   if (nrow(markidx)!=0){ ## make sense only when there is coding there
@@ -104,15 +107,19 @@ ViewFileFunHelper <- function(FileName,hightlight=TRUE){
     })} ## creat marks for annotation
   if (nrow(markidx)!=0){
     sapply(markidx[, "rowid"], FUN = function(x) {
-      code <- enc(markidx[markidx$rowid == x, "name"],"UTF-8")
+      code <- markidx[markidx$rowid == x, "name"]
+      Encoding(code) <- "UTF-8"
+      codeColor <- markidx[markidx$rowid == x, "color"]
+      if (is.na(codeColor)) codeColor <-  DefaultCodeColor[as.numeric(markidx[markidx$rowid == x, "id"]) %% 11+1] ## specification of default color for codemark ##c("antiquewhite1","green","aquamarine2","bisque1","brown1")
       m1 <- buffer$GetMark(sprintf("%s.1", x))
       iter1 <- buffer$GetIterAtMark(m1)
       idx1 <- gtkTextIterGetOffset(iter1$iter)
-      InsertAnchor(.rqda$.openfile_gui, label = sprintf("%s<",code), index = idx1,handler=TRUE)
+      InsertAnchor(.rqda$.openfile_gui, label = sprintf("%s<",code), index = idx1,handler=TRUE,
+                   label.col=codeColor)
       m2 <- buffer$GetMark(sprintf("%s.2", x))
       iter2 <- buffer$GetIterAtMark(m2)
       idx2 <- gtkTextIterGetOffset(iter2$iter)
-      InsertAnchor(.rqda$.openfile_gui, label = sprintf(">%s",code), index = idx2)
+      InsertAnchor(.rqda$.openfile_gui, label = sprintf(">%s",code), index = idx2,handler=TRUE,forward=FALSE)
     }) ## end of sapply -> insert code label
     if (hightlight){
       idx <- sapply(markidx[, "rowid"], FUN = function(x) {
@@ -134,7 +141,24 @@ ViewFileFunHelper <- function(FileName,hightlight=TRUE){
       idx <- gtkTextIterGetOffset(iter$iter)
       InsertAnnotation(index=idx,fid=IDandContent$id, rowid=x["rowid"])
     })}
-    buffer$PlaceCursor(buffer$getIterAtOffset(0)$iter) ## place cursor at the beginning
+  buffer$PlaceCursor(buffer$getIterAtOffset(0)$iter) ## place cursor at the beginning
+  enabled(button$AnnB) <- TRUE
+  enabled(button$MarCodB1) <- (length(svalue(.rqda$.codes_rqda))==1)
+  enabled(button$UnMarB1) <- (length(svalue(.rqda$.codes_rqda))==1)
+  enabled(button$MarCodB2) <- (length(svalue(.rqda$.CodeofCat))==1)
+  enabled(button$UnMarB2) <- (length(svalue(.rqda$.CodeofCat))==1)
+  enabled(button$c2memobutton) <- TRUE
+  addHandlerUnrealize(gw, handler = function(h,...) {
+    enabled(button$AnnB) <- FALSE
+    enabled(button$MarCodB1) <- FALSE
+    enabled(button$UnMarB1) <- FALSE
+    enabled(button$MarCodB2) <- FALSE
+    enabled(button$UnMarB2) <- FALSE
+    enabled(button$c2memobutton) <- FALSE
+    enabled(button$CasMarB) <- FALSE
+    enabled(button$CasUnMarB) <- FALSE
+    return(FALSE)
+  })
 }
 
 
@@ -148,8 +172,10 @@ EditFileFun <- function(FileNameWidget=.rqda$.fnames_rqda){
     }
     else {
       tryCatch(dispose(.rqda$.root_edit),error=function(e) {})
-      assign(".root_edit",gwindow(title=SelectedFileName,parent=getOption("widgetCoordinate"),
-                                  width=600,height=600),env=.rqda)
+      gw <- gwindow(title=SelectedFileName,parent=getOption("widgetCoordinate"),width=600,height=600)
+      mainIcon <- system.file("icon", "mainIcon.png", package = "RQDA")
+      gw@widget@widget$SetIconFromFile(mainIcon)
+      assign(".root_edit",gw,env=.rqda)
       assign(".root_edit2",gpanedgroup(horizontal = FALSE, con=.rqda$.root_edit),env=.rqda)
       gbutton("Save File",con=.rqda$.root_edit2,handler=function(h,...){
         content <-  svalue(.rqda$.openfile_gui)
@@ -195,7 +221,7 @@ EditFileFun <- function(FileNameWidget=.rqda$.fnames_rqda){
       gtkWidgetModifyFont(tmp@widget@widget,font)
       assign(".openfile_gui", tmp, env = .rqda)
       Encoding(SelectedFileName) <- "unknown"
-      IDandContent <- dbGetQuery(.rqda$qdacon, sprintf("select id, file from source where name='%s'",SelectedFileName))
+      IDandContent <- dbGetQuery(.rqda$qdacon, sprintf("select id, file from source where name='%s'",enc(SelectedFileName)))
       content <- IDandContent$file
       Encoding(content) <- "UTF-8"
       W <- get(".openfile_gui", .rqda)
@@ -332,7 +358,7 @@ FileNameWidgetUpdate <- function(FileNamesWidget=.rqda$.fnames_rqda,sort=TRUE,de
     Encoding(source$name) <- "UTF-8"
     if (!is.null(FileId)){
       source <- source[source$id %in% FileId,]
-      fnames <- source$name ## when FileId is not in source$id, fnames is character(0), still works.
+      fnames <- source$name##when FileId is not in source$id, fnames is character(0), still works.
       date <- source$date
     } else{
       fnames <- source$name
@@ -346,7 +372,7 @@ FileNameWidgetUpdate <- function(FileNamesWidget=.rqda$.fnames_rqda,sort=TRUE,de
 }
 
 
-GetFileId <- function(condition=c("unconditional","case","filecategory"),type=c("all","coded","uncoded","selected"))
+GetFileId <- function(condition=c("unconditional","case","filecategory","both"),type=c("all","coded","uncoded","selected"))
 {
   ## helper function
   unconditionalFun <- function(type)
@@ -355,21 +381,21 @@ GetFileId <- function(condition=c("unconditional","case","filecategory"),type=c(
         selected <- svalue(.rqda$.fnames_rqda)
         ans <- dbGetQuery(.rqda$qdacon,
                           sprintf("select id from source where status==1 and name in (%s)",
-                                  paste(paste("'",selected,"'",sep=""),collapse=",")
+                                  paste(paste("'",enc(selected),"'",sep=""),collapse=",")
                                   ))$id
       } else {
-      allfid <- dbGetQuery(.rqda$qdacon,"select id from source where status==1 group by id")$id
-      if (type!="all"){
-        fid_coded <- dbGetQuery(.rqda$qdacon,"select fid from coding where status==1 group by fid")$fid
+        allfid <- dbGetQuery(.rqda$qdacon,"select id from source where status==1 group by id")$id
+        if (type!="all"){
+          fid_coded <- dbGetQuery(.rqda$qdacon,"select fid from coding where status==1 group by fid")$fid
+        }
+        if (type=="all") {
+          ans <- allfid
+        } else if (type=="coded"){
+          ans <- fid_coded
+        } else if (type=="uncoded"){
+          ans <- allfid[! (allfid %in% fid_coded)]
+        }
       }
-      if (type=="all") {
-        ans <- allfid
-      } else if (type=="coded"){
-        ans <- fid_coded
-      } else if (type=="uncoded"){
-        ans <- allfid[! (allfid %in% fid_coded)]
-      }
-    }
       ans
     }
 
@@ -378,7 +404,7 @@ GetFileId <- function(condition=c("unconditional","case","filecategory"),type=c(
       selected <- svalue(.rqda$.FileofCase)
       ans <- dbGetQuery(.rqda$qdacon,
                         sprintf("select id from source where status==1 and name in (%s)",
-                                paste(paste("'",selected,"'",sep=""),collapse=",")
+                                paste(paste("'",enc(selected),"'",sep=""),collapse=",")
                                 ))$id
     } else {
       Selected <- svalue(.rqda$.CasesNamesWidget)
@@ -386,15 +412,16 @@ GetFileId <- function(condition=c("unconditional","case","filecategory"),type=c(
         ans <- NULL
       } else {
         if (length(Selected)>1) {gmessage("select one file category only.",con=TRUE)
-                                  stop("more than one file categories are selected")
-                                }
-        caseid <- dbGetQuery(.rqda$qdacon,sprintf("select id from cases where status=1 and name='%s'",Selected))$id
-        fidofcase <- dbGetQuery(.rqda$qdacon,sprintf("select fid from caselinkage where status==1 and caseid==%i",caseid))$fid
-##         caseid <- dbGetQuery(.rqda$qdacon,sprintf("select id from cases where status=1 and name in (%s)",
-##                                                  paste(paste("'",Selected,"'",sep=""),collapse=",")))$id
-##         fidofcase <- dbGetQuery(.rqda$qdacon,sprintf("select fid from caselinkage where status==1 and caseid in (%s)",
-##                                                     paste(paste("'",caseid,"'",sep=""),collapse=",")))$fid
-## roll back to rev 90
+                                 stop("more than one file categories are selected")
+                               }
+        caseid <- RQDAQuery(sprintf("select id from cases where status=1 and name='%s'",
+                                    enc(Selected)))$id
+        fidofcase <- RQDAQuery(sprintf("select fid from caselinkage where status==1 and caseid==%i",caseid))$fid
+        ##         caseid <- dbGetQuery(.rqda$qdacon,sprintf("select id from cases where status=1 and name in (%s)",
+        ##                                                  paste(paste("'",Selected,"'",sep=""),collapse=",")))$id
+        ##         fidofcase <- dbGetQuery(.rqda$qdacon,sprintf("select fid from caselinkage where status==1 and caseid in (%s)",
+        ##                                                     paste(paste("'",caseid,"'",sep=""),collapse=",")))$fid
+        ## roll back to rev 90
         allfid <-  unconditionalFun(type=type)
         ans <- intersect(fidofcase,allfid)
       }
@@ -407,7 +434,7 @@ GetFileId <- function(condition=c("unconditional","case","filecategory"),type=c(
       selected <- svalue(.rqda$.FileofCat)
       ans <- dbGetQuery(.rqda$qdacon,
                         sprintf("select id from source where status==1 and name in (%s)",
-                                paste(paste("'",selected,"'",sep=""),collapse=",")
+                                paste(paste("'",enc(selected),"'",sep=""),collapse=",")
                                 ))$id
     }
     allfid <- GetFileIdSets("filecategory","intersect")
@@ -418,13 +445,19 @@ GetFileId <- function(condition=c("unconditional","case","filecategory"),type=c(
     }
     ans
   }
-  
+
+  bothFun <- function(type){
+    ans <- intersect(GetFileId("case",type),GetFileId("file",type))
+    ans
+  }
+
   condition <- match.arg(condition)
   type <- match.arg(type)
   fid <- switch(condition,
                 unconditional=unconditionalFun(type=type),
                 case=FidOfCaseFun(type=type),
-                filecategory=FidOfCatFun(type=type)
+                filecategory=FidOfCatFun(type=type),
+                both=bothFun(type=type)
                 )
   fid
 }
@@ -467,7 +500,7 @@ AddToFileCategory <- function(Widget=.rqda$.fnames_rqda,updateWidget=TRUE){
   ## filenames -> fid -> selfirst=0; selend=nchar(filesource)
   filename <- svalue(Widget)
   Encoding(filename) <- "unknown"
-  query <- dbGetQuery(.rqda$qdacon,sprintf("select id, file from source where name in(%s) and status=1",paste("'",filename,"'",sep="",collapse=","))) ## multiple fid
+  query <- dbGetQuery(.rqda$qdacon,sprintf("select id, file from source where name in(%s) and status=1",paste("'",enc(filename),"'",sep="",collapse=","))) ## multiple fid
   fid <- query$id
   Encoding(query$file) <- "UTF-8"
   ## select a F-cat name -> F-cat id
@@ -475,7 +508,7 @@ AddToFileCategory <- function(Widget=.rqda$.fnames_rqda,updateWidget=TRUE){
   if (nrow(Fcat)==0){gmessage("Add File Categroy first.",con=TRUE)} else{
     Encoding(Fcat$name) <- "UTF-8"
     Selecteds <- gselect.list(Fcat$name,multiple=TRUE)
-    if (length(Selecteds)>0 || Selecteds!=""){
+    if (length(Selecteds)>0 && Selecteds!=""){
       Encoding(Selecteds) <- "UTF-8"
       for (Selected in Selecteds) {
         Fcatid <- Fcat$catid[Fcat$name %in% Selected]
@@ -492,6 +525,8 @@ AddToFileCategory <- function(Widget=.rqda$.fnames_rqda,updateWidget=TRUE){
           if (!success) gmessage(sprintf("Fail to write to file category of %s",Selected))
         }
       }
+    } else {
+      invisible(FALSE)
     }
   }
 }

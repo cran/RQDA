@@ -14,8 +14,12 @@
 }
 \usage{
 list.deleted(type=c("file","code","case","codecategory","filecategory"))
-pdelete(type=c("file","code","case","codecategory","filecategory","coding"),ask=FALSE)
+
+pdelete(type=c("file","code","case","codecategory","filecategory","coding"),
+        ask=FALSE)
+
 CleanProject(ask=FALSE)
+
 undelete(type=c("file","code","case","codecategory","filecategory"),ask=TRUE)
 }
 
@@ -62,5 +66,4 @@ functions are used for the side-effects.
 }
 
 \author{Ronggui HUANG}
-\keyword{ utilities }
-
+%\keyword{ utilities }

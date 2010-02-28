@@ -7,9 +7,10 @@
  Return a matrix, give a summary of inter-codes relationship.
 }
 \usage{
-CrossCode(relation=c("overlap","inclusion","exact","proximity"),codeList=NULL,data=GetCodingTable(),print=TRUE,...)
+CrossCode(relation=c("overlap","inclusion","exact","proximity"),codeList=NULL,
+          data=GetCodingTable(),print=TRUE,...)
 
-CrossTwo(cid1, cid2,data,relation=c("overlap","inclusion","exact","proximity"),...)
+CrossTwo(cid1,cid2,data,relation=c("overlap","inclusion","exact","proximity"),...)
 }
 \arguments{
  \item{relation}{The relation between codes}

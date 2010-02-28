@@ -1,6 +1,6 @@
-export(CleanProject,CrossCode,CrossTwo,ExportCoding,gselect.list,GetAttr,GetCaseId,GetCaseName,
+export(and, CleanProject,CrossCode,CrossTwo,ExportCoding,gselect.list,GetAttr,GetCaseId,GetCaseName,
        GetCodingTable,GetFileId,GetFileIdSets,GetFileName,
-       list.deleted,pdelete,Query,relation,retrieval,RQDA,RQDA2tm,RQDAQuery,
+       list.deleted,pdelete,QueryFile,relation,retrieval,RQDA,RQDA2tm,RQDAQuery,
        SearchFiles,ShowSubset,SummaryCoding,undelete,write.FileList)
 S3method(print,SummaryCoding)
 S3method(ShowSubset,default)

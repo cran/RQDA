@@ -23,8 +23,8 @@ When it is TRUE, return the summary of coding for each coded file.}
 	\item{NumOfCoding}{Number of coding for each code.}
 	\item{AvgLength}{Average number of characters in codings for 
 each code.}
-	\item{NumOfFile}{Number of files coded for each code}.
-	\item{CodingOfFile}{Number of codings for each file.NULL is 
+	\item{NumOfFile}{Number of files coded for each code.}
+	\item{CodingOfFile}{Number of codings for each file. Returns NULL if 
 byFile is FALSE.}
 }
 \author{ HUANG Ronggui}

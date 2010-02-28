@@ -6,8 +6,6 @@ inter-coder reliability
 
 support Image file.
 
-add status field into attributes table.
-
 pdelete function for journal table.
 
 dbBeginTransaction(RQDA:::.rqda$qdacon)

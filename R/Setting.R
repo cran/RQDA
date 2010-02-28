@@ -34,13 +34,13 @@ addSettingGUI <- function(container,width=12){
                                 type = "gcombobox",
                                 items=c(.rqda$back.col,colorsList)
                                 ),
-                           list(name = "codeMark.col",
-                                label = "Color for Coding Marker",
-                                ## type = "gedit",width=width,
-                                ## text = .rqda$codeMark.col
-                                type = "gcombobox",
-                                items=c(.rqda$codeMark.col,colorsList)
-                                ),
+##                            list(name = "codeMark.col",
+##                                 label = "Global Code Marker Color",
+##                                 ## type = "gedit",width=width,
+##                                 ## text = .rqda$codeMark.col
+##                                 type = "gcombobox",
+##                                 items=c(.rqda$codeMark.col,colorsList)
+##                                 ),
                            list(name = "BOM",
                                 label = "Byte Order Mark",
                                 type = "gcombobox",## width=width,
@@ -54,7 +54,7 @@ addSettingGUI <- function(container,width=12){
                            list(name = "TOR",
                                 type="gcombobox",
                                 label = "Type of Retrieval",
-                                items = c(.rqda$TOR, "case", "filecategory")
+                                items = c(.rqda$TOR, "case", "filecategory","both")
                                 )
                            )
                          )
@@ -85,7 +85,7 @@ addSettingGUI <- function(container,width=12){
     tryCatch(svalue(SettingFL[]$owner) <- "default",error=function(e){})
     tryCatch(svalue(SettingFL[]$back.col) <- "gold",error=function(e){})
     tryCatch(svalue(SettingFL[]$fore.col) <- "blue",error=function(e){})
-    tryCatch(svalue(SettingFL[]$codeMark.col) <- "green",error=function(e){})
+##    tryCatch(svalue(SettingFL[]$codeMark.col) <- "green",error=function(e){})
     tryCatch(svalue(SettingFL[]$TOR) <- "unconditional",error=function(e){})
     assign("BOM",FALSE,env=.rqda)
     assign("SFP",FALSE,env=.rqda)
@@ -93,7 +93,7 @@ addSettingGUI <- function(container,width=12){
     assign("owner","default",env=.rqda)
     assign("back.col","gold",env=.rqda)
     assign("fore.col","blue",env=.rqda)
-    assign("codeMark.col","green",env=.rqda)
+##    assign("codeMark.col","green",env=.rqda)
     assign("TOR","unconditional",env=.rqda)
     assign("font","Sans 11",env=.rqda)
   })}

@@ -8,7 +8,8 @@ Export codings to a HTML file.
 To export retrieved codings to a HTML file.
 }
 \usage{
-ExportCoding(file = "Exported Codings.html", Fid = NULL, order = c("fname", "ftime", "ctime"), append = FALSE)
+ExportCoding(file = "Exported Codings.html", Fid = NULL,
+             order = c("fname", "ftime", "ctime"), append = FALSE)
 }
 \arguments{
   \item{file}{

@@ -6,13 +6,15 @@
 Get the attributes of case or file.
 }
 \usage{
-GetAttr(type = c("case", "file"),attrs = svalue(.rqda$.AttrNamesWidget))
+GetAttr(type = c("case", "file"),attrs = svalue(.rqda$.AttrNamesWidget),
+        subset)
 
 ShowSubset(x,...)
 }
 \arguments{
   \item{type}{Type of attributes.}
   \item{attrs}{character vector, subset of attributes to retrieve.}
+  \item{subset}{when subset is not missing, return subset only.}
   \item{x}{an object from \code{GetAttr}}
   \item{\ldots}{Not used currently.}
 }
@@ -22,7 +24,9 @@ returns this attributes as a data frame.
 
 Sometimes, you only want to show a subset of files or cases according to
 their attributes. You can do the subset operation of the result from
-\code{GetAttr} and pass it to \code{ShowSubset}.
+\code{GetAttr} and pass it to \code{ShowSubset}, or you can pass a
+subset argument to \code{GetAttr}. The meaning of subset is the same as
+that in \code{subset} function.
 }
 \value{
   For \code{GetAttr}, when type is "case", it is a data frame with class

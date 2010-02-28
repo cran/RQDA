@@ -7,14 +7,14 @@
   Get the ids or names of files list.
 }
 \usage{
-GetFileId(condition = c("unconditional", "case", "filecategory"), type =
-c("all", "coded", "uncoded","selected"))
+GetFileId(condition = c("unconditional", "case", "filecategory","both"), 
+          type = c("all", "coded", "uncoded","selected"))
 
 GetFileName(fid = GetFileId())
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{condition}{Any one of "unconditional", "case" or "filecategory".}
+  \item{condition}{Any one of "unconditional", "case", "filecategory" or "both".}
   \item{type}{Any one of "all", "coded" or "uncoded","selected".}
   \item{fid}{integer vector, the id of files.}
 }
@@ -27,7 +27,9 @@ GetFileName(fid = GetFileId())
   "all" means all files, "coded" means the coded files, "uncoded" means
   the uncoded files and "selected" means the selected files; in "files"
   widget, "files of case" widget and "files of category" widget respectively.
-  
+
+  When \code{condition} is "both", the result is intersection of File Id of "case" and "filecategory".
+  	  
   \code{GetFileId} returns the id of files which fit the combined
   criterion of \code{condition} and \code{type}.
 }

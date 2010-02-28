@@ -8,7 +8,7 @@ relation <- function(index1,index2){
   ## the index of the overlap of index1 and index2.
   if ( !is.vector(index1) || !is.vector(index1) ) stop("index1 and index2 must be vector.")
   index1 <- as.numeric(index1)
-  index2 <- as.numeric(index2)  
+  index2 <- as.numeric(index2)
   if (any(is.na(c(index1,index2)))) stop("index1 or index2 should not have any NA.")
   names(index1) <- names(index2) <- NULL
   if (length(index1)==2 || length(index1)==2){
@@ -20,6 +20,8 @@ relation <- function(index1,index2){
     if (sum(index1 %in% c(Min,Max))==2 || sum(index2 %in% c(Min,Max))==2) {
       if (length(ans$WhichMin)==2 && length(ans$WhichMax)==2){
         ans$Relation <- "exact"
+        ans$OverlapIndex <- index1
+        ans$UnionIndex<- index1
       } else {
         ans$Relation <- "inclusion"
         if (intersect(ans$WhichMin,ans$WhichMax)==1) {
@@ -58,7 +60,7 @@ relation <- function(index1,index2){
   }
 }
 
-CrossTwo <- function(cid1, cid2,data,relation=c("overlap","inclusion","exact","proximity"),...) 
+CrossTwo <- function(cid1, cid2,data,relation=c("overlap","inclusion","exact","proximity"),...)
 {
   ## cid1 and cid2 is length-1 numeric, represents the id of codes
   ## data is return by GetCodingTable.
@@ -97,7 +99,9 @@ CrossCode <- function(relation=c("overlap","inclusion","exact","proximity"),code
     } else {
       cidList <- Cid_Name$cid[which(Cid_Name$codename %in% codeList)]
       relation <- match.arg(relation)
-      ans <- matrix(nrow=length(codeList), ncol=length(codeList),dimnames=list(codeList,cidList))
+      ans <- matrix(nrow=length(codeList), ncol=length(codeList),dimnames=list(
+                                                                 sprintf("%s(%s)", codeList,cidList),
+                                                                 cidList))
       for (i in 1:length(codeList)){
         for (j in i:length(codeList)){
           ans[i,j] <- CrossTwo(cidList[i],cidList[j],data=data,relation=relation)

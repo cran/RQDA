@@ -3,7 +3,7 @@
 # distributed under the terms of the GNU General Public License Version 2, June 1991.
 
 RQDA2tm <- function(Code,language="french"){
-  require("tm", quietly = TRUE)
+  ## require("tm", quietly = TRUE)
   retrieval <- NULL
   currentCode <- Code
   if (length(currentCode)!=0)
@@ -26,11 +26,11 @@ RQDA2tm <- function(Code,language="french"){
                                           retrieval$fname[retrieval$fid==i] <- FileName
   					}
                                   Encoding(retrieval$seltext) <-  Encoding(retrieval$fname) <- "UTF-8"
-				}  
+				}
         }
-    }  
-  retrived <- Corpus(VectorSource(retrieval$seltext), readerControl = list( language = language))
-		retrieval$seltext <- NULL
-  retrived <- appendMeta(retrived, dmeta = retrieval)
+    }
+  retrived <- tm:::Corpus(tm:::VectorSource(retrieval$seltext), readerControl = list( language = language))
+  retrieval$seltext <- NULL
+  retrived <- tm:::appendMeta(retrived, dmeta = retrieval)
   return(retrived)
 }

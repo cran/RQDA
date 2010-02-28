@@ -1,3 +1,0 @@
-retreival2() has a bug: can not always (sometimes it does) scroll to the right position when click the button of back.
-
-Can not fully handle names with '. I will fix it when encounter but not look through all the code yet. You can help by reporting.

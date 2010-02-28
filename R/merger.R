@@ -61,7 +61,8 @@ mergeCodes <- function(cid1,cid2){ ## cid1 and cid2 are two code IDs.
   } ## use small coding as FromDat -> speed it up.
   for (i in seq_len(nrow(FromDat))) {
     x <- FromDat[i,,drop=FALSE]
-    Exist <- subset(ToDat,subset=fid==x$fid)
+    Exist <- ToDat[ToDat$fid==x$fid,] ## subset(ToDat,subset=fid==x$fid)
+    ## avoding the NOTE from docs checking.
     mergeHelperFUN(From=x,Exist=Exist)
   }
   dbGetQuery(.rqda$qdacon,sprintf("update coding set status==0 where cid=='%i'",FromCid))

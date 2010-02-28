@@ -29,4 +29,4 @@ A numeric vector or NULL if no file id is well-defined.
 \author{
   HUANG Ronggui
 }
-\seealso{ \code{\link{retrieval}},\code{\link{GetFileId}}}
+\seealso{ \code{\link{retrieval}}, \code{\link{GetFileId}}}

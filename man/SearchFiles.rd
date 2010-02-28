@@ -33,11 +33,13 @@ A data frame with variables:
 \seealso{\code{\link[gWidgets]{gtable}},  \code{\link[utils]{localeToCharset}}}
 \examples{
 \dontrun{
-SearchFiles("file like '\%keyword\%'") ## search for files who contain the word of "keyword"
-SearchFiles("file like 'keyword\%'") ## search for files whose conent begin with the word of "keyword"
-SearchFiles("name like '\%keyword'") ## search for files whose name end with the word of "keyword"
-SearchFiles("name like '\%keyword one' and file like '\%keyword tow\%' ") ## combined conidtions
+SearchFiles("file like '\%keyword\%'") 
+## search for files who contain the word of "keyword"
+SearchFiles("file like 'keyword\%'") 
+## search for files whose conent begin with the word of "keyword"
+SearchFiles("name like '\%keyword'") 
+## search for files whose name end with the word of "keyword"
+SearchFiles("name like '\%keyword one' and file like '\%keyword tow\%'") 
+## combined conidtions
 }
 }
-%\keyword{ ~kwd1 }
-%\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
