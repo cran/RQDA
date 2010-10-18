@@ -1,6 +1,144 @@
-2010-02-26
+2010-09-03
+	* re-written and, or and not and alias to %and%, %or% and %not%.
+	* use print method rather than summary for codingByOne object.
+
+2010-08-29
+	* use "changed" signal of text buffer instead of keystroke.
+	* save button of annotation widget grey out by default.
+	* menu of "export coding" is consistent with retrival type.
+
+2010-08-28
+	* size of gselect.list can be controlled by arguments.
+
+2010-08-27
+	* adjust size and position of two widgets.
+
+2010-08-26
+	* improved project memo button.
+
+2010-08-25
+	* bugfix of write.FileList.
+
+2010-08-13
+	* size/position of widgets are fine-tuned now.
+	* File names are sorted by default
+2010-08-08
+	* bugfix of "save and close" button.
+
+2010-06-11
+	* fine tune the default coordinate of widgets.
+
+2010-06-09
+	* memo widget : save button activated only when necessary
+
+2010-06-04
+	*minor bugfix of new_project
+
+2010-05-28
+	* only allow one RQDA to be launched.
+
+2010-05-25
+	* export closeProject and openProject for automation
+	* "save journal" button  activated  when necessary
+
+2010-05-12
+	* change settings about GUI size and layouts of settings
+	   now fit into mini netbook
+
+2010-05-08
+	* change default height of RQDA which takes values according to
+	screen size
+
+2010-04-28
+	* use message instead of cat
+
+2010-04-21
+	* fix a bug in gselect.list (crash R with 2.18 or newer libgtk2)
+
+2010-04-19
+	* minor bugbix of GetAttr (encoding issue)
+
+2010-04-16
+	*minor bugfix of attributes related to encoding
+
+2010-04-09
+	* update RQDATables.Rd (all are documented) and document a bug
+
+2010-04-07
+	* use previous search pattern in search file within case  category
+	when exists
+
+2010-03-28
+	* use .onAttach rather than .onLoad
+
+2010-03-19
+	* rename many functions accoding to cam names (first is lowercase).
+	* rename Rd files accordingly.
+
+2010-03-12
+	* names of widgets are set to default when project is closed.
+	* bugfix of HL_AllCodings.
+	* throws an error if add an adjacent coding.
+
+2010-03-10
+	* add codingTable argument to markRange, retrieval,ExportCoding, ClickHandlerFun, HL_CodingWithMemo, HL_AllCodings,CodeWithCoding, filesCodingBy*, getCodingsByOne.
+	* upgrade RQDATables to version 0.2.0.
+	* mark, unmark,coding buttons, click handler of codes and ViewFileFun take care of different coding tables.
+	* "Editing file" updates coding2 now.
+	* New function filesByCodes.
+
+2010-03-09
+	* rename codedByTwo to nCodedByTwo.
+
+2010-03-07
+	* bugfixes of or operation on codings.
+
+2010-03-06
+	* bugfixes of not operation on codings.
+
+2010-03-05
+	* new function of getCodingsByOne.
+	* file Id, file name etc. have a class (e.g. RQDA.vector).
+	* new functions of %and%, %or%, %not% and methods for RQDA.vector,and codingsByOne.
+	* bugfix of CrossCode, now it returns correct colnames and rownames.
+	* new function of codedByTwo.
+
+
+2010-03-04
+	* new functions of CaseCodedByAnd, CaseCodeByOr, CaseCodedByNot.
+	* save button in Add new file widget is disabled by default.
+	* add new file widget is cleared after content is saved, assigned obj are removed when closed.
+	* new function of getFiles().
+	* save button in edit file widget is disabled by default.
+	* add various Rd files.
+
+2010-03-03
+	* new functions of FileCodedByAnd, FileCodeByOr, FileCodedByNot.
+	* new function of Ops.ID().
+
+2010-03-02
+	* bugfix of and(), now the returning codings are correct.
+	* Search a word in a gtext widget, e.g. searchWord().
+	* New function of UpdateCoding().
+	* New function of FileCodedByAnd().
+	* bugfix of ClickHandlerFun().
+
+2010-03-01
+	* use more informative prefix in category memo.
+	* make endMark of a coding visible when clicked.
+	* delete enMark when delete a coding.
+
+2010-02-29
+	* RQDA2tm() is moved to new package of RQDAtm.
+	* bugfix of new project button (Thanks Steven McEachern for reporting).
+
+2010-02-27
+	* Insert one code label instead of two. It is more readable.
+	* Minor bugfix of "highlight coding with memo" in coding popup menu.
+
+2010-02-26 (0.1-9 rev 233)
 	* all widgets are enabled only if usable.
-	
+
 2010-02-25
 	* rename some buttons: retrieval -> coding; add anno -> anno; mark and unmark in case tab -> link and unlink
 	* buttons on project Tab is disabled unless a project is open.
@@ -10,7 +148,7 @@
 	* add icon to annotation widget.
 	* attribute should not contain ' any more.
 	* file category can handle ' correctly.
-	
+
 2010-02-22
 	* Various bugfixes of code name with ' in coding Tab.
 	* Various bugfixes of code name with ' in code category Tab.

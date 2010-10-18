@@ -1,5 +1,7 @@
-\name{CrossCode}
+\name{crossCodes}
+\alias{crossCodes}
 \alias{CrossCode}
+\alias{crossTwoCodes}
 \alias{CrossTwo}
 \docType{data}
 \title{ Inter-codes relationship}
@@ -7,10 +9,10 @@
  Return a matrix, give a summary of inter-codes relationship.
 }
 \usage{
-CrossCode(relation=c("overlap","inclusion","exact","proximity"),codeList=NULL,
+crossCodes(relation=c("overlap","inclusion","exact","proximity"),codeList=NULL,
           data=GetCodingTable(),print=TRUE,...)
 
-CrossTwo(cid1,cid2,data,relation=c("overlap","inclusion","exact","proximity"),...)
+crossTwoCodes(cid1,cid2,data,relation=c("overlap","inclusion","exact","proximity"),...)
 }
 \arguments{
  \item{relation}{The relation between codes}
@@ -25,27 +27,27 @@ CrossTwo(cid1,cid2,data,relation=c("overlap","inclusion","exact","proximity"),..
  The inter-codes relationship calculation is based on the relationship
  between the associated codings of the codes. 
 
- Giving the code name list (a character list), \code{CrossCode} returns
- the inter-relationship of 2 or more than 2 codes. \code{CrossCode}
+ Giving the code name list (a character list), \code{crossCodes} returns
+ the inter-relationship of 2 or more than 2 codes. \code{crossCodes}
  make heavy use of for loops, so it may takes a while to get the result
  when the coding table is large.
 
- \code{CrossTwo} returns the summary of inter-codes relationship of two
+ \code{crossTwoCodes} returns the summary of inter-codes relationship of two
  codes based on the code id (each code id is a length-1 integer vector).
  
 }
 \value{
-For \code{CrossCode}, it is a matrix. The upper matrix contains the
+For \code{crossCodes}, it is a matrix. The upper matrix contains the
 number of codings fitting the relation between the respective two
 codes. the lower matrix is all NA. rownames of the matrix is the name of
 the codes , and the colnames of the matrix is the corresponding id of
 codes.
 
-For \code{CrossCodes}, it is a numeric vector.
+For \code{crossCodes}, it is a numeric vector.
 }
 \seealso{\code{\link{relation}}}
 \examples{
 \dontrun{
-CrossCodes()
+crossCodes()
 }
 }

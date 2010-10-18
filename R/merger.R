@@ -7,14 +7,26 @@ mergeCodes <- function(cid1,cid2){ ## cid1 and cid2 are two code IDs.
       Relations <- apply(Exist[c("selfirst","selend")],1,FUN=function(x) relation(x,c(From$selfirst,From$selend)))
       ## because apply convert data to an array, and Exist containts character -> x is charater rather than numeric
       Exist$Relation <- sapply(Relations,FUN=function(x) x$Relation) ## add Relation to the data frame as indicator.
+      ## possible bugs: should handle exact explicitely.
       if (!any(Exist$Relation=="exact")){
         ## if they are axact, do nothing; -> if they are not exact, do something. The following lines record meta info.
         Exist$WhichMin <- sapply(Relations,FUN=function(x)x$WhichMin)
         Exist$Start <- sapply(Relations,FUN=function(x)x$UnionIndex[1])
         Exist$End <- sapply(Relations,FUN=function(x)x$UnionIndex[2])
         if (all(Exist$Relation=="proximity")){ ## if there are no overlap in any kind, just write to database
-          success <- dbWriteTable(.rqda$qdacon,"coding",From,row.name=FALSE,append=TRUE)
-          if (!success) gmessage("Fail to write to database.")
+            dis <- sapply(Relations,function(x) x$Distance)
+            if (all(dis>0)) {
+                success <- dbWriteTable(.rqda$qdacon,"coding",From,row.name=FALSE,append=TRUE)
+                if (!success) gmessage("Fail to write to database.")
+            } else {
+                idx0 <- which(dis==0)
+                index3 <- unlist(c(From[,c("selfirst","selend")], Exist[idx0,c("selfirst","selend")]))
+                From["seltext"] <- paste(Exist$coding[idx0][rank(Exist$selfirst[idx0])],collapse="")
+                From["selfirst"] <- min(index3)
+                From["selend"] <- max(index3)
+                ## DAT <- From[,c("rowid","fid","filename","index1","index2","coding"),drop=FALSE] ## write to coding
+                ## delete the adjacent one.
+            }
         } else { ## if not proximate, pass to else branch.
           del1 <- (Exist$Relation =="inclusion" & any(Exist$WhichMin==2,Exist$WhichMax==2))
           ## ==2 -> take care of NA. Here 2 means From according to how Relations is returned.

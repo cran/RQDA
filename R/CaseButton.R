@@ -337,10 +337,12 @@ FileofCaseWidgetMenu$"Rename selected File"$handler <- function(h,...){
         }}}
 FileofCaseWidgetMenu$"Search Files within Seleted Case"$handler <- function(h, ...) {
     if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
-        pattern <- ginput("Please input a search pattern.",text="file like '%%'")
+        pattern <- ifelse(is.null(.rqda$lastsearch),"file like '%%'",.rqda$lastsearch)
+        pattern <- ginput("Please input a search pattern.",text=pattern)
         if (!is.na(pattern)){
             Fid <- GetFileId("case")
             tryCatch(SearchFiles(pattern,Fid=Fid,Widget=".FileofCase",is.UTF8=TRUE),error=function(e) gmessage("Error~~~."),con=TRUE)
+            assign("lastsearch",pattern,env=.rqda)
         }
     }
 }

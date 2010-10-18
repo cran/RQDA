@@ -97,7 +97,7 @@ CrossCode <- function(relation=c("overlap","inclusion","exact","proximity"),code
     if (length(codeList)<2) {
       stop("The codeList should be a vector of length 2 or abvoe.")
     } else {
-      cidList <- Cid_Name$cid[which(Cid_Name$codename %in% codeList)]
+      cidList <- Cid_Name$cid[match(codeList, Cid_Name$codename)]
       relation <- match.arg(relation)
       ans <- matrix(nrow=length(codeList), ncol=length(codeList),dimnames=list(
                                                                  sprintf("%s(%s)", codeList,cidList),

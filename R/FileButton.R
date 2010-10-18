@@ -11,7 +11,7 @@ ImportFileButton <- function(label="Import", container,...)
     }
           )
   assign("ImpFilB",ImpFilB,env=button)
-  gtkWidgetSetSensitive(button$ImpFilB@widget@widget,FALSE)  
+  gtkWidgetSetSensitive(button$ImpFilB@widget@widget,FALSE)
 }
 
 
@@ -43,7 +43,7 @@ DeleteFileButton <- function(label="Delete", container,...){
           action=list(env=.rqda,conName="qdacon")
           )
   assign("DelFilB",DelFilB,env=button)
-  gtkWidgetSetSensitive(button$DelFilB@widget@widget,FALSE) 
+  gtkWidgetSetSensitive(button$DelFilB@widget@widget,FALSE)
 }
 
 ViewFileButton <-  function(label="Open", container,...)
@@ -54,31 +54,8 @@ ViewFileButton <-  function(label="Open", container,...)
           }
           )
   assign("VieFilB",VieFilB,env=button)
-  gtkWidgetSetSensitive(button$VieFilB@widget@widget,FALSE) 
+  gtkWidgetSetSensitive(button$VieFilB@widget@widget,FALSE)
 }
-##           {
-##             if (is_projOpen(env=.rqda,conName="qdacon")) {
-##               if (length(svalue(.rqda$.fnames_rqda))==0){gmessage("Select a file first.",icon="error",con=TRUE)}
-##               else {
-##                 tryCatch(dispose(.rqda$.root_edit),error=function(e) {})
-##                 ## notice the error handler
-##                 SelectedFileName <- svalue(.rqda$.fnames_rqda)
-##                 assign(".root_edit",gwindow(title=SelectedFileName, parent=c(370,10),width=600,height=600),env=.rqda)
-##                 .root_edit <- get(".root_edit",.rqda)
-##                 assign(".openfile_gui",gtext(container=.root_edit,font.attr=c(sizes="large")),env=.rqda)
-##                 Encoding(SelectedFileName) <- "unknown"
-##                 content<-dbGetQuery(.rqda$qdacon, sprintf("select file from source where name='%s'",SelectedFileName))[1,1]
-##                 Encoding(content) <- "UTF-8" ## so it display correct in the gtext widget
-##                 ## turn data.frame to 1-length character.
-##                 W <- get(".openfile_gui",.rqda)
-##                 add(W,content,font.attr=c(sizes="large"))
-##                 slot(W,"widget")@widget$SetEditable(FALSE)
-##                 ## make sure it is read only file in the text window.
-##               }
-##     }
-##           }
-##           )
-## }
 
 
 File_MemoButton <- function(label="Memo", container=.rqda$.files_button,FileWidget=.rqda$.fnames_rqda,...){
@@ -88,49 +65,8 @@ File_MemoButton <- function(label="Memo", container=.rqda$.files_button,FileWidg
   }
           )
   assign("FilMemB",FilMemB,env=button)
-  gtkWidgetSetSensitive(button$FilMemB@widget@widget,FALSE) 
+  gtkWidgetSetSensitive(button$FilMemB@widget@widget,FALSE)
 }
-
-##     if (is_projOpen(env=.rqda,"qdacon")) {
-##       ## if project is open, then continue
-##       selectedFN <- svalue(FileWidget) ## svalue(.fnames_rqda) is the name of selected file.
-##       if (length(selectedFN)==0){
-##         ## if no file is selected, then no need to memo.
-##         gmessage("Select a file first.",icon="error",con=TRUE)
-##       }
-##       else {
-##         tryCatch(dispose(.rqda$.filememo),error=function(e) {})
-##         ## Close the open file memo first, then open a new one
-##         ## .filememo is the container of .fmemocontent,widget for the content of memo
-##         assign(".filememo",gwindow(title=paste("File Memo",selectedFN,sep=":"),
-##                                    parent=c(370,10),width=600,height=400),env=.rqda)
-##         .filememo <- .rqda$.filememo
-##         .filememo2 <- gpanedgroup(horizontal = FALSE, con=.filememo)
-##         ## use .filememo2, so can add a save button to it.
-##         gbutton("Save memo",con=.filememo2,handler=function(h,...){
-##           ## send the new content of memo back to database
-##           newcontent <- svalue(W)
-##           Encoding(newcontent) <- "UTF-8"
-##           newcontent <- enc(newcontent) ## take care of double quote.
-##           dbGetQuery(.rqda$qdacon,sprintf("update source set memo='%s' where name='%s'",newcontent,selectedFN))
-##                                  ## have to quote the character in the sql expression
-##         }
-##                 )
-##         assign(".fmemocontent",gtext(container=.filememo2,font.attr=c(sizes="large")),env=.rqda)
-##         prvcontent <- dbGetQuery(.rqda$qdacon, sprintf("select memo from source where name='%s'",svalue(FileWidget)))[1,1]
-##         ## [1,1]turn data.frame to 1-length character. Existing content of memo
-##         if (is.na(prvcontent)) prvcontent <- ""
-##         Encoding(prvcontent) <- "UTF-8" ## important
-##         W <- .rqda$.fmemocontent
-##         add(W,prvcontent,font.attr=c(sizes="large"),do.newline=FALSE)
-##         ## push the previous content to the widget.
-##       }
-##     }
-##   }
-##           )
-## }
-
-
 
 File_RenameButton <- function(label="Rename", container=.rqda$.files_button,FileWidget=.rqda$.fnames_rqda,...)
 {
@@ -158,19 +94,23 @@ File_RenameButton <- function(label="Rename", container=.rqda$.files_button,File
           )
   FilRenB
   assign("FilRenB",FilRenB,env=button)
-  gtkWidgetSetSensitive(button$FilRenB@widget@widget,FALSE) 
+  gtkWidgetSetSensitive(button$FilRenB@widget@widget,FALSE)
 }
 
 
 AddNewFileFun <- function(){
   if (is_projOpen(env=.rqda,"qdacon")) {
-    tryCatch(eval(parse(text="dispose(.rqda$.AddNewFileWidget")),error=function(e) {}) ## close the widget if open
-    gw <- gwindow(title="Add New File.",parent=getOption("widgetCoordinate"),width=600,height=400)
+    if (exists(".AddNewFileWidget",env=.rqda) && isExtant(.rqda$.AddNewFileWidget)) {
+      dispose(.rqda$.AddNewFileWidget)
+    } ## close the widget if open
+    gw <- gwindow(title="Add a new file", parent=getOption("widgetCoordinate"),
+                  width = getOption("widgetSize")[1],
+                  height = getOption("widgetSize")[2])
     mainIcon <- system.file("icon", "mainIcon.png", package = "RQDA")
     gw@widget@widget$SetIconFromFile(mainIcon)
     assign(".AddNewFileWidget",gw,env=.rqda)
     assign(".AddNewFileWidget2",gpanedgroup(horizontal = FALSE, con=get(".AddNewFileWidget",env=.rqda)),env=.rqda)
-    gbutton("Save To Project",con=get(".AddNewFileWidget2",env=.rqda),handler=function(h,...){
+    saveFileFun <- function() {
       ## require a title for the file
       Ftitle <- ginput("Enter the title", icon="info")
       if (!is.na(Ftitle)) {
@@ -185,18 +125,46 @@ AddNewFileFun <- function(){
         ans <- dbGetQuery(.rqda$qdacon,sprintf("insert into source (name, file, id, status,date,owner )
                              values ('%s', '%s',%i, %i, '%s', '%s')",
                                                Ftitle,content, nextid, 1,date(),.rqda$owner))
-        ## write to the data-base ## what is ans?
-        ## rm(.AddNewFileWidget,.AddNewFileWidget2,env=.rqda)
-        ## delete .rqda$.AddNewFileWidget and .rqda$.AddNewFileWidget2
-        gmessage("Succeed.",con=T)
-        FileNamesUpdate()
-      }}
-            )## end of save button
+        if (is.null(ans)){
+          svalue(textW) <- "" ## clear the content.
+          FileNamesUpdate()
+          enabled(button$AddNewFilB) <- FALSE
+          enabled(button$AddNewFilB2) <- FALSE
+      }
+        return(TRUE)
+    } else {
+        return(FALSE)
+    }
+  } ## end of saveFileFun
+
+    gl <- glayout(homogeneous=T,con=get(".AddNewFileWidget2",env=.rqda))
+    AddNewFilB <- gbutton("Save To Project", handler=function(h,...){saveFileFun()})
+    enabled(AddNewFilB) <- FALSE
+    assign("AddNewFilB",AddNewFilB,env=button)
+    AddNewFilB2 <- gbutton("Save and close", handler=function(h,...){
+        suc <- saveFileFun()
+        if (suc) dispose(.rqda$.AddNewFileWidget)
+    }
+                           )
+    enabled(AddNewFilB2) <- FALSE
+    assign("AddNewFilB2",AddNewFilB2,env=button)
+    gl[1,1] <- AddNewFilB
+    gl[1,2] <- AddNewFilB2
     tmp <- gtext(container=get(".AddNewFileWidget2",env=.rqda))
     font <- pangoFontDescriptionFromString(.rqda$font)
-    gtkWidgetModifyFont(tmp@widget@widget,font)## set the default fontsize
+    gtkWidgetModifyFont(tmp@widget@widget,font) ## set the default fontsize
     assign(".AddNewFileWidgetW",tmp,env=.rqda)
     textW <- get(".AddNewFileWidgetW",env=.rqda)
+    addHandlerKeystroke(.rqda$.AddNewFileWidgetW,handler=function(h,...){
+      enabled(button$AddNewFilB) <- TRUE
+      enabled(button$AddNewFilB2) <- TRUE
+    })
+    addhandlerunrealize(.rqda$.AddNewFileWidgetW,handler=function(h,...){
+      rm("AddNewFilB",envir=button)
+      rm(".AddNewFileWidgetW",".AddNewFileWidget",".AddNewFileWidget2",envir=.rqda)
+      FALSE
+    })
+    ## svalue(.rqda$.AddNewFileWidget2) <- 0.03999
   }
 }
 
@@ -204,10 +172,10 @@ AddNewFileFun <- function(){
 ## pop-up menu of add to case and F-cat from Files Tab
 FileNamesWidgetMenu <- list()
 FileNamesWidgetMenu$"Add New File ..."$handler <- function(h, ...) {
-    if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
+  if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
     AddNewFileFun()
-    }
   }
+}
 FileNamesWidgetMenu$"Add To Case ..."$handler <- function(h, ...) {
     if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
       AddFileToCaselinkage()
@@ -247,28 +215,18 @@ FileNamesWidgetMenu$"Edit Seleted File"$handler <- function(h, ...) {
   EditFileFun()
 }
 FileNamesWidgetMenu$"Find a word..."$handler <- function(h, ...) {
-  if (is_projOpen(env=.rqda,conName="qdacon")) {
-    content <- tryCatch(svalue(.rqda$.openfile_gui),error=function(e){NULL})
-    if (!is.null(content)) {
-        fname <- svalue(RQDA:::.rqda$.root_edit)
-        fid <- RQDAQuery(sprintf("select id from source where name=='%s' and status==1",fname))$id
-        word <- ginput("Type the word you intend to find.",con=TRUE)
-        Encoding(content) <- Encoding(word) <- "UTF-8"
-        idx1 <- gregexpr(word,content)[[1]] -1
-        idx2 <- idx1 + attr(idx1,"match.length")
-        markidx <- RQDAQuery(sprintf("select coding.selfirst,coding.selend from coding,freecode where coding.fid=%i and coding.status=1 and freecode.id==coding.cid and freecode.status==1",fid))
-        anno <- RQDAQuery(sprintf("select position,rowid from annotation where status==1 and fid==%s",fid))
-        allidx <- c(unlist(markidx),anno)
-        if (!is.null(allidx)){
-            idx1 <- idx1 + apply(outer(allidx,idx1,"<="),2,sum)
-            idx2 <- idx2 + apply(outer(allidx,idx2,"<="),2,sum)
-        }
-        idx <- data.frame(idx1,idx2)
-        ClearMark(.rqda$.openfile_gui,0,nchar(content),FALSE,TRUE)
-        HL(.rqda$.openfile_gui,idx,NULL,"yellow")
+    if (exists(".openfile_gui",env=.rqda) && isExtant(.rqda$.openfile_gui)) {
+        SearchButton(RQDA:::.rqda$.openfile_gui)
     }
 }
-}
+## a=gtext("this is a test for search a.",con=T)
+## b<-a@widget@widget$GetBuffer()
+## b$GetIterAtOffset(0)
+## i0=b$GetIterAtOffset(0)
+## s0=i0$iter$ForwardSearch("a","GTK_TEXT_SEARCH_VISIBLE_ONLY")
+## s0$match.start$GetOffset()
+## s0$match.end$GetOffset()
+
 FileNamesWidgetMenu$"File Memo"$handler <- function(h,...){
  if (is_projOpen(env=.rqda,conName="qdacon")) {
  MemoWidget("File",.rqda$.fnames_rqda,"source")
@@ -278,7 +236,7 @@ FileNamesWidgetMenu$"File Memo"$handler <- function(h,...){
 FileNamesWidgetMenu$"Open Selected File"$handler <- function(h,...){
   ViewFileFun(FileNameWidget=.rqda$.fnames_rqda)
 }
-FileNamesWidgetMenu$"Open Last Coded File"$handler <- function(h,...){
+FileNamesWidgetMenu$"Open Previous Coded File"$handler <- function(h,...){
   if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
     fname <- RQDAQuery("select name from source where id in ( select fid from coding where rowid in (select max(rowid) from coding where status==1))")$name
     if (length(fname)!=0)  fname <- enc(fname,"UTF-8")
@@ -313,12 +271,12 @@ FileNamesWidgetMenu$"Show ..."$"Show Uncoded Files Sorted by Imported time"$hand
       ## By default, the file names in the widget will be sorted.
     }
   }
-## FileNamesWidgetMenu$"Show ..."$"Show Last Coded File"$handler <- function(h, ...) {
-##     if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
-##         fname <- RQDAQuery("select name from source where id in ( select fid from coding where rowid in (select max(rowid) from coding where status==1))")$name
-##         if (length(fname)!=0)  fname <- enc(fname,"UTF-8")
-##         .rqda$.fnames_rqda[] <- fname
-##     }}
+FileNamesWidgetMenu$"Show ..."$"Show Files With Annotation"$handler <- function(h, ...) {
+  fileid <- RQDAQuery("select fid from annotation where status==1 group by fid")$fid
+  if (length(fileid)!=0) {
+    FileNameWidgetUpdate(FileNamesWidget=.rqda$.fnames_rqda,FileId=fileid)
+  } else gmessage("No file with memo.",con=TRUE)
+}
 FileNamesWidgetMenu$"Show ..."$"Show Files With Memo"$handler <- function(h, ...) {
     if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
     fileid <- dbGetQuery(.rqda$qdacon,"select id from source where memo is not null")
@@ -328,6 +286,12 @@ FileNamesWidgetMenu$"Show ..."$"Show Files With Memo"$handler <- function(h, ...
     } else gmessage("No file with memo.",con=TRUE)
     }
   }
+FileNamesWidgetMenu$"Show ..."$"Show Files Without Annotation"$handler <- function(h, ...) {
+  fileid <- RQDAQuery("select id from source where status==1 and id not in (select fid from annotation where status==1 group by fid)")$id
+  if (length(fileid)!=0) {
+    FileNameWidgetUpdate(FileNamesWidget=.rqda$.fnames_rqda,FileId=fileid)
+  } else gmessage("All files have annotation.",con=TRUE)
+}
 FileNamesWidgetMenu$"Show ..."$"Show Files Without Memo"$handler <- function(h, ...) {
     if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
     fileid <- dbGetQuery(.rqda$qdacon,"select id from source where memo is null")

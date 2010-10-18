@@ -5,7 +5,7 @@ addSettingGUI <- function(container,width=12){
                   horizontal = FALSE,
                   children = list(
                     list(type="fieldset",
-                         columns = 1,
+                         columns = 2,
                          label = "Settings",
                          label.pos = "top",
                          label.font = c(weight="bold"),
@@ -34,13 +34,11 @@ addSettingGUI <- function(container,width=12){
                                 type = "gcombobox",
                                 items=c(.rqda$back.col,colorsList)
                                 ),
-##                            list(name = "codeMark.col",
-##                                 label = "Global Code Marker Color",
-##                                 ## type = "gedit",width=width,
-##                                 ## text = .rqda$codeMark.col
-##                                 type = "gcombobox",
-##                                 items=c(.rqda$codeMark.col,colorsList)
-##                                 ),
+                           list(name = "codingTable",
+                                label = "Current coding table",
+                                type = "gcombobox",
+                                items=c(.rqda$codingTable,"coding2")
+                                ),
                            list(name = "BOM",
                                 label = "Byte Order Mark",
                                 type = "gcombobox",## width=width,
@@ -61,7 +59,7 @@ addSettingGUI <- function(container,width=12){
                     )
                   )
 
-  ans <- gbutton("Set Font",cont = container,handler=function(h,...) setFont(default=.rqda$font))## set font for widget
+  ans <- glabel("Click to set font",cont = container,handler=function(h,...) setFont(default=.rqda$font))## set font for widget
   gtkTooltips()$setTip(ans@widget@widget,"Set fonts for memo widgets.")
 
   SettingFL <- gformlayout(Setting, cont = container, expand=TRUE)
@@ -85,7 +83,7 @@ addSettingGUI <- function(container,width=12){
     tryCatch(svalue(SettingFL[]$owner) <- "default",error=function(e){})
     tryCatch(svalue(SettingFL[]$back.col) <- "gold",error=function(e){})
     tryCatch(svalue(SettingFL[]$fore.col) <- "blue",error=function(e){})
-##    tryCatch(svalue(SettingFL[]$codeMark.col) <- "green",error=function(e){})
+    tryCatch(svalue(SettingFL[]$codingTable) <- "coding",error=function(e){})
     tryCatch(svalue(SettingFL[]$TOR) <- "unconditional",error=function(e){})
     assign("BOM",FALSE,env=.rqda)
     assign("SFP",FALSE,env=.rqda)
@@ -93,7 +91,7 @@ addSettingGUI <- function(container,width=12){
     assign("owner","default",env=.rqda)
     assign("back.col","gold",env=.rqda)
     assign("fore.col","blue",env=.rqda)
-##    assign("codeMark.col","green",env=.rqda)
+    assign("codingTable","coding",env=.rqda)
     assign("TOR","unconditional",env=.rqda)
     assign("font","Sans 11",env=.rqda)
   })}

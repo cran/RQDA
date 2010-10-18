@@ -1,0 +1,12 @@
+RQDA 0.1-9
+
+* widgets are enabled only if they are usable.
+* Better code categories management system and various improvements of GUI.
+* Click-handler for second half of code-mark.
+* Better default color scheme for code mark.
+* New function of and().
+* New option "both" in "type of retrieval".
+* New option of subset in GetAtrr().
+* It can handle ' correctly now.
+* Upgrade RGtk2 (>=2.12.12).
+* Various bugfixes.

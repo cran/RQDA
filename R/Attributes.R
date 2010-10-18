@@ -29,6 +29,7 @@ EditVarWidget <- function(ExistingItems=NULL,container=NULL,title=NULL,ID=NULL,s
 
   cell.edited <- function(cell, path.string, new.text, data)
     {
+      Encoding(new.text) <- 'UTF-8' ## now atrribute displays correctly for non-english character
       checkPtrType(data, "GtkListStore")
       model <- data
       path <- gtkTreePathNewFromString(path.string)
@@ -60,7 +61,8 @@ EditVarWidget <- function(ExistingItems=NULL,container=NULL,title=NULL,ID=NULL,s
 
   ## create window, etc
   window <- gtkWindowNew("toplevel", show = F)
-  window$setTitle(paste("Var:",title))
+  Encoding(title) <- 'UTF-8'
+  window$setTitle(paste("Attribute of:",title))
   window$setBorderWidth(5)
   vbox <- gtkVBoxNew(FALSE, 5)
   window$add(vbox)
@@ -132,6 +134,7 @@ CaseAttrFun <- function(caseId,title=NULL,attrs=svalue(.rqda$.AttrNamesWidget)){
     attrs2 <- data.frame(variable=attrs,value="NA",stringsAsFactors=FALSE)
     variables <- dbGetQuery(.rqda$qdacon,sprintf("select variable, value from caseAttr where caseID==%i and variable in (%s) and status==1", caseId,paste(shQuote(attrs),collapse=",")))
     if (nrow(variables)!=0){
+      Encoding(variables$variable) <- Encoding(variables$value) <- 'UTF-8'
       idx <- match(variables[[1]],attrs2[[1]])
       attrs2[idx,] <- variables
     }
@@ -182,9 +185,11 @@ saveFUN4FileAttr <- function(button,data){
 FileAttrFun <- function(fileId,title=NULL,attrs=svalue(.rqda$.AttrNamesWidget)){
   if (length(attrs)==0) attrs <-  dbGetQuery(.rqda$qdacon,"select name from attributes where status==1")$name
   if (is.null(attrs)) gmessage("add attribute in Attrs Tabe first.",con=T) else{
+    Encoding(attrs) <- 'UTF-8'
     attrs2 <- data.frame(variable=attrs,value="NA",stringsAsFactors=FALSE)
     variables <- dbGetQuery(.rqda$qdacon,sprintf("select variable, value from fileAttr where fileID==%i and variable in (%s) and status==1",fileId,paste(shQuote(attrs),collapse=",")))
     if (nrow(variables)!=0){
+      Encoding(variables$variable) <- Encoding(variables$value) <- 'UTF-8'
       idx <- match(variables[[1]],attrs2[[1]])
       attrs2[idx,] <- variables
     }
@@ -327,7 +332,7 @@ viewFileAttr <- function(){
   fileName <- dbGetQuery(.rqda$qdacon,"select name,id from source where status==1")
   if (nrow(fileName)!=0){
     names(fileName) <- c("file","fileID")
-    Encoding(fileName$case) <- "UTF-8"
+    Encoding(fileName$file) <- "UTF-8"
     DF <- merge(fileName,DF)
     gtable(DF,con=TRUE)
   }
@@ -342,6 +347,7 @@ GetAttr <- function(type=c("case","file"),attrs=svalue(.rqda$.AttrNamesWidget),s
   if (type == "case"){
     DF <- dbGetQuery(.rqda$qdacon,sprintf("select variable,value, caseId from caseAttr %s",inClause))
     if (nrow(DF) > 0 ){
+    Encoding(DF$variable) <- Encoding(DF$value) <- "UTF-8"
     DF <- reshape(DF,v.name="value",idvar="caseID",direction="wide",timevar="variable")
     names(DF) <- gsub("^value.","",names(DF))
     caseName <- dbGetQuery(.rqda$qdacon,"select name,id from cases where status==1")
@@ -354,6 +360,7 @@ GetAttr <- function(type=c("case","file"),attrs=svalue(.rqda$.AttrNamesWidget),s
   } else if (type=="file"){
     DF <- dbGetQuery(RQDA:::.rqda$qdacon,sprintf("select variable,value, fileId from fileAttr %s",inClause))
     if (nrow(DF) > 0 ){
+    Encoding(DF$variable) <- Encoding(DF$value) <- "UTF-8"
     DF <- reshape(DF,v.name="value",idvar="fileID",direction="wide",timevar="variable")
     names(DF) <- gsub("^value.","",names(DF))
     fileName <- dbGetQuery(.rqda$qdacon,"select name,id from source where status==1")

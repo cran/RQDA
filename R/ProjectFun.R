@@ -18,7 +18,7 @@ new_proj <- function(path, conName="qdacon",assignenv=.rqda,...){
     }
     if (!fexist | override ){
       ## close con in assignmenv first.
-      tryCatch(close_proj(conName=conName,assignenv=assignenv),error=function(e){})
+      tryCatch(closeProject(conName=conName,assignenv=assignenv),error=function(e){})
 
       assign(conName,dbConnect(drv=dbDriver("SQLite"),dbname=path),envir=assignenv)
       con <- get(conName,assignenv)
@@ -57,12 +57,17 @@ new_proj <- function(path, conName="qdacon",assignenv=.rqda,...){
       dbGetQuery(con,"create table coding  (cid integer, fid integer,seltext text,
                                             selfirst real, selend real, status integer,
                                             owner text, date text, memo text)")
+      if (dbExistsTable(con,"coding2")) dbRemoveTable(con, "coding2")
+      ## second coding
+      dbGetQuery(con,"create table coding2  (cid integer, fid integer,seltext text,
+                                            selfirst real, selend real, status integer,
+                                            owner text, date text, memo text)")
       if (dbExistsTable(con,"project")) dbRemoveTable(con, "project")
       ##dbGetQuery(con,"create table project  (encoding text, databaseversion text, date text,dateM text,
       ##                                       memo text,BOM integer)")
       dbGetQuery(con,"create table project  (databaseversion text, date text,dateM text,
                                              memo text,about text)")
-      dbGetQuery(con,sprintf("insert into project (databaseversion,date,about,memo) values ('0.1.9','%s',
+      dbGetQuery(con,sprintf("insert into project (databaseversion,date,about,memo) values ('0.2.0','%s',
                             'Database created by RQDA (http://rqda.r-forge.r-project.org/)','')",date()))
       if (dbExistsTable(con,"cases")) dbRemoveTable(con, "cases")
       dbGetQuery(con,"create table cases  (name text, memo text,
@@ -72,7 +77,7 @@ new_proj <- function(path, conName="qdacon",assignenv=.rqda,...){
       dbGetQuery(con,"create table caselinkage  (caseid integer, fid integer,
                                                 selfirst real, selend real, status integer,
                                             owner text, date text, memo text)")
-      
+
       if (dbExistsTable(con,"attributes")) dbRemoveTable(con, "attributes")
       dbGetQuery(.rqda$qdacon,"create table attributes (name text, status integer, date text, dateM text, owner text,memo text)")
       if (dbExistsTable(con,"caseAttr")) dbRemoveTable(con, "caseAttr")
@@ -86,7 +91,9 @@ new_proj <- function(path, conName="qdacon",assignenv=.rqda,...){
       RQDAQuery("alter table caseAttr add column status integer")
       RQDAQuery("alter table fileAttr add column status integer")
       try(RQDAQuery("create table annotation (fid integer,position integer,annotation text, owner text, date text,dateM text, status integer)"),TRUE)
+      if (dbExistsTable(con,"image")) dbRemoveTable(con, "image")
       RQDAQuery("create table image (name text, id integer, date text, dateM text, owner text,status integer)")
+      if (dbExistsTable(con,"imageCoding")) dbRemoveTable(con, "imageCoding")
       RQDAQuery("create table imageCoding (cid integer,iid integer,x1 integer, y1 integer, x2 integer, y2 integer, memo text, date text, dateM text, owner text,status integer)")
     }
   }
@@ -145,6 +152,13 @@ UpgradeTables <- function(){
     dbGetQuery(.rqda$qdacon,"update project set databaseversion='0.1.9'")
     RQDAQuery("alter table freecode add column color text")
   }
+  if (currentVersion<"0.2.0"){
+    if (dbExistsTable(.rqda$qdacon,"coding2")) dbRemoveTable(.rqda$qdacon, "coding2")
+    dbGetQuery(.rqda$qdacon,"create table coding2  (cid integer, fid integer,seltext text,
+                                            selfirst real, selend real, status integer,
+                                            owner text, date text, memo text)")
+    dbGetQuery(.rqda$qdacon,"update project set databaseversion='0.2.0'")
+  }
 }
 
 
@@ -166,7 +180,7 @@ open_proj <- function(path,conName="qdacon",assignenv=.rqda,...){
 
 
 
-close_proj <- function(conName="qdacon",assignenv=.rqda,...){
+closeProject <- function(conName="qdacon",assignenv=.rqda,...){
   tryCatch({
     con <- get(conName,assignenv)
     if (isIdCurrent(con)) {
@@ -213,11 +227,18 @@ ProjectMemoWidget <- function(){
     tryCatch(dispose(.rqda$.projmemo),error=function(e) {})
     ## Close the open project memo first, then open a new one
     ## .projmemo is the container of .projmemocontent,widget for the content of memo
-    assign(".projmemo",gwindow(title="Project Memo", parent=getOption("widgetCoordinate"),width=600,height=400),env=.rqda)
+    wnh <- size(RQDA:::.rqda$.root_rqdagui) ## size of the main window
+    gw <- gwindow(title="Project Memo", parent=c(wnh[1]+10,2),
+                width = min(c(gdkScreenWidth()- wnh[1]-20,getOption("widgetSize")[1])),
+                height = min(c(wnh[2],getOption("widgetSize")[2]))
+                 )
+    mainIcon <- system.file("icon", "mainIcon.png", package = "RQDA")
+    gw@widget@widget$SetIconFromFile(mainIcon)
+    assign(".projmemo", gw, env=.rqda)
     .projmemo <- get(".projmemo",.rqda)
     .projmemo2 <- gpanedgroup(horizontal = FALSE, con=.projmemo)
     ## use .projmemo2, so can add a save button to it.
-    gbutton("Save memo",con=.projmemo2,handler=function(h,...){
+    proj_memoB <- gbutton("Save memo",con=.projmemo2,handler=function(h,...){
       ## send the new content of memo back to database
       newcontent <- svalue(W)
       ## Encoding(newcontent) <- "UTF-8"
@@ -226,9 +247,18 @@ ProjectMemoWidget <- function(){
                                       newcontent)
                  ## have to quote the character in the sql expression
                  )
-    }
+      mbut <- get("proj_memoB",env=button)
+      enabled(mbut) <- FALSE ## grey out the  button
+  }
             )## end of save memo button
+    enabled(proj_memoB) <- FALSE
+    assign("proj_memoB",proj_memoB,env=button)
     tmp <- gtext(container=.projmemo2,font.attr=c(sizes="large"))
+    gSignalConnect(tmp@widget@widget$GetBuffer(), "changed",
+                   function(h,...){
+                       mbut <- get("proj_memoB",env=button)
+                       enabled(mbut) <- TRUE
+                   })##
     font <- pangoFontDescriptionFromString(.rqda$font)
     gtkWidgetModifyFont(tmp@widget@widget,font)
     assign(".projmemocontent",tmp,env=.rqda)

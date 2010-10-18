@@ -104,25 +104,32 @@ MemoWidget <- function(prefix,widget,dbTable){
           if (!inherits(IsOpen,"simpleError")){ ## if a widget is open
               prvSelected <- svalue(get(sprintf(".%smemo",prefix),env=.rqda)) ## title of the memo widget
               Encoding(prvSelected) <- "UTF-8"
-              prvSelected <- sub(sprintf("^%s Memo:",prefix),"",prvSelected)
+              prvSelected <- sub(sprintf("^%s Memo: ",prefix),"",prvSelected)
               prvSelected <- iconv(prvSelected,to="UTF-8") ## previously selected codename
               IfCont <- CloseYes(currentCode=prvSelected)}
           if ( inherits(IsOpen,"simpleError") || IfCont){ ## if not open or the same.
               tryCatch(eval(parse(text=sprintf("dispose(.rqda$.%smemo)",prefix))),error=function(e) {})
               gw <- gwindow(title=sprintf("%s Memo:%s",prefix,Selected),
-                            parent=getOption("widgetCoordinate"),width=600,height=600)
+                            parent=getOption("widgetCoordinate"),
+                            width = getOption("widgetSize")[1],
+                            height = getOption("widgetSize")[2]
+                            )
               mainIcon <- system.file("icon", "mainIcon.png", package = "RQDA")
               gw@widget@widget$SetIconFromFile(mainIcon)
               assign(sprintf(".%smemo",prefix),gw,env=.rqda)
               assign(sprintf(".%smemo2",prefix),
                      gpanedgroup(horizontal = FALSE, con=get(sprintf(".%smemo",prefix),env=.rqda)),
                      env=.rqda)
-              gbutton("Save Memo",con=get(sprintf(".%smemo2",prefix),env=.rqda),handler=function(h,...){
+              mbut <- gbutton("Save Memo",con=get(sprintf(".%smemo2",prefix),env=.rqda),handler=function(h,...){
                   newcontent <- svalue(W)
                   newcontent <- enc(newcontent,encoding="UTF-8") ## take care of double quote.
                   dbGetQuery(.rqda$qdacon,sprintf("update %s set memo='%s' where name='%s'",dbTable,newcontent,enc(Selected)))
+                  mbut <- get(sprintf("buttonOf.%smemo",prefix),env=button)
+                  enabled(mbut) <- FALSE
               }
-                      )## end of save memo button
+                              )## end of save memo button
+              enabled(mbut) <- FALSE
+              assign(sprintf("buttonOf.%smemo",prefix),mbut,env=button) ## assign the button object
               tmp <- gtext(container=get(sprintf(".%smemo2",prefix),env=.rqda))
               font <- pangoFontDescriptionFromString(.rqda$font)
               gtkWidgetModifyFont(tmp@widget@widget,font)## set the default fontsize
@@ -133,7 +140,15 @@ MemoWidget <- function(prefix,widget,dbTable){
               W <- get(sprintf(".%smemoW",prefix),env=.rqda)
               add(W,prvcontent,do.newline=FALSE)
               addHandlerUnrealize(get(sprintf(".%smemo",prefix),env=.rqda),handler <- function(h,...)  {!CloseYes(Selected)})
-          }}}}
+              gSignalConnect(tmp@widget@widget$GetBuffer(), "changed", function(h,...) {
+                  mbut <- get(sprintf("buttonOf.%smemo",prefix),env=button)
+                  enabled(mbut) <- TRUE
+              }
+                             )##
+          }
+      }
+  }
+}
 
 ## summary coding information
 GetCodingTable <- function(){
@@ -145,7 +160,7 @@ GetCodingTable <- function(){
    ##         coding.selend - coding.selfirst as CodingLength,coding.selend, coding.selfirst
    ##         from coding, freecode, source
    ##         where coding.status==1 and freecode.id=coding.cid and coding.fid=source.id")
-   Codings <- dbGetQuery(.rqda$qdacon,"select coding.cid, coding.fid, freecode.name as codename, source.name as filename,
+   Codings <- dbGetQuery(.rqda$qdacon,"select coding.rowid as rowid, coding.cid, coding.fid, freecode.name as codename, source.name as filename,
                                        coding.selfirst as index1, coding.selend as index2,
                                        coding.selend - coding.selfirst as CodingLength
                                       from coding left join freecode on (coding.cid=freecode.id)
@@ -158,10 +173,12 @@ GetCodingTable <- function(){
    ## if (!all (all.equal(Codings$cid,Codings$cid2),all.equal(Codings$fid,Codings$fid2))){
    ##   stop("Errors!") ## check to make sure the sql is correct
    ## }
+    class(Codings) <- c("codingTable","data.frame")
     Codings
   } else cat("Open a project first.\n")
 }
 
+summaryCodings <-
 SummaryCoding <- function(byFile=FALSE,...){
   if ( isIdCurrent(.rqda$qdacon)) {
     Codings <- GetCodingTable()
@@ -225,9 +242,15 @@ SearchFiles <- function(pattern,content=FALSE,Fid=NULL,Widget=NULL,is.UTF8=FALSE
     } else cat("Open a project first.\n")
 }
 
-RunOnSelected <- function(x,multiple=TRUE,expr,enclos,title=NULL,...){
+RunOnSelected <- function(x,multiple=TRUE,expr,enclos=parent.frame(),title=NULL,
+                          hpos = ifelse(is.null(getOption("widgetCoordinate")[1]),
+                            420,getOption("widgetCoordinate")[1]),
+                          vpos = ifelse(is.null(getOption("widgetCoordinate")[2]),
+                            2,getOption("widgetCoordinate")[2]),
+                          ...){
+  ## expr used the return of Selected as an argument
   if (is.null(title)) title <- ifelse(multiple,"Select one or more","Select one")
-  g <- gwindow(title=title,wid=250,heigh=600,parent=c(395, 10))
+  g <- gwindow(title=title,wid=250,heigh=600,parent=c(hpos, vpos))
   x1<-ggroup(FALSE,con=g)
   ##x1@widget@widget$parent$parent$parent$SetTitle(title)
   ##x1@widget@widget$parent$parent$parent$SetDefaultSize(200, 500)
@@ -238,12 +261,12 @@ RunOnSelected <- function(x,multiple=TRUE,expr,enclos,title=NULL,...){
   gbutton("OK",con=x1,handler=function(h,...){
     Selected <- svalue(x2)
     if (Selected!=""){
-    eval(h$action$expr,env=pairlist(Selected=Selected),enclos=h$action$enclos)
-    ## evaluate expr in env
-    ## Variable Selected will be found in env
-    ## because env is parilist and there are variables not there, which will be found in enclos.
-    dispose(g)
-   } else gmessage("Select before Click OK.\n",con=TRUE,icon="error")
+      eval(h$action$expr,env=pairlist(Selected=Selected),enclos=h$action$enclos)
+      ## evaluate expr in env
+      ## Variable Selected will be found in env
+      ## because env is parilist and there are variables not there, which will be found in enclos.
+      dispose(g)
+    } else gmessage("Select before Click OK.\n",con=TRUE,icon="error")
   },
           action=list(expr=substitute(expr),enclos=enclos)
           )
@@ -251,76 +274,43 @@ RunOnSelected <- function(x,multiple=TRUE,expr,enclos,title=NULL,...){
 }
 
 
-gselect.list <- function(list,multiple=TRUE,title=NULL,width=200, height=500,x=420,y=2,...){
-  ## gtk version of select.list()
+gselect.list <- function(list,multiple=TRUE,title=NULL,width=200, height=500,...){
+  ## gtk version of select.list(), revised on 21 Apr. 2010 to fix a bug (crash R with 2.18 or newer libgtk2).
   ## Thanks go to John Verzani for his help.
   if (is.null(title)) title <- ifelse(multiple,"Select one or more","Select one")
   helper <- function(){
-    ans<-new.env()
-    x1<-ggroup(horizontal=FALSE) # no parent container here
-    x2<-gtable(list,multiple=multiple,con=x1,expand=TRUE)
-    gtkWidgetSetSizeRequest(x1@widget@widget, width=width, height=height)
-    gbasicdialog2 <- function(title="Dialog",widget,action=NULL,handler=NULL,x,y,..., toolkit=guiToolkit()){
-      parent <- gtkWindowNew(show=FALSE) ## modified from gbasicdialog of gWidgetRGtk2
-      dlg = gtkDialog(title,
-        parent=parent,
-        c("modal"),
-        "gtk-cancel", GtkResponseType["cancel"],
-        "gtk-ok", GtkResponseType["ok"])
-      dlg$SetTitle(title)
-      dlg$GrabFocus()
-      dlg$GetWindow()$Move(as.integer(x),as.integer(y))
-      dlg$GetWindow()$Raise()
-      tag(widget,"dlg") <- dlg
-      group = ggroup()
-      add(group, widget, expand=TRUE)
-      dlg$GetVbox()$PackStart(group@widget@block)
-      response = dlg$Run()
-      h = list(obj=widget, action=action)
-      if(response == GtkResponseType["cancel"] ||
-         response == GtkResponseType["close"] ||
-         response == GtkResponseType["delete-event"]) {
-        dlg$Destroy()
-        return(FALSE)
-      } else if(response == GtkResponseType["ok"]) {
-        if(!is.null(handler))
-          handler(h)
-        dlg$Destroy()
-        return(TRUE)
-      } else {
-        gwCat("Don't know this response")
-        print(response)
-        dlg$Destroy()
-        invisible(NA)
-      }
-    }
-    ret <- gbasicdialog2(title=title,widget=x1,x=x,y=y,handler=function(h,...){
-      value <- svalue(x2)
-      assign("selected",value,env=h$action$env)
-      dispose(x1)
-    },action=list(env=ans))
-    ans
+      ans<-new.env()
+       dlg <- gbasicdialog(title=title,handler=function(h,...){
+          value <- svalue(x2)
+          assign("selected",value,env=h$action$env)
+          },action=list(env=ans))
+      x2<-gtable(list,multiple=multiple,con=dlg,expand=TRUE)
+      dlg@widget@widget$Move(size(RQDA:::.rqda$.root_rqdagui)[1],2)
+      size(dlg) <- c(width,height)
+      visible(dlg, set=TRUE)
+      ans
   }## end helper function
   items <- helper()$selected
   if (is.null(items)) items <- ""
   items
 }
 
-## intersect2 <- function(x) {
-##   if ((n<-length(x))>1) {
-##     x[[n-1]] <- intersect(x[[n]],x[[n-1]])
-##     x[n] <- NULL
-##     Recall(x)
-##   } else { x[[1]] }
-## }
-##x<-list(1:3,3:5,6:3)
-##intersect2(x)
 
 GetFileName <- function(fid=GetFileId()){
   ans <-  dbGetQuery(.rqda$qdacon,sprintf("select name from source where status=1 and id in (%s)",paste(shQuote(fid),collapse=",")))$name
   if (length(ans)>0) Encoding(ans) <- "UTF-8"
-  ans}
+  class(ans) <- c("RQDA.vector","fileName")
+  ans
+}
 
+getFiles <- function(condition = c("unconditional", "case", "filecategory", "both"),
+                     type = c("all", "coded", "uncoded", "selected"),names=TRUE) {
+  ans <- GetFileId(condition,type)
+  if (names){
+    ans <- GetFileName(ans)
+  }
+  ans
+}
 
 GetCaseId <- function(fid=GetFileId(),nFiles=FALSE){
   ## if (caseName){
@@ -332,25 +322,73 @@ GetCaseId <- function(fid=GetFileId(),nFiles=FALSE){
     ans <- dbGetQuery(.rqda$qdacon,sprintf("select caseid from caselinkage where status=1 and fid in (%s) group by caseid",paste(shQuote(fid),collapse=",")))$caseid
   }
   ## attr(ans,"caseName") <- caseName
-  ## class(ans) <- c("data.frame","CaseId")
+  class(ans) <- c("RQDA.vector","caseId")
   ans
 }
 
+getCases <- function(fid, names=TRUE) {
+  ans <- GetCaseId(fid,nFiles=FALSE)
+  if (names){
+    ans <- GetCaseName(ans)
+  }
+  ans
+}
 
 GetCaseName <- function(caseId=GetCaseId(nFiles=FALSE)){
   ans <-  dbGetQuery(.rqda$qdacon,sprintf("select name from cases where status=1 and id in (%s)",paste(shQuote(caseId),collapse=",")))$name
   if (length(ans)>0) Encoding(ans) <- "UTF-8"
+  class(ans) <- c("RQDA.vector","caseName")
   ans
 }
 
-RQDAQuery <- function(sql){dbGetQuery(.rqda$qdacon,sql)}
+casesCodedByAnd <- function(cid){
+  ## cid can be splitted across files, but still on the same case
+  Ncid <- length(cid)
+  cid <- paste(cid,collapse=',')
+  fid <- RQDAQuery(sprintf("select fid,cid from coding where status==1 and cid in (%s)",cid))
+  if (nrow(fid)>0) {
+    fidUnique <- unique(fid$fid)
+    fidUnique <- paste(fidUnique,collapse=',')
+    case <- RQDAQuery(sprintf("select fid, caseid from caselinkage where status==1 and fid in (%s)",fidUnique))
+    codes <- tapply(case$fid, case$caseid,FUN=function(x) unique(fid[fid$fid %in% unique(x),]$cid))
+    ans <- sapply(codes,length)
+    ans <- as.numeric(names(ans)[ans==Ncid])
+  }
+  class(ans) <- c("RQDA.vector","caseId")
+  ans
+}
+
+casesCodedByNot <- function(cid){
+  fid <- filesCodedByOr(cid)
+  codedcaseId <- GetCaseId(fid)
+  allcaseid <- GetCaseId(GetFileId("unconditional","coded"))
+  ans <- setdiff(allcaseid,codedcaseId)
+  class(ans) <- c("RQDA.vector","caseId")
+  ans
+}
+
+casesCodedByOr <- function(cid){
+  fid <- filesCodedByOr(cid)
+  if (length(fid)!=0) {
+      ans <- GetCaseId(fid)
+  } else ans <- integer(0)
+  class(ans) <- c("RQDA.vector","caseId")
+  ans
+}
+
+RQDAQuery <- function(sql){
+if (is_projOpen()) {
+dbGetQuery(.rqda$qdacon,sql)
+} else (cat("open a project first\n."))
+}
 
 ShowSubset <- function(x,...){
   UseMethod("ShowSubset")
 }
-ShowSubset.default <- function(x,widget=".rqda$.fnames_rqda",...){
-  widget <- substitute(widget)
-  eval(parse(text=sprintf("%s[] <- x",widget)))
+ShowSubset.fileName <- function(x,widget=".fnames_rqda",env=.rqda,...){
+  widget <- get(widget,env=env)
+  class(x) <- NULL
+  widget[] <- x
 }
 ShowSubset.CaseAttr <- function(x,...){
   tryCatch(.rqda$.CasesNamesWidget[] <- x$case, error = function(e) {})
@@ -358,7 +396,10 @@ ShowSubset.CaseAttr <- function(x,...){
 ShowSubset.FileAttr <- function(x,...){
   tryCatch(.rqda$.fnames_rqda[] <- x$file, error = function(e) {})
 }
-
+ShowSubset.caseName <- function(x,...){
+   class(x) <- NULL
+   .rqda$.CasesNamesWidget[] <- x
+}
 
 ShowFileProperty <- function(Fid = GetFileId(,"selected"),focus=TRUE) {
   if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
@@ -374,7 +415,9 @@ ShowFileProperty <- function(Fid = GetFileId(,"selected"),focus=TRUE) {
     }
     if (length(Fid)>1) val <- "Please select one file only."
     tryCatch(svalue(.rqda$.sfp) <- val,error=function(e){
-      gw <- gwindow("File Property",parent=getOption("widgetCoordinate")+c(0,635),width=600,height=50)
+      gw <- gwindow("File Property",parent=size(.rqda$.root_rqdagui)+c(19,-50),
+            width = min(c(gdkScreenWidth() - size(.rqda$.root_rqdagui)[1] -20,getOption("widgetSize")[1])),
+            height = 50)
       mainIcon <- system.file("icon", "mainIcon.png", package = "RQDA")
       gw@widget@widget$SetIconFromFile(mainIcon)
       sfp <- glabel(val,cont=gw)
@@ -384,36 +427,151 @@ ShowFileProperty <- function(Fid = GetFileId(,"selected"),focus=TRUE) {
   }}
 
 
-QueryFile <- function(or,and=NULL,not=NULL,names=TRUE){
-  or <- sprintf("(%s)",or)
-  or <- gsub("or",",",or)
-  if (!is.null(and)) {
-    and <- sprintf("(%s)", and)
-    and <- gsub("or",",",and)
-  }
-  if (!is.null(not))  {
-    not <- sprintf("(%s)",not)
-    not <- gsub("or",",",not)
-  }
-  fnamesOR <- RQDAQuery(sprintf("select name from source where status==1 and id in (
-select fid from coding where cid in %s and status==1 group by fid)",or))$name
-  if (!is.null(and)){
-    fnamesAND <- RQDAQuery(sprintf("select name from source where status==1 and id in (
-select fid from coding where cid in %s and status==1 group by fid)",and))$name
-  } else  fnamesAND <- fnamesOR
-  if (!is.null(not)) {
-    fnamesNOT <- RQDAQuery(sprintf("select name from source where status==1 and id in (
-select fid from coding where cid in %s and status==1 group by fid)",not))$name
-  } else  fnamesNOT <- NULL
-  fnames <- setdiff(intersect(fnamesOR,fnamesAND),fnamesNOT)
-  if (!is.null(fnames)){
-    fnames <- enc(fnames,"UTF-8")
-    .rqda$.fnames_rqda[] <- fnames
-    if (names) {
-      invisible(fnames)
-    }
-    else {ids <- RQDAQuery(sprintf("select id from source where name in (%s)",paste(paste("'",fnames,"'",sep=""),collapse=",")))
-          invisible(ids)
-        }
-  }
+filesCodedByAnd <- function(cid, codingTable=c("coding","coding2")){
+    cid <- paste(cid,collapse=',')
+    fid <- RQDAQuery(sprintf("select fid,cid from %s where status==1 and cid in (%s)",codingTable, cid))
+    if (nrow(fid)>0) {
+        fidList <- by(fid,factor(fid$cid),FUN=function(x) unique(x$fid))
+        fid <- Reduce(intersect,fidList)
+    } else {fid <- integer(0)}
+    class(fid) <- c("RQDA.vector","fileId")
+    fid
 }
+
+filesCodedByOr <- function(cid, codingTable=c("coding","coding2")){
+    cid <- paste(cid,collapse=',')
+    fid <- RQDAQuery(sprintf("select fid from %s where status==1 and cid in (%s)",codingTable, cid))$fid
+    if (length(fid)==0) {fid <- integer(0)}
+    class(fid) <- c("RQDA.vector","fileId")
+    fid
+}
+
+filesCodedByNot <- function(cid, codingTable=c("coding","coding2")){
+    codedfid <- filesCodedByOr(cid)
+    allfid <- RQDAQuery(sprintf("select fid from %s where status==1 group by fid",codingTable))$fid
+    fid <- setdiff(allfid,codedfid)
+    if (length(fid)==0) {fid <- integer(0)}
+    class(fid) <- c("RQDA.vector","fileId")
+    fid
+}
+
+nCodedByTwo <- function(FUN, codeList=NULL, print=TRUE,...){
+    ## codeList is character vector of codes.
+    FUN <- match.fun(FUN)
+    Cid_Name <- RQDAQuery("select id, name from freecode where status==1")
+    if (is.null(codeList)) {
+        codeList <- gselect.list(Cid_Name$name,multiple=TRUE)
+    }
+    if (length(codeList)<2) {
+        stop("The codeList should be a vector of length 2 or abvoe.")
+    } else {
+        cidList <- Cid_Name$id[match(codeList, Cid_Name$name)]
+        ans <- matrix(nrow=length(codeList), ncol=length(codeList),dimnames=list(
+                                                                   sprintf("%s(%s)", codeList,cidList),
+                                                                   cidList))
+        for (i in 1:length(cidList)){
+            for (j in i:length(cidList)){
+                ans[i,j] <- length(do.call(FUN, list(cidList[c(i,j)])))
+            }
+        }
+        if (print) {print(ans,na.print="")}
+        invisible(ans)
+    }
+}
+
+
+"%and%" <- function(e1,e2){
+    UseMethod("%and%")
+}
+
+"%or%" <- function(e1,e2){
+    UseMethod("%or%")
+}
+
+"%not%" <- function(e1,e2){
+    UseMethod("%not%")
+}
+
+"%and%.RQDA.vector" <- function(e1,e2)
+{
+    cls <- class(e1)
+    ans <- intersect(e1,e2)
+    class(ans) <- cls
+    ans
+}
+
+"%not%.RQDA.vector" <- function(e1,e2)
+{
+    cls <- class(e1)
+    ans <- setdiff(e1, e2)
+    class(ans) <- cls
+    ans
+}
+
+"%or%.RQDA.vector" <- function(e1,e2)
+{
+    cls <- class(e1)
+    ans <- union(e1, e2)
+    class(ans) <- cls
+    ans
+}
+
+QueryFile <- function(or=NULL,and=NULL,not=NULL,names=TRUE){
+  fid.or <- fid.and <- fid.not <- integer(0)
+  if (!is.null(or)) fid.or <- filesCodedByOr(or)
+  if (!is.null(and)) fid.and <- filesCodedByAnd(and)
+  if (!is.null(not)) fid.or <- filesCodedByOr(not)
+  ans <- setdiff(intersect(fid.or,fid.and),fid.not)
+  class(ans) <- c("RQDA.vector","fileId")
+  if (names) {
+    if (length(ans)>0){
+      ans <- RQDAQuery(sprintf("select name from source where status==1 and id in (%s)", paste(ans,collapse=',')))$name
+      Encoding(ans) <- "UTF-8"
+    } else {
+      ans <- character(0)
+    }
+    class(ans) <- c("RQDA.vector","fileName")
+    .rqda$.fnames_rqda[] <- ans
+  }
+  ans
+}
+
+UpdateCoding <- function(){
+    rowid <- RQDAQuery("select rowid from coding")$rowid
+    for (i in rowid) {
+    RQDAQuery(sprintf("update coding set seltext==(select substr(source.file,coding.selfirst+1,coding.selend-coding.selfirst)
+        from coding inner join source on coding.fid==source.id where coding.ROWID==%i) where coding.ROWID==%i",i,i))
+}}
+#UpdateCoding()
+
+
+filesByCodes <- function(codingTable=c("coding","coding2")){
+  codingTable <- match.arg(codingTable)
+  if (codingTable=="coding"){
+    ans <- RQDAQuery("select coding.fid as fid, freecode.name as codename, source.name as filename from coding left join freecode on (coding.cid=freecode.id)left join source on (coding.fid=source.id) where coding.status==1 and source.status=1 and freecode.status=1")
+  }
+  if (codingTable=="coding2"){
+    ans <- RQDAQuery("select coding2.fid as fid, freecode.name as codename, source.name as filename from coding2 left join freecode on (coding2.cid=freecode.id)left join source on (coding2.fid=source.id) where coding2.status==1 and source.status=1 and freecode.status=1")
+  }
+  if (nrow(ans)!=0){
+    Encoding(ans$codename) <- Encoding(ans$filename) <- "UTF-8"
+    ans$codedBy <- 1
+    ansWide <- reshape(ans,idvar="fid",timevar="codename",v.name="codedBy",direct="wide")
+    ansWide[is.na(ansWide)] <- 0
+  }
+  ansWide
+}
+
+
+## use cam name conventions; duplicated the original functions for smooth transition.
+## must in ultis.R
+crossCodes <- CrossCode
+crossTwoCodes <- CrossTwo
+exportCodings <- ExportCoding
+getCaseNames <- GetCaseName
+getCaseIds <- GetCaseId
+getCodingTable <- GetCodingTable
+queryFiles <- QueryFile
+getFileNames <- GetFileName
+getFileIds <- GetFileId
+getFileIdSets <- GetFileIdSets

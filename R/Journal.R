@@ -68,7 +68,9 @@ JournalNamesUpdate <- function(Widget=.rqda$.JournalNamesWidget,decreasing=FALSE
 AddNewJournalFun <- function(){
     if (is_projOpen(env=.rqda,"qdacon")) {
         tryCatch(eval(parse(text="dispose(.rqda$.AddNewJournalWidget")),error=function(e) {}) ## close the widget if open
-        gw <- gwindow(title="Add New Journal.",parent=getOption("widgetCoordinate"),width=600,height=400)
+        gw <- gwindow(title="Add New Journal.",parent=getOption("widgetCoordinate"),
+                      width = getOption("widgetSize")[1], height = getOption("widgetSize")[2]
+                           )
         mainIcon <- system.file("icon", "mainIcon.png", package = "RQDA")
         gw@widget@widget$SetIconFromFile(mainIcon)
         assign(".AddNewJournalWidget",gw,env=.rqda)
@@ -107,20 +109,25 @@ ViewJournalWidget <- function(prefix="Journal",widget=.rqda$.JournalNamesWidget,
       }
       else {
         tryCatch(eval(parse(text=sprintf("dispose(.rqda$.%smemo)",prefix))),error=function(e) {})
-        gw <- gwindow(title=sprintf("%s:%s",prefix,Selected),parent=getOption("widgetCoordinate"),width=600,height=400)
+        gw <- gwindow(title=sprintf("%s:%s",prefix,Selected),parent=getOption("widgetCoordinate"),
+                     width = getOption("widgetSize")[1], height = getOption("widgetSize")[2]
+                           )
         mainIcon <- system.file("icon", "mainIcon.png", package = "RQDA")
         gw@widget@widget$SetIconFromFile(mainIcon)
         assign(sprintf(".%smemo",prefix),gw,env=.rqda)
         assign(sprintf(".%smemo2",prefix),
                gpanedgroup(horizontal = FALSE, con=get(sprintf(".%smemo",prefix),env=.rqda)),
                env=.rqda)
-        gbutton("Save Journal",con=get(sprintf(".%smemo2",prefix),env=.rqda),handler=function(h,...){
-          newcontent <- svalue(W)
-          newcontent <- enc(newcontent,encoding="UTF-8") ## take care of double quote.
-          Encoding(Selected) <- "UTF-8"
-          dbGetQuery(.rqda$qdacon,sprintf("update %s set journal='%s' where name='%s'",dbTable,newcontent,enc(Selected)))
+        saveJournalButton <- gbutton("Save Journal",con=get(sprintf(".%smemo2",prefix),env=.rqda),handler=function(h,...){
+            newcontent <- svalue(W)
+            newcontent <- enc(newcontent,encoding="UTF-8") ## take care of double quote.
+            Encoding(Selected) <- "UTF-8"
+            dbGetQuery(.rqda$qdacon,sprintf("update %s set journal='%s' where name='%s'",dbTable,newcontent,enc(Selected)))
+            enabled(button$saveJournalB) <- FALSE
         }
-                )## end of save button
+                                     )## end of save button
+        assign("saveJournalB",saveJournalButton,env=button)
+        enabled(saveJournalButton) <- FALSE
         tmp <- gtext(container=get(sprintf(".%smemo2",prefix),env=.rqda))
         font <- pangoFontDescriptionFromString(.rqda$font)
         gtkWidgetModifyFont(tmp@widget@widget,font)## set the default fontsize
@@ -130,6 +137,9 @@ ViewJournalWidget <- function(prefix="Journal",widget=.rqda$.JournalNamesWidget,
         Encoding(prvcontent) <- "UTF-8"
         W <- get(sprintf(".%smemoW",prefix),env=.rqda)
         add(W,prvcontent,do.newline=FALSE)
+        addHandlerKeystroke(tmp,handler=function(h,...){
+            enabled(button$saveJournalB) <- TRUE
+        })
         addHandlerUnrealize(get(sprintf(".%smemo",prefix),env=.rqda),handler <- function(h,...){
             withinWidget <- svalue(get(sprintf(".%smemoW",prefix),env=.rqda))
             InRQDA <- dbGetQuery(.rqda$qdacon, sprintf("select journal from %s where name='%s'",dbTable, enc(Selected)))[1, 1]

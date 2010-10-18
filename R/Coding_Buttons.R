@@ -59,7 +59,7 @@ RetrievalButton <- function(label){
 
 Mark_Button<-function(label="Mark",codeListWidget=".codes_rqda",name="MarCodB1"){
    ans <- gbutton(label, handler=function(h,...) {
-                     MarkCodeFun(codeListWidget=codeListWidget)
+                     MarkCodeFun(codeListWidget=codeListWidget,codingTable=.rqda$codingTable)
                           })
  enabled(ans) <- FALSE
  assign(name,ans,env=button)
@@ -67,139 +67,168 @@ Mark_Button<-function(label="Mark",codeListWidget=".codes_rqda",name="MarCodB1")
 }
 
 
-MarkCodeFun <- function(codeListWidget=".codes_rqda"){
+MarkCodeFun <- function(codeListWidget=".codes_rqda",codingTable="coding"){
   ## insert lable as mark when data is written to database.
   if (is_projOpen(env=.rqda,conName="qdacon")) {
-      currentFile <- tryCatch(svalue(.rqda$.root_edit),error=function(e){NULL})
+    currentFile <- tryCatch(svalue(.rqda$.root_edit),error=function(e){NULL})
       if (is.null(currentFile)) gmessage("Open a file first.",con=TRUE) else{
         W <- .rqda$.openfile_gui
         con <- .rqda$qdacon
         codeListWidget <- get(codeListWidget,env=.rqda)
-        ## ans <- mark(W,addButton=TRUE,buttonLabel=svalue(codeListWidget))
-        idx <- sindex(.rqda$.openfile_gui,includeAnchor=FALSE)
+        idx <- sindex(.rqda$.openfile_gui,includeAnchor=FALSE,codingTable=codingTable)
         ans <- list(start=idx$startN,end=idx$endN,text=idx$seltext)
         if (ans$start != ans$end){ ## when selected no text, makes on sense to do anything.
           SelectedCode <- svalue(codeListWidget)
           if (length(SelectedCode)!=0){
-          Encoding(SelectedCode) <- "UTF-8"
-          SelectedCode2 <- enc(SelectedCode,encoding="UTF-8")
-          codeInfo<-  dbGetQuery(con,sprintf("select id,color from freecode where name=='%s'",SelectedCode2))
-          currentCid <- codeInfo[,1]
-          codeCol <- codeInfo[,2] ## select color for the code
-          ## if (is.na(codeCol)) codeCol <-  c("antiquewhite1","green","aquamarine2","bisque1","brown1")[as.numeric(currentCid) %% 5+1] ## specification of default color for codemark
-          if (is.na(codeCol)) codeCol <-  DefaultCodeColor[as.numeric(currentCid) %% 11+1] ## specification of default color for codemark
-          SelectedFile <- svalue(.rqda$.root_edit)
-          SelectedFile <- enc(SelectedFile,encoding="UTF-8")
-          currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'",SelectedFile))[,1]
-          ## Exist <-  dbGetQuery(con,sprintf("select rowid, selfirst, selend from coding where cid==%i and fid=%i and status=1",currentCid,currentFid))
-          Exist1 <-  RQDAQuery(sprintf("select coding.rowid, coding.selfirst, coding.selend,freecode.name from coding, freecode where coding.cid==%i and coding.fid=%i and coding.status=1 and coding.cid==freecode.id",currentCid,currentFid))
-          DAT <- data.frame(cid=currentCid,fid=currentFid,seltext=ans$text,selfirst=ans$start,selend=ans$end,status=1,owner=.rqda$owner,date=date(),memo=NA)
-          if (nrow(Exist1)==0){
-            rowid <- NextRowId("coding")
-            success <- dbWriteTable(.rqda$qdacon,"coding",DAT,row.name=FALSE,append=TRUE)
-            if (success){
-              markRange(widget=.rqda$.openfile_gui,from=ans$start,to=ans$end,rowid=rowid,addButton=TRUE,buttonLabel=SelectedCode,buttonCol=codeCol)} else{gmessage("Fail to write to database.")}
-          } else {
-            Exist <- Exist1[,c("selfirst","selend","rowid")]
-            Relations <- apply(Exist,1,FUN=function(x) relation(x[c("selfirst","selend")],c(ans$start,ans$end)))
-            Exist$Relation <- sapply(Relations,FUN=function(x)x$Relation)
-            if (!any(Exist$Relation=="exact")){
-              ## if they are axact, do nothing; -> if they are not exact, do something.
-              Exist$WhichMin <- sapply(Relations,FUN=function(x)x$WhichMin)
-              Exist$Start <- sapply(Relations,FUN=function(x)x$UnionIndex[1])
-              Exist$End <- sapply(Relations,FUN=function(x)x$UnionIndex[2])
-              if (all(Exist$Relation=="proximity")){
-                rowid <- NextRowId("coding")
-                success <- dbWriteTable(.rqda$qdacon,"coding",DAT,row.name=FALSE,append=TRUE)
-                if (success){
-                  markRange(widget=.rqda$.openfile_gui,from=ans$start,to=ans$end,rowid=rowid,addButton=TRUE,buttonLabel=SelectedCode,buttonCol=codeCol)} else {gmessage("Fail to write to database.")}
-                ## if there are no overlap in any kind, just write to database; otherwise, pass to else{}.
-              } else {
-                del1 <- (Exist$Relation =="inclusion" & any(Exist$WhichMin==2,Exist$WhichMax==2))
-                ## if overlap or inclusion [old nested in new]
-                ## then the original coding should be deleted; then write the new coding to table
-                del2 <- Exist$Relation =="overlap"
-                del <- (del1 | del2)
-                if (any(del)){
-                  Sel <- c(min(Exist$Start[del]), max(Exist$End[del]))
-                  memo <- RQDAQuery(sprintf("select memo from coding where rowid in (%s)", paste(Exist$rowid[del],collapse=",",sep="")))$memo
-                  memo <- paste(memo,collapse="",sep="")
-                  RQDAQuery(sprintf("delete from coding where rowid in (%s)", paste(Exist$rowid[del],collapse=",",sep="")))
-                  buffer <- W@widget@widget$GetBuffer()
-                  for (i in Exist1$rowid[del]){
-                    code <- Exist1[Exist1$rowid==i,"name"]
-                    m <- buffer$GetMark(sprintf("%s.1", i))
-                    pos <- buffer$GetIterAtMark(m)$iter$GetOffset()
-                    DeleteButton(widget=W,label=sprintf("%s<",code),index=pos,direction="backward")
-                    m <- buffer$GetMark(sprintf("%s.2", i))
-                    pos <- buffer$GetIterAtMark(m)$iter$GetOffset()
-                    DeleteButton(widget=W,label=sprintf(">%s",code),index=pos,direction="backward")
+            Encoding(SelectedCode) <- "UTF-8"
+            SelectedCode2 <- enc(SelectedCode,encoding="UTF-8")
+            codeInfo<-  dbGetQuery(con,sprintf("select id,color from freecode where name=='%s'",SelectedCode2))
+            currentCid <- codeInfo[,1]
+            codeCol <- codeInfo[,2] ## select color for the code
+            ## if (is.na(codeCol)) codeCol <-  c("antiquewhite1","green","aquamarine2","bisque1","brown1")[as.numeric(currentCid) %% 5+1] ## specification of default color for codemark
+            if (is.na(codeCol)) codeCol <-  DefaultCodeColor[as.numeric(currentCid) %% 11+1] ## specification of default color for codemark
+            SelectedFile <- svalue(.rqda$.root_edit)
+            SelectedFile <- enc(SelectedFile,encoding="UTF-8")
+            currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'",SelectedFile))[,1]
+            ## Exist <-  dbGetQuery(con,sprintf("select rowid, selfirst, selend from coding where cid==%i and fid=%i and status=1",currentCid,currentFid))
+            Exist1 <-  RQDAQuery(sprintf("select %s.rowid, selfirst, selend,freecode.name from %s, freecode where cid==%i and fid=%i and %s.status=1 and cid==freecode.id",codingTable, codingTable,currentCid,currentFid,codingTable))
+            DAT <- data.frame(cid=currentCid,fid=currentFid,seltext=ans$text,selfirst=ans$start,selend=ans$end,status=1,owner=.rqda$owner,date=date(),memo=NA)
+            if (nrow(Exist1)==0){
+              rowid <- NextRowId(codingTable)
+              success <- dbWriteTable(.rqda$qdacon,codingTable,DAT,row.name=FALSE,append=TRUE)
+              if (success){
+                markRange(widget=.rqda$.openfile_gui,from=ans$start,to=ans$end,rowid=rowid,addButton=TRUE,buttonLabel=SelectedCode,buttonCol=codeCol,codingTable=codingTable)} else{gmessage("Fail to write to database.")}
+            } else {
+              Exist <- Exist1[,c("selfirst","selend","rowid")]
+              Relations <- apply(Exist,1,FUN=function(x) relation(x[c("selfirst","selend")],c(ans$start,ans$end)))
+              Exist$Relation <- sapply(Relations,FUN=function(x)x$Relation)
+              if (!any(Exist$Relation=="exact")){
+                ## if they are axact, do nothing; -> if they are not exact, do something.
+                Exist$WhichMin <- sapply(Relations,FUN=function(x)x$WhichMin)
+                Exist$Start <- sapply(Relations,FUN=function(x)x$UnionIndex[1])
+                Exist$End <- sapply(Relations,FUN=function(x)x$UnionIndex[2])
+                if (all(Exist$Relation=="proximity")){
+                    dis <- sapply(Relations,function(x) x$Distance)
+                    if (all(dis) > 0) {
+                        rowid <- NextRowId(codingTable)
+                        success <- dbWriteTable(.rqda$qdacon,codingTable,DAT,row.name=FALSE,append=TRUE)
+                        if (success){
+                            markRange(widget=.rqda$.openfile_gui,from=ans$start,to=ans$end,rowid=rowid,addButton=TRUE,
+                                      buttonLabel=SelectedCode,buttonCol=codeCol,codingTable=codingTable)
+                        } else {gmessage("fail to write to data base.",con=TRUE)}
+                    } else {
+                        gmessage("there is adjacent coding, please uncode it first.",con=TRUE)
+                        ## idx0 <- which(dis==0)
+                        ## index3 <- unlist(c(DAT[,c("selfirst","selend")], Exist[idx0,c("selfirst","selend")]))
+                        ## DAT[1,"selfirst"] <- min(index3)
+                        ## DAT[1,"selend"] <- max(index3)
+                        ## txt<-RQDAQuery(sprintf("select substr(file,%i,%i) as seltext from source where id==%s",
+                        ##                        min(index3)+1,max(index3)-min(index3),currentFid))$seltext
+                        ## Encoding(txt) <- "UTF-8"
+                        ## DAT["seltext"] <- txt
+                        ## RQDAQuery(sprintf("update coding set status==-1 where rowid in (%s)",
+                        ##                   paste(paste("'",Exist[idx0,"rowid",drop=TRUE],"'",sep=""),collapse=",")))
+                        ## success <- dbWriteTable(.rqda$qdacon,codingTable,DAT,row.name=FALSE,append=TRUE)
+                    }
+                    ## if there are no overlap in any kind, just write to database; otherwise, pass to else{}.
+                } else {
+                  del1 <-(Exist$Relation =="inclusion" & any(Exist$WhichMin==2,Exist$WhichMax==2))
+                  ## if overlap or inclusion [old nested in new]
+                  ## then the original coding should be deleted
+                  ## then write the new coding to table
+                  del2 <- Exist$Relation =="overlap"
+                  del <- (del1 | del2)
+                  if (any(del)){
+                    Sel <- c(min(Exist$Start[del]), max(Exist$End[del]))
+                    memo <- RQDAQuery(sprintf("select memo from %s where rowid in (%s)", codingTable,paste(Exist$rowid[del],collapse=",",sep="")))$memo
+                    memo <- paste(memo,collapse="",sep="")
+                    RQDAQuery(sprintf("delete from %s where rowid in (%s)", codingTable,paste(Exist$rowid[del],collapse=",",sep="")))
+                    buffer <- W@widget@widget$GetBuffer()
+                    for (i in Exist1$rowid[del]){
+                      code <- Exist1[Exist1$rowid==i,"name"]
+                      m <- buffer$GetMark(sprintf("%s.1", i))
+                      pos <- buffer$GetIterAtMark(m)$iter$GetOffset()
+                      DeleteButton(widget=W,label=sprintf("%s<",code),index=pos,direction="backward")
+                      m <- buffer$GetMark(sprintf("%s.2", i))
+                      pos <- buffer$GetIterAtMark(m)$iter$GetOffset()
+                      ##DeleteButton(widget=W,label=sprintf(">%s",code),index=pos,direction="forward")
+                    }
+                    tt <- svalue(W)
+                    Encoding(tt) <- "UTF-8"
+                    DAT <- data.frame(cid=currentCid,fid=currentFid,seltext=substr(tt,Sel[1],Sel[2]),selfirst=Sel[1],selend=Sel[2],status=1,owner=.rqda$owner,date=date(),memo=memo)
+                    rowid <- NextRowId(codingTable)
+                    success <- dbWriteTable(.rqda$qdacon,codingTable,DAT,row.name=FALSE,append=TRUE)
+                    if (success){
+                      markRange(widget=.rqda$.openfile_gui,from=Sel[1],to=Sel[2],rowid=rowid,addButton=TRUE,buttonLabel=SelectedCode,buttonCol=codeCol,codingTable=codingTable)}else{gmessage("Fail to write to database.")}
                   }
-                  tt <- svalue(W)
-                  Encoding(tt) <- "UTF-8"
-                  DAT <- data.frame(cid=currentCid,fid=currentFid,seltext=substr(tt,Sel[1],Sel[2]),selfirst=Sel[1],selend=Sel[2],status=1,owner=.rqda$owner,date=date(),memo=memo)
-                  rowid <- NextRowId("coding")
-                  success <- dbWriteTable(.rqda$qdacon,"coding",DAT,row.name=FALSE,append=TRUE)
-                  if (success){
-                    markRange(widget=.rqda$.openfile_gui,from=Sel[1],to=Sel[2],rowid=rowid,addButton=TRUE,buttonLabel=SelectedCode,buttonCol=codeCol)}else{gmessage("Fail to write to database.")}
-                }
-              }}}}}}}}
+                }}}}}}}}
 
 
 Unmark_Button <- function(label="Unmark",codeListWidget=.rqda$.codes_rqda,name="UnMarB1"){
-    ans <- gbutton("Unmark", handler=function(h,...) {UnMarkCodeFun(codeListWidget=codeListWidget)})
-    enabled(ans) <- FALSE
-    assign(name,ans,env=button)
-    ans
+  ans <- gbutton("Unmark", handler=function(h,...) {
+    UnMarkCodeFun(codeListWidget=codeListWidget,codingTable=.rqda$codingTable)
+  }
+                 )
+  enabled(ans) <- FALSE
+  assign(name,ans,env=button)
+  ans
 }
 
-UnMarkCodeFun <- function(codeListWidget=.rqda$.codes_rqda) {
-    if (is_projOpen(env=.rqda,conName="qdacon")) {
-        con <- .rqda$qdacon
-        W <- tryCatch( get(".openfile_gui",env=.rqda), error=function(e){})
-        ## get the widget for file display. If it does not exist, then return NULL.
-        idx1 <- tryCatch(sindex(W,includeAnchor=FALSE),error=function(e) {})
-        idx2 <- tryCatch(sindex(W,includeAnchor=TRUE),error=function(e) {})
-        ## if the not file is open, unmark doesn't work.
-        if (!is.null(idx1)) {
-          ## codeListWidget <- get(codeListWidget,env=.rqda)
-          SelectedCode <- svalue(codeListWidget)
-          if (length(SelectedCode)==0) {gmessage("Select a code first.",con=TRUE)} else{
-            Encoding(SelectedCode) <- "UTF-8"
-            SelectedCode2 <- enc(SelectedCode,"UTF-8")
-            currentCid <-  dbGetQuery(.rqda$qdacon,
-                                      sprintf("select id from freecode where name=='%s'",
-                                              SelectedCode2))[,1]
-            SelectedFile <- svalue(.rqda$.root_edit)
-            SelectedFile <- enc(SelectedFile,"UTF-8") ## Encoding(SelectedFile) <- "UTF-8"
-            currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'",
-                                                  SelectedFile))[,1]
-            codings_index <-  dbGetQuery(con,sprintf("select rowid, cid, fid, selfirst, selend from coding where cid==%i and fid==%i",
-                                                         currentCid, currentFid))
-                ## should only work with those related to current code and current file.
-            rowid <- codings_index$rowid[(codings_index$selfirst  >= idx1$startN) &
-                                         (codings_index$selend  <= idx1$endN)]
-            if (is.numeric(rowid)) for (j in rowid) {
-              dbGetQuery(con,sprintf("update coding set status=-1 where rowid=%i", j))
-            }
-            ## better to get around the loop by sqlite condition expression.
-            ## status=-1 to differentiate the result of delete button
-            ClearMark(W,min=idx2$startN,max=idx2$endN)
-            ## This clear all the marks in the gtext window
-            buffer <- slot(.rqda$.openfile_gui, "widget")@widget$GetBuffer()
-            startIter <- buffer$GetIterAtMark(idx2$startMark)$iter
-            startN <- startIter$GetOffset()
-            DeleteButton(.rqda$.openfile_gui,label=sprintf("%s<",svalue(codeListWidget)),
-                         index=startN,direction="backward")
-            endIter <- buffer$GetIterAtMark(idx2$endMark)$iter
-            endN <- endIter$GetOffset()
-            DeleteButton(.rqda$.openfile_gui,label=sprintf(">%s",svalue(codeListWidget)),
-                         index=endN,direction="forward")
-            ## even for the non-current code. can improve.
+UnMarkCodeFun <- function(codeListWidget=.rqda$.codes_rqda,codingTable="coding") {
+  if (is_projOpen(env=.rqda,conName="qdacon")) {
+    con <- .rqda$qdacon
+    W <- tryCatch( get(".openfile_gui",env=.rqda), error=function(e){})
+    ## get the widget for file display. If it does not exist, then return NULL.
+    idx1 <- tryCatch(sindex(W,includeAnchor=FALSE,codingTable=codingTable),error=function(e) {})
+    idx2 <- tryCatch(sindex(W,includeAnchor=TRUE,codingTable=codingTable),error=function(e) {})
+    ## if the not file is open, unmark doesn't work.
+    if (!is.null(idx1)) {
+      ## codeListWidget <- get(codeListWidget,env=.rqda)
+      SelectedCode <- svalue(codeListWidget)
+      if (length(SelectedCode)==0) {
+        gmessage("Select a code first.",con=TRUE)
+      } else {
+        Encoding(SelectedCode) <- "UTF-8"
+        SelectedCode2 <- enc(SelectedCode,"UTF-8")
+        currentCid <-  dbGetQuery(.rqda$qdacon,
+                                  sprintf("select id from freecode where name=='%s'",
+                                          SelectedCode2))[,1]
+        SelectedFile <- svalue(.rqda$.root_edit)
+        SelectedFile <- enc(SelectedFile,"UTF-8") ## Encoding(SelectedFile) <- "UTF-8"
+        currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'",
+                                              SelectedFile))[,1]
+        codings_index <-  RQDAQuery(sprintf("select rowid, cid, fid, selfirst, selend from %s  where cid==%i and fid==%i",codingTable, currentCid, currentFid))
+        ## should only work with those related to current code and current file.
+        rowid <- codings_index$rowid[(codings_index$selfirst  >= idx1$startN) &
+                                     (codings_index$selend  <= idx1$endN)]
+        if (length(rowid)==0) {
+          gmessage("Select a code and one of its codings exactly first.",con=TRUE)
+        } else {
+          for (j in rowid) {
+            dbGetQuery(con,sprintf("update %s set status=-1 where rowid=%i",codingTable, j))
+
+          ## better to get around the loop by sqlite condition expression.
+          ## status=-1 to differentiate the result of delete button
+          ClearMark(W,min=idx2$startN,max=idx2$endN)
+          ## This clear all the marks in the gtext window
+          buffer <- slot(.rqda$.openfile_gui, "widget")@widget$GetBuffer()
+          startIter <- buffer$GetIterAtMark(idx2$startMark)$iter
+          startN <- startIter$GetOffset()
+          DeleteButton(.rqda$.openfile_gui,label=sprintf("<%s>",svalue(codeListWidget)),
+                       index=startN,direction="backward")
+          endMark <- buffer$GetMark(sprintf("%s.2", j))
+          ## gtkTextMarkSetVisible(endMark,FALSE)
+          gtkTextBufferDeleteMarkByName(buffer,sprintf("%s.2", j))
+          ##endIter <- buffer$GetIterAtMark(idx2$endMark)$iter
+          ##endN <- endIter$GetOffset()
+          ##DeleteButton(.rqda$.openfile_gui,label=sprintf(">%s",svalue(codeListWidget)),index=endN,direction="forward")
+          ## even for the non-current code. can improve.
           }
         }
       }
+    }
   }
+}
 
 
 CodeMemoButton <- function(label="C-Memo",...){
@@ -360,12 +389,13 @@ CodesNamesWidgetMenu$"Code Memo"$handler <- function(h, ...) {
     MemoWidget("code",.rqda$.codes_rqda,"freecode")
     }
   }
-CodesNamesWidgetMenu$"Export Codings"$handler <- function(h, ...) {
+CodesNamesWidgetMenu$"Export Codings as HTML"$handler <- function(h, ...) {
     if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
     path=gfile(type="save",text = "Type a name for the exported codings (with suffix of .html) and click OK.")
     if (!is.na(path)){
       Encoding(path) <- "UTF-8"
-      ExportCoding(file=path)
+      if (.rqda$TOR == "uncondition") fid <- NULL else fid <- getFileIds(condition=.rqda$TOR)
+      ExportCoding(file=path,Fid=fid)
     }}}
 CodesNamesWidgetMenu$"Highlight All Codings"$handler <- function(h, ...) {HL_AllCodings()}
 CodesNamesWidgetMenu$"Highlight Codings with Memo"$handler <- function(h, ...) {HL_CodingWithMemo()}
@@ -373,7 +403,7 @@ CodesNamesWidgetMenu$"Merge Selected with..."$handler <- function(h, ...) {
     if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
         Selected1 <- svalue(.rqda$.codes_rqda)
         cid1 <- dbGetQuery(.rqda$qdacon,sprintf("select id from freecode where name=='%s'",Selected1))[1,1]
-        Selected2 <- gselect.list(as.character(.rqda$.codes_rqda[]))
+        Selected2 <- gselect.list(as.character(.rqda$.codes_rqda[]), x=getOption("widgetCoordinate")[1])
         if (Selected2!="" && Selected1!=Selected2) cid2 <- dbGetQuery(.rqda$qdacon,sprintf("select id from freecode where name=='%s'",Selected2))[1,1]
         mergeCodes(cid1,cid2)
         CodeNamesWidgetUpdate()
@@ -431,7 +461,7 @@ CodesNamesWidgetMenu$"Set Coding Mark Color"$handler <- function(h, ...) {
     cid <- codeInfo[,1]
     codeColor <- codeInfo[,2]
     if (is.na(codeColor)) title <- "Change color to..." else title <- sprintf("Change from '%s' to...",codeColor)
-    newCol <- gselect.list(colors(), multiple = FALSE, title = title)
+    newCol <- gselect.list(colors(), multiple = FALSE, title = title,, x=getOption("widgetCoordinate")[1])
     if (newCol!="" && length(newCol)!=0){
     if (!identical(codeColor,newCol)){
       RQDAQuery(sprintf("update freecode set color='%s' where id ==%i",newCol,cid))

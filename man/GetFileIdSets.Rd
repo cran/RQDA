@@ -1,6 +1,7 @@
-\name{GetFileIdSets}
+\name{getFileIdSets}
 \Rdversion{1.1}
 \alias{GetFileIdSets}
+\alias{getFileIdSets}
 \title{
   Get file id from sets.
 }
@@ -9,7 +10,7 @@
   filecategory.
 }
 \usage{
-GetFileIdSets(set = c("case", "filecategory"), relation = c("union", "intersect"))
+getFileIdSets(set = c("case", "filecategory"), relation = c("union", "intersect"))
 }
 \arguments{
   \item{set}{type of set, either "case" or "filecategory".}

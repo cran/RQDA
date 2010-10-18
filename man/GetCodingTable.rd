@@ -1,5 +1,6 @@
-\name{GetCodingTable}
+\name{getCodingTable}
 \alias{GetCodingTable}
+\alias{getCodingTable}
 \title{ Get the information of codings }
 \description{
 Get the information of codings.
@@ -7,7 +8,6 @@ Get the information of codings.
 \usage{
 GetCodingTable()
 }
-%- maybe also 'usage' for other objects documented here.
 \details{
 Codings are stored in the coding table of *.rqda file. The coding table contains necessary information, but not informative to end-users. For example, it has id of code list and file list, but not the name of them, which are stored in freecode table and source table respectively. \code{GetCodingTable} joins information from the three tables, and returns more informative data. See value section on the the returned components.
 }

@@ -1,10 +1,25 @@
-export(and, CleanProject,CrossCode,CrossTwo,ExportCoding,gselect.list,GetAttr,GetCaseId,GetCaseName,
-       GetCodingTable,GetFileId,GetFileIdSets,GetFileName,
-       list.deleted,pdelete,QueryFile,relation,retrieval,RQDA,RQDA2tm,RQDAQuery,
-       SearchFiles,ShowSubset,SummaryCoding,undelete,write.FileList)
+export("%and%","%or%","%not%", and, CleanProject,closeProject,
+       crossCodes,crossTwoCodes,exportCodings,
+       casesCodedByAnd, casesCodedByOr,casesCodedByNot,
+       filesByCodes,
+       filesCodedByAnd, filesCodedByOr,filesCodedByNot,
+       gselect.list,GetAttr,getCaseIds,getCaseNames,
+       getCases, getCodingsByOne, getFiles,
+       getCodingTable,getFileIds,getFileIdSets,getFileNames,
+       list.deleted,nCodedByTwo, not, or, openProject,
+       pdelete,queryFiles,relation,retrieval,RQDA,RQDAQuery,
+       SearchFiles,ShowSubset,summaryCodings,undelete,write.FileList)
+S3method("%and%",RQDA.vector)
+S3method("%and%",codingsByOne)
+S3method("%or%",RQDA.vector)
+S3method("%or%",codingsByOne)
+S3method("%not%",RQDA.vector)
+S3method("%not%",codingsByOne)
 S3method(print,SummaryCoding)
-S3method(ShowSubset,default)
+S3method(ShowSubset,fileName)
 S3method(ShowSubset,CaseAttr)
+S3method(ShowSubset, caseName)
 S3method(ShowSubset,FileAttr)
+S3method(print,codingsByOne)
 import(RGtk2)
 import(gWidgetsRGtk2)

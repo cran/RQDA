@@ -6,12 +6,13 @@ To retrieve the codings of a selected code from specific set of files.
 }
 \usage{
 retrieval(Fid = NULL, order = c("fname", "ftime", "ctime"),
-          CodeNameWidget = .rqda$.codes_rqda)
+          CodeNameWidget = .rqda$.codes_rqda,codingTable="coding")
 }
 \arguments{
   \item{Fid}{Numeric vector, the file id.}
   \item{order}{The method of sort of retrieved codings.}
   \item{CodeNameWidget}{The name of code list widget.}
+  \item{codingTable}{name of sqlite data table where codings are stored. It should be either "coding" or "coding2"}
 }
 \details{
   This function retrievs the codings of a selected code from

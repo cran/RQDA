@@ -5,8 +5,7 @@
   Select item(s) from a character vector.
 }
 \usage{
-gselect.list(list, multiple = TRUE, title = NULL, width = 200, height = 500,
-             x=420,y=2, ...)
+gselect.list(list, multiple = TRUE, title = NULL, width = 200, height = 500, ...)
 }
 \arguments{
   \item{list}{character vector. A list of items.}
@@ -14,8 +13,6 @@ gselect.list(list, multiple = TRUE, title = NULL, width = 200, height = 500,
   \item{title}{optional character string for window title.}
   \item{width}{integer. width of the widget.}
   \item{height}{integer. heighth of the widget.}
-  \item{x}{length one integer vector, horizontal position of the widget.}
-  \item{y}{length one integer vector, vertical position of the widget.}
   \item{\dots}{Not used currently.}
 }
 \details{

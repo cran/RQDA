@@ -37,65 +37,68 @@
     caseID:\tab corresponding case id of a variable value.\cr 
     date:\tab created date of a case attribute record.\cr 
     dateM:\tab not used currently.\cr 
-    owner:\tab creater of the case attribute record.\cr 
+    owner:\tab creator of the case attribute record.\cr 
   }
   
   Table "caselinkage" contatins information about the relationship
   between case and files of case.
   \tabular{ll}{
-    caseid:\tab . \cr 
-    fid:\tab . \cr 
-    selfirst:\tab . \cr 
-    selend:\tab . \cr 
+    caseid:\tab case id. \cr 
+    fid:\tab file id. \cr 
+    selfirst:\tab beginning position of a text segment associated with a case. \cr 
+    selend:\tab  ending position of a text segment associated with a case.. \cr 
     status:\tab 1 for standard status and 0 for temporarily deleted record. \cr 
-    owner:\tab . \cr 
-    date:\tab . \cr 
-    memo:\tab . \cr 
+    owner:\tab creator of the case linkage. \cr 
+    date:\tab date of a created case linkage. \cr 
+    memo:\tab not used currently. \cr 
   }
   
   Table "cases" contatins information about case list.
   \tabular{ll}{
-    name:\tab . \cr 
-    memo:\tab . \cr 
-    owner:\tab . \cr 
-    date:\tab . \cr 
-    dateM:\tab . \cr 
-    id:\tab . \cr 
+    name:\tab name of a case. \cr 
+    memo:\tab case memo. \cr 
+    owner:\tab creator of a case. \cr 
+    date:\tab date of creation of a case. \cr 
+    dateM:\tab not used currently. \cr 
+    id:\tab case id. \cr 
     status:\tab 1 for standard status and 0 for temporarily deleted record. \cr }
   
   Table "codecat" contatins information about upper-level of code list.
   \tabular{ll}{
-    name:\tab . \cr 
-    cid:\tab . \cr 
-    catid:\tab . \cr 
-    owner:\tab . \cr 
-    date:\tab . \cr 
-    dateM:\tab . \cr 
-    memo:\tab . \cr 
+    name:\tab name of code category. \cr 
+    cid:\tab not used currently. \cr 
+    catid:\tab id of code category. \cr 
+    owner:\tab creator of code category. \cr 
+    date:\tab date of creation of code category. \cr 
+    dateM:\tab not used currently. \cr 
+    memo:\tab code category memo. \cr 
     status:\tab 1 for standard status and 0 for temporarily deleted record. \cr 
   }
   
   Table "coding" contains information on codings.
   \tabular{ll}{
-    cid :\tab \cr 
-    fid :\tab \cr 
-    seltext :\tab \cr 
-    selfirst :\tab \cr 
-    selend :\tab \cr 
-    status :\tab \cr 
-    owner :\tab \cr 
-    date :\tab \cr 
-    memo :\tab \cr 
+    cid :\tab code id.\cr 
+    fid :\tab file id.\cr 
+    seltext :\tab a coding, that is the coded text segment.\cr 
+    selfirst :\tab beginning position of the coded text segment.\cr 
+    selend :\tab ending position of the coded text segment.\cr 
+    status :\tab 1 for standard status. 0 for deleted codeings (for
+  example when a code is deleted, the status of all associated codings
+  is set to 0) and -1 for unmarked codings.\cr 
+    owner :\tab name of coder or creator of a coding. \cr 
+    date :\tab date of creation of a coding.\cr 
+    memo :\tab coding memo.\cr 
   }
 
   Table "fileAttr" contatins information about attributes of files.
   \tabular{ll}{
-    variable:\tab . \cr 
-    value:\tab . \cr 
-    fileID:\tab . \cr 
-    date:\tab . \cr 
-    dateM:\tab . \cr 
-    owner:\tab . \cr 
+    variable:\tab charater, name of file attribute, coresponding to name in
+    attributes table \cr 
+    value:\tab value of the file attribute. \cr 
+    fileID:\tab corresponding file id of the attribute. \cr 
+    date:\tab created date of the file attribute.\cr 
+    dateM:\tab not used currently. \cr 
+    owner:\tab creator of the file attribute. \cr 
   }
   
   Table "filecat" contains information on the file categorization.
@@ -104,20 +107,20 @@
     fid:\tab Not used.\cr
     catid:\tab if of file category.\cr
     owner:\tab creator of file-category.\cr
-    date:\tab \cr
-    dateM:\tab \cr
-    memo:\tab \cr
+    date:\tab date of creation of a file category.\cr
+    dateM:\tab not used currently.\cr
+    memo:\tab file category memo.\cr
     status:\tab 1 for standard status and 0 for temporarily deleted record. \cr
   }
 
   Table "freecode" contains information on the codes list.
   \tabular{ll}{
-    name :\tab \cr 
-    memo :\tab \cr 
-    owner :\tab \cr 
-    date :\tab \cr 
-    dateM :\tab \cr 
-    id :\tab \cr 
+    name :\tab code name.\cr 
+    memo :\tab code memo.\cr 
+    owner :\tab creator of a code.\cr 
+    date :\tab date of creation of a code.\cr 
+    dateM :\tab not used currently.\cr 
+    id :\tab code id.\cr 
     status :\tab 1 for standard status and 0 for temporarily deleted record.\cr
     color:\tab color for code marker (added in version 0.19)\cr
   }
@@ -129,11 +132,11 @@
   Table "journal" contatins information about field work
   journal. Journal titles are held in widget of ".JournalNamesWidget".
   \tabular{ll}{
-    name:\tab name of a journal \cr 
-    journal:\tab content of a journal \cr 
-    date:\tab created date of a journal\cr 
-    dateM:\tab not used currently \cr 
-    owner:\tab owner of a journal\cr 
+    name:\tab name of a journal. \cr 
+    journal:\tab content of a journal. \cr 
+    date:\tab created date of a journal.\cr 
+    dateM:\tab not used currently. \cr 
+    owner:\tab owner of a journal.\cr 
     status:\tab 1 for standard status and 0 for temporarily deleted journal. \cr 
   }
   
@@ -166,22 +169,22 @@
   (relationship between codes and the codecat). They are held in widget
   of ".CodeCatWidget". Codes of specific category are held in widget of ".CodeofCat".
   \tabular{ll}{
-    cid:\tab . \cr 
-    catid:\tab . \cr 
-    date:\tab . \cr 
-    dateM:\tab . \cr 
-    memo:\tab . \cr 
-    status:\tab . \cr 
+    cid:\tab code id. \cr 
+    catid:\tab code category id. \cr 
+    date:\tab date of creation of a code categorization. \cr 
+    dateM:\tab not used currently. \cr 
+    memo:\tab not used currently. \cr 
+    status:\tab 1 for standard status and 0 for temporarily deleted file. \cr 
   }
 
   Table "treefile" contatins information about file categorization
   (relation between source files and filecat).
   \tabular{ll}{
-    fid:\tab . \cr 
-    catid:\tab . \cr 
-    date:\tab . \cr 
-    dateM:\tab . \cr 
-    memo:\tab . \cr 
+    fid:\tab file id. \cr 
+    catid:\tab file category id. \cr 
+    date:\tab date of creation of the file categorization. \cr 
+    dateM:\tab not used currently. \cr 
+    memo:\tab not used currently. \cr 
     status:\tab 1 for standard status and 0 for temporarily deleted record. \cr 
   }
   

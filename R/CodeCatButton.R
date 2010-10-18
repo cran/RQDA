@@ -139,7 +139,7 @@ CodeCatAddToButton <- function(label="Add To",Widget=.rqda$.CodeCatWidget,...)
                 ## compute those not in the category, then push them to select.list()
                 codeoutofcat <- subset(freecode,!(id %in% codeofcat$cid))
             } else  codeoutofcat <- freecode
-            Selected <- gselect.list(codeoutofcat[['name']],multiple=TRUE)
+            Selected <- gselect.list(codeoutofcat[['name']],multiple=TRUE, x=getOption("widgetCoordinate")[1])
             if (length(Selected) >1 || Selected != ""){
                 ## Selected <- iconv(Selected,to="UTF-8")
                 cid <- codeoutofcat[codeoutofcat$name %in% Selected,"id"]
@@ -192,7 +192,7 @@ CodeCatDropFromButton <- function(label="Drop From",Widget=.rqda$.CodeofCat,...)
 
 CodeCatMemoButton <- function(label="Memo",...){
     CodCatMemB <- gbutton(label,handler=function(h,...) {
-        MemoWidget("CodeCat",.rqda$.CodeCatWidget,"codecat")
+        MemoWidget("Code Category",.rqda$.CodeCatWidget,"codecat")
         }
                           )
     assign("CodCatMemB", CodCatMemB,env=button)
@@ -206,9 +206,9 @@ plotCodeCategory <-function(parent=NULL){
     ans <- RQDAQuery(sprintf("select codecat.name as parent,freecode.name as child from treecode, codecat,freecode
 where treecode.status==1 and codecat.status==1 and freecode.status==1
 and treecode.catid==codecat.catid and freecode.id=treecode.cid and codecat.name in (%s)",paste(shQuote(parent),collapse=",")))
-    g <- graph.data.frame(ans)
-    tryCatch(tkplot(g,vertex.label=V(g)$name),error=function(e){
-        plot(g,vertex.label=V(g)$name)
+    g <- igraph:::graph.data.frame(ans)
+    tryCatch(igraph:::tkplot(g,vertex.label=igraph:::V(g)$name),error=function(e){
+        igraph:::plot.igraph(g,vertex.label=igraph:::V(g)$name)
     })
 }
 
@@ -238,7 +238,7 @@ CodeCatWidgetMenu$"Add New Code to Selected Category"$handler <- function(h,...)
 }
 CodeCatWidgetMenu$Memo$handler <- function(h,...){
  if (is_projOpen(env=.rqda,conName="qdacon")) {
- MemoWidget("CodeCat",.rqda$.CodeCatWidget,"codecat")
+ MemoWidget("Code Category",.rqda$.CodeCatWidget,"codecat")
 }
 }
 CodeCatWidgetMenu$"Plot Selected Code Categories"$handler <- function(h,...){
@@ -273,7 +273,7 @@ CodeofCatWidgetMenu$"Rename Selected Code"$handler <- function(h, ...) {
 }
 CodeofCatWidgetMenu$"Code Memo"$handler <- function(h, ...) {
     if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
-    MemoWidget("code",.rqda$.CodeofCat,"freecode")
+    MemoWidget("Code",.rqda$.CodeofCat,"freecode")
     }
   }
 CodeofCatWidgetMenu$"Sort by created time"$handler <- function(h,...){

@@ -1,22 +1,27 @@
-\name{GetFileId}
+\name{getFiles}
 \alias{GetFileId}
+\alias{getFileIds}
 \alias{GetFileName}
-%- Also NEED an '\alias' for EACH other topic documented here.
+\alias{getFileNames}
+\alias{getFiles}
 \title{ Get the ids or names of files list }
 \description{
   Get the ids or names of files list.
 }
 \usage{
-GetFileId(condition = c("unconditional", "case", "filecategory","both"), 
+getFileIds(condition = c("unconditional", "case", "filecategory","both"), 
           type = c("all", "coded", "uncoded","selected"))
 
-GetFileName(fid = GetFileId())
+getFileNames(fid = GetFileId())
+
+getFiles(condition = c("unconditional", "case", "filecategory", "both"),
+         type = c("all", "coded", "uncoded", "selected"), names = TRUE) 
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{condition}{Any one of "unconditional", "case", "filecategory" or "both".}
   \item{type}{Any one of "all", "coded" or "uncoded","selected".}
   \item{fid}{integer vector, the id of files.}
+  \item{names}{logical.}
 }
 \details{
   The imported files are stored in a data base table (called source) in
@@ -35,6 +40,8 @@ GetFileName(fid = GetFileId())
 }
 \value{
 Normally, it is a numeric vector of file id. If condition is "case" or "filecategory" but no case or file category is selected, it retuns NULL.
+
+\code{\link{getFiles}} returns a vector of file IDs (with class of "RQDA.vector" and "fileId") when names is FALSE, and a vector of file names ((with class of "RQDA.vector" and "fileName") when names is TRUE.
 }
 \author{ HUANG Ronggui}
 \seealso{ \code{\link{retrieval}}, \code{\link{GetFileIdSets}}}

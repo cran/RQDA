@@ -96,7 +96,7 @@ UpdateFileofCatWidget2 <- function(con=.rqda$qdacon,Widget=.rqda$.FileofCat,sort
 
 FileCatMemoButton <- function(label="Memo"){
   ans <- gbutton(label,handler=function(h,...) {
-    MemoWidget("FileCat",.rqda$.FileCatWidget,"filecat")
+    MemoWidget("File Category",.rqda$.FileCatWidget,"filecat")
     }
                  )
   gtkTooltips()$setTip(ans@widget@widget,"Memo of file category.")
@@ -118,7 +118,7 @@ FileCatAddToButton <- function(label="AddTo",Widget=.rqda$.FileCatWidget,...)
       if (nrow(fileofcat)!=0){
         fileoutofcat <- subset(freefile,!(id %in% fileofcat$fid))
       } else  fileoutofcat <- freefile
-      Selected <- gselect.list(fileoutofcat[['name']],multiple=TRUE)
+      Selected <- gselect.list(fileoutofcat[['name']],multiple=TRUE,x=getOption("widgetCoordinate")[1])
       if (Selected != ""){
         ## Selected <- iconv(Selected,to="UTF-8") ## already Encoded as UTF-8.
         fid <- fileoutofcat[fileoutofcat$name %in% Selected,"id"]
@@ -201,7 +201,7 @@ FileCatDropFromButton <- function(label="DropFrom",Widget=.rqda$.FileofCat,...)
 FileCatWidgetMenu <- list()
 FileCatWidgetMenu$Memo$handler <- function(h,...){
  if (is_projOpen(env=.rqda,conName="qdacon")) {
-   MemoWidget("FileCat",.rqda$.FileCatWidget,"filecat")
+   MemoWidget("File Category",.rqda$.FileCatWidget,"filecat")
    ## see CodeCatButton.R  for definition of MemoWidget
  }
 }
@@ -267,11 +267,13 @@ FileofCatWidgetMenu$"Search Files Within Categroy"$handler <- function(h,...)
 {
   if (is_projOpen(env=.rqda,conName="qdacon")) {
       fid <- GetFileId(condition="filecategory",type="all")
-      pattern <- ginput("Please input a search pattern.",text="file like '%%'")
+      pattern <- ifelse(is.null(.rqda$lastsearch),"file like '%%'",.rqda$lastsearch)
+      pattern <- ginput("Please input a search pattern.",text=pattern)
       if (!is.na(pattern) && length(fid)!=0){
           tryCatch(SearchFiles(sprintf("(%s) and id in (%s)",pattern,paste(shQuote(fid),collapse=",")),
                                Widget=".FileofCat",is.UTF8=TRUE),
                    error=function(e) gmessage("Error~~~."),con=TRUE)
+          assign("lastsearch",pattern,env=.rqda)
       }
   }
 }

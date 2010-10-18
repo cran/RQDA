@@ -1,18 +1,19 @@
-\name{SummaryCoding}
+\name{summaryCodings}
 \alias{SummaryCoding}
+\alias{summaryCodings}
 \alias{print.SummaryCoding}
-\title{Summary of coding}
+\title{Summary of codings}
 \description{
-Give a summary of coding of current project.
+Give a summary of codings of current project.
 }
 \usage{
-SummaryCoding(byFile = FALSE, ...)
-\method{print}{SummaryCoding}
+summaryCodings(byFile = FALSE, ...)
+\method{print}{SummaryCoding}(x, ...)
 }
 \arguments{
   \item{byFile}{When it is FALSE, return the summary of current project. 
 When it is TRUE, return the summary of coding for each coded file.}
-%  \item{x}{An object returned by \code{SummaryCoding}.}
+  \item{x}{An object returned by \code{SummaryCoding}.}
   \item{\dots}{Other possible arguments.}
 }
 %\details{
@@ -28,12 +29,10 @@ each code.}
 byFile is FALSE.}
 }
 \author{ HUANG Ronggui}
-\seealso{\code{\link{GetFileId}} and \code{\link{GetCodingTable}}}
+\seealso{\code{\link{getFileIds}} and \code{\link{getCodingTable}}}
 \examples{
 \dontrun{
-SummaryCoding()
-SummaryCoding(FALSE)
+summaryCodings()
+summaryCodings(FALSE)
+ }
 }
-}
-%\keyword{ ~kwd1 }
-%\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
