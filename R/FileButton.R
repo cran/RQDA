@@ -14,6 +14,17 @@ ImportFileButton <- function(label="Import", container,...)
   gtkWidgetSetSensitive(button$ImpFilB@widget@widget,FALSE)
 }
 
+NewFileButton <- function(label="New", container,...)
+{
+    NewFilB <- gbutton(label, contain=container, handler=function(h,...){
+        if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
+            AddNewFileFun()
+        }
+    }
+                       )
+    assign("NewFilB",NewFilB,env=button)
+    enabled(NewFilB) <- FALSE
+}
 
 DeleteFileButton <- function(label="Delete", container,...){
   DelFilB <- gbutton(label,contain=container,handler=function(h,...){
@@ -97,6 +108,23 @@ File_RenameButton <- function(label="Rename", container=.rqda$.files_button,File
   gtkWidgetSetSensitive(button$FilRenB@widget@widget,FALSE)
 }
 
+FileAttribute_Button <- function(label="Attribute",container=.rqda$.files_button,FileWidget=.rqda$.fnames_rqda,...)
+{
+    FileAttrB <- gbutton(label, contain=container, handler=function(h,...) {
+        if (is_projOpen(env=.rqda,conName="qdacon")) {
+            Selected <- svalue(FileWidget)
+            if (length(Selected !=0 )){
+                fileId <- RQDAQuery(sprintf("select id from source where status=1 and name='%s'",
+                                            enc(Selected)))[,1]
+                FileAttrFun(fileId=fileId,title=Selected)
+            }
+        }
+    }
+                         )
+    FileAttrB
+    assign("FileAttrB",FileAttrB,env=button)
+    enabled(FileAttrB) <- FALSE
+}
 
 AddNewFileFun <- function(){
   if (is_projOpen(env=.rqda,"qdacon")) {

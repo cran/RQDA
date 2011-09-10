@@ -150,7 +150,7 @@ CodeCatAddToButton <- function(label="Add To",Widget=.rqda$.CodeCatWidget,...)
                 UpdateCodeofCatWidget()
             }
         }})
-    gtkTooltips()$setTip(ans@widget@widget,"Add code(s) to the selected code category.")
+    gtkWidgetSetTooltipText(getToolkitWidget(ans),"Add code(s) to the selected code category.")
     assign("CodCatAddToB",ans, env=button)
     enabled(ans) <- FALSE
     return(ans)
@@ -183,7 +183,7 @@ CodeCatDropFromButton <- function(label="Drop From",Widget=.rqda$.CodeofCat,...)
         }
     }
                    )
-    gtkTooltips()$setTip(ans@widget@widget,"Drop selected code(s) from code category.")
+    gtkWidgetSetTooltipText(getToolkitWidget(ans),"Drop selected code(s) from code category.")
     assign("CodCatADroFromB",ans, env=button)
     enabled(ans) <- FALSE
     return(ans)

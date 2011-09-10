@@ -1,4 +1,43 @@
-2010-09-03
+2011-09-10 (version 0.2-1)
+	* tidy up Rd files for release.
+	
+2011-09-08
+	* add new file button to the GUI
+	
+2011-09-07
+	* fix bugs ("find a word" has highlight again; project memo button
+	is grayed by default)
+	
+2011-09-05
+	* use right click to activate the coding memo widget
+	* remove the C2Memo button
+	* save button of coding memo is grayed by default
+	
+2011-09-04
+	* new attribute button in the File Tab
+	
+2011-09-03
+	* bugfixe of a highlight issue caused by API change in
+	gwidgetsRGtk2
+
+2011-07-27
+	* revert the line number functionality and new function of
+	RQDA:::files2tm
+	
+2011-06-29
+	* only update the coding database when the code anchor is removed
+	to avoid the ensuing wrong index
+	
+2011-05-27
+	* unexported function of ViewPlainFile
+	
+2011-05-18
+	* unexpored function of ViewPlainFile as requested by Irfan Emrah Kanat.
+
+2011-04-09
+	* use the new api to set the tooltips.
+
+2010-09-03 (version 0.2-0)
 	* re-written and, or and not and alias to %and%, %or% and %not%.
 	* use print method rather than summary for codingByOne object.
 
@@ -136,7 +175,7 @@
 	* Insert one code label instead of two. It is more readable.
 	* Minor bugfix of "highlight coding with memo" in coding popup menu.
 
-2010-02-26 (0.1-9 rev 233)
+2010-02-26 (version 0.1-9 rev 233)
 	* all widgets are enabled only if usable.
 
 2010-02-25

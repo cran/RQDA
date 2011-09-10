@@ -51,7 +51,7 @@ RetrievalButton <- function(label){
                 retrieval(Fid=GetFileId(condition=.rqda$TOR,type="coded"),CodeNameWidget=.rqda$.codes_rqda)}
             }
                  )
-  gtkTooltips()$setTip(RetB@widget@widget,"Retrieve codings of the selected code.")
+  gtkWidgetSetTooltipText(getToolkitWidget(RetB),"Retrieve codings of the selected code.")
   assign("RetB",RetB,env=button)
   enabled(RetB) <- FALSE
   return(RetB)
@@ -197,7 +197,7 @@ UnMarkCodeFun <- function(codeListWidget=.rqda$.codes_rqda,codingTable="coding")
         SelectedFile <- enc(SelectedFile,"UTF-8") ## Encoding(SelectedFile) <- "UTF-8"
         currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'",
                                               SelectedFile))[,1]
-        codings_index <-  RQDAQuery(sprintf("select rowid, cid, fid, selfirst, selend from %s  where cid==%i and fid==%i",codingTable, currentCid, currentFid))
+        codings_index <-  RQDAQuery(sprintf("select rowid, cid, fid, selfirst, selend from %s where cid==%i and fid==%i and status==1",codingTable, currentCid, currentFid))
         ## should only work with those related to current code and current file.
         rowid <- codings_index$rowid[(codings_index$selfirst  >= idx1$startN) &
                                      (codings_index$selend  <= idx1$endN)]
@@ -205,25 +205,26 @@ UnMarkCodeFun <- function(codeListWidget=.rqda$.codes_rqda,codingTable="coding")
           gmessage("Select a code and one of its codings exactly first.",con=TRUE)
         } else {
           for (j in rowid) {
-            dbGetQuery(con,sprintf("update %s set status=-1 where rowid=%i",codingTable, j))
-
-          ## better to get around the loop by sqlite condition expression.
-          ## status=-1 to differentiate the result of delete button
           ClearMark(W,min=idx2$startN,max=idx2$endN)
           ## This clear all the marks in the gtext window
           buffer <- slot(.rqda$.openfile_gui, "widget")@widget$GetBuffer()
           startIter <- buffer$GetIterAtMark(idx2$startMark)$iter
           startN <- startIter$GetOffset()
-          DeleteButton(.rqda$.openfile_gui,label=sprintf("<%s>",svalue(codeListWidget)),
-                       index=startN,direction="backward")
-          endMark <- buffer$GetMark(sprintf("%s.2", j))
-          ## gtkTextMarkSetVisible(endMark,FALSE)
-          gtkTextBufferDeleteMarkByName(buffer,sprintf("%s.2", j))
-          ##endIter <- buffer$GetIterAtMark(idx2$endMark)$iter
-          ##endN <- endIter$GetOffset()
-          ##DeleteButton(.rqda$.openfile_gui,label=sprintf(">%s",svalue(codeListWidget)),index=endN,direction="forward")
-          ## even for the non-current code. can improve.
+          isRemoved <- DeleteButton(.rqda$.openfile_gui,label=sprintf("<%s>",svalue(codeListWidget)),
+                                  index=startN,direction="backward")
+          if (isRemoved) {
+            dbGetQuery(con,sprintf("update %s set status=-1 where rowid=%i",codingTable, j))
+            ## better to get around the loop by sqlite condition expression.
+            ## status=-1 to differentiate the result of delete button
+            endMark <- buffer$GetMark(sprintf("%s.2", j))
+            ## gtkTextMarkSetVisible(endMark,FALSE)
+            gtkTextBufferDeleteMarkByName(buffer,sprintf("%s.2", j))
+            ##endIter <- buffer$GetIterAtMark(idx2$endMark)$iter
+            ##endN <- endIter$GetOffset()
+            ##DeleteButton(.rqda$.openfile_gui,label=sprintf(">%s",svalue(codeListWidget)),index=endN,direction="forward")
+            ## even for the non-current code. can improve.
           }
+         }
         }
       }
     }
@@ -236,7 +237,7 @@ CodeMemoButton <- function(label="C-Memo",...){
     MemoWidget("code",.rqda$.codes_rqda,"freecode")
   }
           )
-  gtkTooltips()$setTip(codememobuton@widget@widget,"Memo for selected code.")
+  gtkWidgetSetTooltipText(getToolkitWidget(codememobuton),"Memo for selected code.")
   assign("codememobuton",codememobuton,env=button)
   enabled(codememobuton) <- FALSE
   return(codememobuton)
@@ -328,7 +329,7 @@ CodingMemoButton <- function(label="C2Memo")
           }
         }
       }}})
-  gtkTooltips()$setTip(c2memobutton@widget@widget,"Memo for a Coding.")
+  gtkWidgetSetTooltipText(getToolkitWidget(c2memobutton),"Memo for a Coding.")
   assign("c2memobutton",c2memobutton,env=button)
   enabled(c2memobutton) <- FALSE
   return(c2memobutton)
@@ -372,7 +373,7 @@ AnnotationButton <- function(label="Add Anno"){
     if (is_projOpen(env=.rqda,conName="qdacon")) {
       Annotation()
     }})
-  gtkTooltips()$setTip(AnnB@widget@widget,"Add new annotation to the open file\nat position of cursor.")
+  gtkWidgetSetTooltipText(getToolkitWidget(AnnB),"Add new annotation to the open file\nat position of cursor.")
   assign("AnnB",AnnB,env=button)
   enabled(AnnB) <- FALSE
   return(AnnB)

@@ -99,7 +99,7 @@ FileCatMemoButton <- function(label="Memo"){
     MemoWidget("File Category",.rqda$.FileCatWidget,"filecat")
     }
                  )
-  gtkTooltips()$setTip(ans@widget@widget,"Memo of file category.")
+  gtkWidgetSetTooltipText(getToolkitWidget(ans),"Memo of file category.")
   assign("FilCatMemB",ans,button)
   enabled(ans) <- FALSE
   ans
@@ -129,7 +129,7 @@ FileCatAddToButton <- function(label="AddTo",Widget=.rqda$.FileCatWidget,...)
     }
   }
                  )
-  gtkTooltips()$setTip(ans@widget@widget,"Add file(s) to the selected file category.")
+  gtkWidgetSetTooltipText(getToolkitWidget(ans),"Add file(s) to the selected file category.")
   assign("FilCatAddToB",ans,button)
   enabled(ans) <- FALSE
   return(ans)
@@ -156,7 +156,7 @@ FileCatDropFromButton <- function(label="DropFrom",Widget=.rqda$.FileofCat,...)
     }
   }
                  )
-  gtkTooltips()$setTip(ans@widget@widget,"Drop selected file(s) from file category.")
+  gtkWidgetSetTooltipText(getToolkitWidget(ans),"Drop selected file(s) from file category.")
   assign("FilCatDroFromB",ans,button)
   enabled(ans) <- FALSE
   return(ans)

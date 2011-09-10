@@ -62,12 +62,14 @@ if (isTRUE(.rqda$isLaunched)) {
   ".fnames_rqda" <- gtable(character(0),container=.files_pan,multiple=TRUE)
   names(.fnames_rqda) <- "Files"
   ImportFileButton("Import",con=.files_button)
+  NewFileButton("New",con=.files_button)
   DeleteFileButton("Delete",con=.files_button)
   ViewFileButton("Open",con=.files_button)
   File_MemoButton(label="Memo", container=.files_button,FileWidget=.fnames_rqda)
   ## memo button of selected file. The code of File_Memo buttion has been moved into memo.R
   File_RenameButton(label="Rename", container=.files_button,FileWidget=.fnames_rqda)
   ## rename a selected file.
+  FileAttribute_Button(label="Attribute", container=.files_button,FileWidget=.fnames_rqda)
 
 ########################### GUI for CODES
 ###########################
@@ -79,11 +81,11 @@ if (isTRUE(.rqda$isLaunched)) {
   .codes_button[1,2]<- DeleteCodeButton()
   .codes_button[1,3] <- FreeCode_RenameButton(label="Rename",CodeNamesWidget=.codes_rqda)
   .codes_button[1,4] <- CodeMemoButton(label="Memo")
-  .codes_button[2,3] <-  AnnotationButton("Anno")
-  .codes_button[2,1]<- CodingMemoButton(label="C2Memo")
+  .codes_button[2,1] <-  AnnotationButton("Anno")
+  ## .codes_button[2,1]<- CodingMemoButton(label="C2Memo")
   .codes_button[2,2]<- RetrievalButton("Coding")
-  .codes_button[2,4]<- Unmark_Button(name="UnMarB1")
-  .codes_button[1:2,5]<- Mark_Button(name="MarCodB1")
+  .codes_button[2,3]<- Unmark_Button(name="UnMarB1")
+  .codes_button[2,4]<- Mark_Button(name="MarCodB1")
 
 
 ######################### GUI  for C-cat
@@ -260,6 +262,8 @@ AddHandler <- function(){
       gtkWidgetSetSensitive(button$VieFilB@widget@widget,TRUE)
       gtkWidgetSetSensitive(button$FilMemB@widget@widget,TRUE)
       gtkWidgetSetSensitive(button$FilRenB@widget@widget,TRUE)
+      enabled(button$FileAttrB) <- TRUE
+
     }
   }
                     )

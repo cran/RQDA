@@ -168,31 +168,66 @@ InsertAnchor <- function(widget,label,index,label.col="gray90",
                          handler=FALSE, EndMarkName=NULL) {
     ## EndMarkName is a gtk mark for end position of highlight
     lab <- gtkLabelNew(label)
-    label <- gtkEventBoxNew()
-    if (isTRUE(handler)) label$ModifyBg("normal", gdkColorParse(label.col)$color)
-    label$Add(lab)
+    labelEvBox <- gtkEventBoxNew()
+    if (isTRUE(handler)) labelEvBox$ModifyBg("normal", gdkColorParse(label.col)$color)
+    labelEvBox$Add(lab)
     buffer <- slot(widget,"widget")@widget$GetBuffer()
     if (isTRUE(handler)){
-      button_press <-function(widget,event,W){
-        if (!is.null(EndMarkName)){
-          Iter <- gtkTextBufferGetIterAtChildAnchor(buffer,anchor)$iter
-          Offset <- Iter$GetOffset()
-          maxidx <- buffer$GetBounds()$end$GetOffset()
-          ClearMark(W,min=0,max=maxidx)
-          m <- buffer$GetMark(EndMarkName)
-          gtkTextMarkSetVisible(m,TRUE) ## useful when a coding end with space
-          Offset2 <- buffer$GetIterAtMark(m)$iter$GetOffset()
-          HL(W=W, index=data.frame(Offset,Offset2))
-        }}
-      gSignalConnect(label, "button-press-event",button_press,data=widget)
-    }
+      button_press <-function(widget,event,W, codeName = label){
+          if (attr(event$type,"name")== "GDK_BUTTON_PRESS" && event$button==1) {
+              ## action for left click
+              if (!is.null(EndMarkName)){
+                  Iter <- gtkTextBufferGetIterAtChildAnchor(buffer,anchor)$iter
+                  Offset <- Iter$GetOffset()
+                  maxidx <- buffer$GetBounds()$end$GetOffset()
+                  ClearMark(W,min=0,max=maxidx)
+                  m <- buffer$GetMark(EndMarkName)
+                  gtkTextMarkSetVisible(m,TRUE) ## useful when a coding end with space
+                  Offset2 <- buffer$GetIterAtMark(m)$iter$GetOffset()
+                  HL(W=W, index=data.frame(Offset,Offset2))
+              }}
+          if (attr(event$type,"name")== "GDK_BUTTON_PRESS" && event$button==3) {
+              ## action for right click
+              if (!is.null(EndMarkName)) {
+                  rowid <- gsub(".2$","",EndMarkName)
+                  prvcontent <- RQDAQuery(sprintf("select memo from coding where rowid==%s",rowid))[1,1]
+                  tryCatch(dispose(.rqda$.codingmemo),error=function(e) {})
+                  ## Close the coding memo first, then open a new one
+                  title <- sprintf("Coding Memo:%s",codeName)
+                  .codingmemo <- gwindow(title=title,getOption("widgetCoordinate"),width=600,height=400)
+                  assign(".codingmemo",.codingmemo, env=.rqda)
+                  .codingmemo <- get(".codingmemo",env=.rqda)
+                  .codingmemo2 <- gpanedgroup(horizontal = FALSE, con=.codingmemo)
+                  .codingMemoSaveButton <- gbutton("Save Coding Memo",con=.codingmemo2,action=list(rowid=rowid),handler=function(h,...){
+                      newcontent <- svalue(.rqda$.cdmemocontent)
+                      newcontent <- enc(newcontent,encoding="UTF-8") ## take care of double quote.
+                      RQDAQuery(sprintf("update coding set memo='%s' where rowid=%s",newcontent,rowid=h$action$rowid))
+                  })## end of save memo button
+                  enabled(.codingMemoSaveButton) <- FALSE
+                  assign(".codingMemoSaveButton",.codingMemoSaveButton,env=.rqda)
+                  assign(".cdmemocontent",gtext(container=.codingmemo2,font.attr=c(sizes="large")),env=.rqda)
+                  if (is.na(prvcontent)) prvcontent <- ""
+                  Encoding(prvcontent) <- "UTF-8"
+                  if (prvcontent=="") assign("NewCodingMemo",TRUE,env=.rqda)
+                  W <- get(".cdmemocontent",env=.rqda)
+                  add(W,prvcontent,font.attr=c(sizes="large"),do.newline=FALSE)
+                  gSignalConnect(W@widget@widget$GetBuffer(), "changed",
+                                 function(h,...){
+                                 enabled(.rqda$".codingMemoSaveButton") <- TRUE
+                                 })
+
+              }
+          }
+      }
+      gSignalConnect(labelEvBox, "button-press-event",button_press,data=widget)
+  }
     iter <- gtkTextBufferGetIterAtOffset(buffer,index)$iter
     anchorcreated <- buffer$createChildAnchor(iter)
     iter$BackwardChar()
     anchor <- iter$getChildAnchor()
     anchor <- gtkTextIterGetChildAnchor(iter)
-    widget@widget@widget$addChildAtAnchor(label, anchor)
-  }
+    widget@widget@widget$addChildAtAnchor(labelEvBox, anchor)
+}
 
 
 DeleteButton <- function(widget,label,index,direction=c("backward","forward")){
@@ -201,6 +236,7 @@ DeleteButton <- function(widget,label,index,direction=c("backward","forward")){
   if (direction=="backward") index <- index - 1
   iter <- gtkTextBufferGetIterAtOffset(buffer,index)$iter
   stop <- FALSE
+  isRemove <- FALSE
   while (!stop) {
     Anchor <- iter$getChildAnchor()
     if (!is.null(Anchor)){
@@ -210,11 +246,13 @@ DeleteButton <- function(widget,label,index,direction=c("backward","forward")){
         iterEnd <- gtkTextBufferGetIterAtOffset(buffer,iterEnd+1)$iter
         gtkTextBufferDelete(buffer,iter,iterEnd)
         stop <- TRUE
+        isRemove <- TRUE
       }
       if (direction=="backward") if (! iter$BackwardChar()) stop <- TRUE
       if (direction=="forward") if (! iter$ForwardChar()) stop <- TRUE
     } else {stop <- TRUE}
   }
+  invisible(isRemove)
 }
 
 countAnchors <- function(widget=.rqda$.openfile_gui,to,from=0){

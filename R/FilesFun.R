@@ -52,6 +52,41 @@ FileNamesUpdate <- function(FileNamesWidget=.rqda$.fnames_rqda,sortByTime=TRUE,d
   }
 }
 
+LineNumber.expose <- function(da,event,data){
+    ## translated from http://www.pygtk.org/pygtk2tutorial/sec-TextViewExample.html
+    textView <- da
+    textView$SetBorderWindowSize('GTK_TEXT_WINDOW_LEFT',30)
+    vis <- textView$GetVisibleRect()
+    heightVis <- vis$visible.rect$height
+    firstY <- vis$visible.rect$y
+    lastY <- firstY + heightVis
+    posFirst <- gtkTextViewWindowToBufferCoords(textView, 'GTK_TEXT_WINDOW_LEFT', 0, firstY )
+    posLast <- gtkTextViewWindowToBufferCoords(textView, 'GTK_TEXT_WINDOW_LEFT', 0, lastY)
+    windowL <- textView$GetWindow('GTK_TEXT_WINDOW_LEFT')
+    atTop <- textView$GetLineAtY(firstY)
+    iter  <- atTop$target.iter
+    top <- atTop$line.top
+    count <- 0
+    pixels <- numbers <- c()
+    while (!iter$IsEnd()) {
+        tmp <- textView$GetLineYrange(iter)
+        y <- tmp$y
+        line_num <- gtkTextViewGetLineAtY(textView,y)$target.iter$GetLine()+1
+        numbers <- c(numbers, line_num)
+        height <- tmp$height
+        count <- count + 1
+        pixels <- c(pixels, y)
+        if ((y + height) >= lastY) {break}
+        iter$ForwardLine()
+    }
+    pixels <- pixels - min(pixels)
+
+    pango <- gtkWidgetCreatePangoLayout(textView,NULL)
+    for (i in 1:count){
+        pango$SetText(as.character(numbers[i]))
+        gtkPaintLayout(textView$Style,windowL,textView$State(),FALSE,NULL,widget=textView,x=2,y=pixels[i],layout=pango)
+    }
+}
 
 
 ViewFileFun <- function(FileNameWidget,hightlight=TRUE){
@@ -150,19 +185,26 @@ ViewFileFunHelper <- function(FileName,hightlight=TRUE,codingTable=.rqda$codingT
       InsertAnnotation(index=idx,fid=IDandContent$id, rowid=x["rowid"])
     })}
   buffer$PlaceCursor(buffer$getIterAtOffset(0)$iter) ## place cursor at the beginning
+  ## gSignalConnect(tmp@widget@widget,"expose_event",LineNumber.expose) ## add line number to the widget
+  ## does not work well yet
+  fore.col <- .rqda$fore.col
+  back.col <- .rqda$back.col
+  buffer$createTag(fore.col,foreground = fore.col)
+  buffer$createTag(sprintf("%s.background",back.col),background = back.col)
+  ## create buffer tag, which is created by defualt since gwidgetRGtk2 changes its API
   enabled(button$AnnB) <- TRUE
   enabled(button$MarCodB1) <- (length(svalue(.rqda$.codes_rqda))==1)
   enabled(button$UnMarB1) <- (length(svalue(.rqda$.codes_rqda))==1)
   enabled(button$MarCodB2) <- (length(svalue(.rqda$.CodeofCat))==1)
   enabled(button$UnMarB2) <- (length(svalue(.rqda$.CodeofCat))==1)
-  enabled(button$c2memobutton) <- TRUE
+  ## enabled(button$c2memobutton) <- TRUE
   addHandlerUnrealize(gw, handler = function(h,...) {
     enabled(button$AnnB) <- FALSE
     enabled(button$MarCodB1) <- FALSE
     enabled(button$UnMarB1) <- FALSE
     enabled(button$MarCodB2) <- FALSE
     enabled(button$UnMarB2) <- FALSE
-    enabled(button$c2memobutton) <- FALSE
+    ## enabled(button$c2memobutton) <- FALSE
     enabled(button$CasMarB) <- FALSE
     enabled(button$CasUnMarB) <- FALSE
     return(FALSE)
@@ -606,6 +648,7 @@ searchWord <- function(str,widget,from=0,col="green"){
     ans <- gtkTextIterForwardSearch(Iter0,str,'GTK_TEXT_SEARCH_VISIBLE_ONLY')
     if (ans$retval) {
         gtkTextViewScrollToIter(tview,ans$match.start,0.47)
+        buffer$createTag(sprintf("%s.background",col),background = col)
         buffer$ApplyTagByName(sprintf("%s.background", col),ans$match.start, ans$match.end)
         ans$match.end$GetOffset()
     } else {
@@ -627,6 +670,38 @@ SearchButton <- function(widget){
         }},action=kwdW)
 }
 
+
+
+
+ViewPlainFile <- function(FileNameWidget=.rqda$.fnames_rqda){
+    if (is_projOpen(env = .rqda, conName = "qdacon")) {
+        if (length(svalue(FileNameWidget)) == 0) {
+            gmessage("Select a file first.", icon = "error",con = TRUE)
+        } else {
+            SelectedFileName <- svalue(FileNameWidget)
+
+  wnh <- size(RQDA:::.rqda$.root_rqdagui) ## size of the main window
+  gw <- gwindow(title = SelectedFileName,parent = wnh, ## .rqda$.root_rqdagui,
+                width = min(c(gdkScreenWidth()- wnh[1]-20,getOption("widgetSize")[1])),
+                height = min(c(wnh[2],getOption("widgetSize")[2]))
+                )
+  mainIcon <- system.file("icon", "mainIcon.png", package = "RQDA")
+  gw@widget@widget$SetIconFromFile(mainIcon)
+  getToolkitWidget(gw)$Move(getOption("widgetCoordinate")[1],getOption("widgetCoordinate")[2])
+  tmp <- gtext(container=gw)
+  font <- pangoFontDescriptionFromString(.rqda$font)
+  gtkWidgetModifyFont(tmp@widget@widget,font)
+  tmp@widget@widget$SetPixelsBelowLines(5) ## set the spacing
+  tmp@widget@widget$SetPixelsInsideWrap(5) ## so the text looks more confortable.
+  Encoding(SelectedFileName) <- "unknown"
+  IDandContent <- RQDAQuery(sprintf("select id, file from source where name='%s'",
+                                    enc(SelectedFileName))
+                            )
+  content <- IDandContent$file
+  Encoding(content) <- "UTF-8"
+  add(tmp, content)
+  slot(tmp, "widget")@widget$SetEditable(FALSE)
+}}}
 
 ## UncodedFileNamesUpdate <- function(FileNamesWidget = .rqda$.fnames_rqda, sort=TRUE, decreasing = FALSE){
 ## replaced by the general function of FileNameWigetUpdate() and GetFileId()

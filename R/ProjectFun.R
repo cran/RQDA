@@ -251,7 +251,6 @@ ProjectMemoWidget <- function(){
       enabled(mbut) <- FALSE ## grey out the  button
   }
             )## end of save memo button
-    enabled(proj_memoB) <- FALSE
     assign("proj_memoB",proj_memoB,env=button)
     tmp <- gtext(container=.projmemo2,font.attr=c(sizes="large"))
     gSignalConnect(tmp@widget@widget$GetBuffer(), "changed",
@@ -275,6 +274,7 @@ ProjectMemoWidget <- function(){
     add(W,prvcontent,do.newline=FALSE)
     ## do.newline:do not add a \n (new line) at the beginning
     ## push the previous content to the widget.
+    enabled(proj_memoB) <- FALSE
     addHandlerUnrealize(get(".projmemo",env=.rqda),handler <- function(h,...){
       withinWidget <- svalue(get(".projmemocontent",env=.rqda))
       InRQDA <- dbGetQuery(.rqda$qdacon, "select memo from project where rowid=1")[1, 1]

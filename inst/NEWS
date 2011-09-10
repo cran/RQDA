@@ -1,0 +1,19 @@
+RQDA 0.2-1
+* change of the GUI: add two buttons (new and attribute) to the file tab.
+* C2Memo button is removed and right-click of coding label activate the same coding memo widget
+* new function of ViewPlainFile
+* only update the coding database when the code anchor is removed to avoid the ensuing wrong index
+* bugfixes related to highlighting and tooltips (caused by changes of api in up stream packages)
+* other bugfixes
+
+RQDA 0.1-9
+* widgets are enabled only if they are usable.
+* Better code categories management system and various improvements of GUI.
+* Click-handler for second half of code-mark.
+* Better default color scheme for code mark.
+* New function of and().
+* New option "both" in "type of retrieval".
+* New option of subset in GetAtrr().
+* It can handle ' correctly now.
+* Upgrade RGtk2 (>=2.12.12).
+* Various bugfixes.

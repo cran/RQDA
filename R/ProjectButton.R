@@ -14,6 +14,7 @@ NewProjectButton <- function(container){
       gtkWidgetSetSensitive(button$CleProB@widget@widget,TRUE)
       gtkWidgetSetSensitive(button$CloAllCodB@widget@widget,TRUE)
       gtkWidgetSetSensitive(button$ImpFilB@widget@widget,TRUE)
+      enabled(button$NewFilB) <- TRUE
       gtkWidgetSetSensitive(RQDA:::.rqda$.fnames_rqda@widget@widget,TRUE)
       enabled(button$AddJouB) <- TRUE
       enabled(button$AddCodB) <- TRUE
@@ -79,6 +80,7 @@ openProject <- function(path,updateGUI=FALSE) {
         gtkWidgetSetSensitive(button$CleProB@widget@widget,TRUE)
         gtkWidgetSetSensitive(button$CloAllCodB@widget@widget,TRUE)
         gtkWidgetSetSensitive(button$ImpFilB@widget@widget,TRUE)
+        enabled(button$NewFilB) <- TRUE
         gtkWidgetSetSensitive(RQDA:::.rqda$.fnames_rqda@widget@widget,TRUE)
         enabled(button$AddJouB) <- TRUE
         enabled(button$AddCodB) <- TRUE
@@ -136,10 +138,12 @@ CloseProjectButton <- function(container){
     gtkWidgetSetSensitive(button$CleProB@widget@widget,FALSE)
     gtkWidgetSetSensitive(button$CloAllCodB@widget@widget,FALSE)
     gtkWidgetSetSensitive(button$ImpFilB@widget@widget,FALSE)
+    enabled(button$NewFilB) <- FALSE
     gtkWidgetSetSensitive(button$DelFilB@widget@widget,FALSE)
     gtkWidgetSetSensitive(button$VieFilB@widget@widget,FALSE)
     gtkWidgetSetSensitive(button$FilMemB@widget@widget,FALSE)
     gtkWidgetSetSensitive(button$FilRenB@widget@widget,FALSE)
+    enabled(button$FileAttrB) <- FALSE
     enabled(button$AddJouB) <- FALSE
     enabled(button$DelJouB) <- FALSE
     enabled(button$RenJouB) <- FALSE
@@ -149,7 +153,7 @@ CloseProjectButton <- function(container){
     enabled(button$DelCodB) <- FALSE
     enabled(button$codememobuton) <- FALSE
     enabled(button$FreCodRenB) <- FALSE
-    enabled(button$c2memobutton) <- FALSE
+    ## enabled(button$c2memobutton) <- FALSE
     enabled(button$AddCodCatB) <- FALSE
     enabled(button$DelCodCatB) <- FALSE
     enabled(button$CodCatMemB) <- FALSE
