@@ -12,11 +12,12 @@
 \tabular{ll}{
 Package: \tab RQDA\cr
 Type: \tab Package\cr
-Version: \tab 0.2-1\cr
-Date: \tab 2011-09-10\cr
+Version: \tab 0.2-2\cr
+Date: \tab 2011-12-26\cr
 Depends: \tab R (>= 2.8.0), DBI, RSQLite, gWidgets (>= 0.0-31),
 gWidgetsRGtk2 (>= 0.0-36), igraph \cr
-Imports: \tab RGtk2 (>= 2.12.12), methods \cr
+Imports: \tab RGtk2 (>= 2.20), methods \cr
+Enhances: \tab RMySQL \cr
 Suggests: \tab vcd, tcltk \cr
 License: \tab New style BSD License\cr
 LazyLoad: \tab yes\cr

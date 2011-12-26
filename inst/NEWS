@@ -1,3 +1,13 @@
+RQDA 0.2-2
+* easier to uncode a coding (major change in GUI behaviour)
+* rename of GetAttr to getAttr
+* support MySQL preliminarily
+* export attribute items in pop-up menu
+* new function of codingBySearch, for auto-coding
+* new function of exportCodedFile
+* enchancement related to encoding
+* various bugfixes
+
 RQDA 0.2-1
 * change of the GUI: add two buttons (new and attribute) to the file tab.
 * C2Memo button is removed and right-click of coding label activate the same coding memo widget

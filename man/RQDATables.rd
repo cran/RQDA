@@ -174,7 +174,9 @@
     date:\tab date of creation of a code categorization. \cr 
     dateM:\tab not used currently. \cr 
     memo:\tab not used currently. \cr 
-    status:\tab 1 for standard status and 0 for temporarily deleted file. \cr 
+    status:\tab 1 for standard status and 0 for temporarily deleted
+    file. \cr 
+    owner:\tab creator the the treecode.\cr
   }
 
   Table "treefile" contatins information about file categorization
@@ -185,7 +187,9 @@
     date:\tab date of creation of the file categorization. \cr 
     dateM:\tab not used currently. \cr 
     memo:\tab not used currently. \cr 
-    status:\tab 1 for standard status and 0 for temporarily deleted record. \cr 
+    status:\tab 1 for standard status and 0 for temporarily deleted
+    record. \cr 
+    owner:\tab creator the the tree file.\cr
   }
   
 }

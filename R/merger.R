@@ -40,7 +40,7 @@ mergeCodes <- function(cid1,cid2){ ## cid1 and cid2 are two code IDs.
             memo <- paste(c(oldmemo,From$memo),collapse="\n",sep="") ## merge the old memo from From
             dbGetQuery(.rqda$qdacon,sprintf("delete from coding where rowid in (%s)",
                                             paste(Exist$rowid[del],collapse=",",sep=""))) ## delete codings
-            tt <-   dbGetQuery(.rqda$qdacon,sprintf("select file from source where id=='%i'", From$fid))[1,1]
+            tt <-   dbGetQuery(.rqda$qdacon,sprintf("select file from source where id='%i'", From$fid))[1,1]
             Encoding(tt) <- "UTF-8"  ## fulltext of the file
             Sel <- c(min(Exist$Start[del]), max(Exist$End[del])) ## index to get the new coding
             ## what is Sel?
@@ -55,19 +55,19 @@ mergeCodes <- function(cid1,cid2){ ## cid1 and cid2 are two code IDs.
     }
   } ## end of helper function.
 
-  Coding1 <-  dbGetQuery(.rqda$qdacon,sprintf("select * from coding where cid==%i and status=1",cid1))
-  Coding2 <-  dbGetQuery(.rqda$qdacon,sprintf("select * from coding where cid==%i and status=1",cid2))
+  Coding1 <-  dbGetQuery(.rqda$qdacon,sprintf("select * from coding where cid=%i and status=1",cid1))
+  Coding2 <-  dbGetQuery(.rqda$qdacon,sprintf("select * from coding where cid=%i and status=1",cid2))
   if (any(c(nrow(Coding1),nrow(Coding2))==0)) stop("One code has empty coding.")
   if (nrow(Coding1) >= nrow(Coding2)) {
     FromDat <- Coding2
     ToDat <- Coding1
-    ToDat$rowid <- RQDAQuery(sprintf("select rowid from coding where cid==%i and status=1",cid1))$rowid
+    ToDat$rowid <- RQDAQuery(sprintf("select rowid from coding where cid=%i and status=1",cid1))$rowid
     FromDat$cid <- cid1 ## so can write to directly where it is proximate
     FromCid <- cid2
   } else {
     FromDat <- Coding1
     ToDat <- Coding2
-    ToDat$rowid <- RQDAQuery(sprintf("select rowid from coding where cid==%i and status=1",cid2))$rowid
+    ToDat$rowid <- RQDAQuery(sprintf("select rowid from coding where cid=%i and status=1",cid2))$rowid
     FromDat$cid <- cid2
     FromCid <- cid1
   } ## use small coding as FromDat -> speed it up.
@@ -77,6 +77,52 @@ mergeCodes <- function(cid1,cid2){ ## cid1 and cid2 are two code IDs.
     ## avoding the NOTE from docs checking.
     mergeHelperFUN(From=x,Exist=Exist)
   }
-  dbGetQuery(.rqda$qdacon,sprintf("update coding set status==0 where cid=='%i'",FromCid))
-  dbGetQuery(.rqda$qdacon,sprintf("update freecode set status==0 where id=='%i'",FromCid))
+  dbGetQuery(.rqda$qdacon,sprintf("update coding set status=0 where cid='%i'",FromCid))
+  dbGetQuery(.rqda$qdacon,sprintf("update freecode set status=0 where id='%i'",FromCid))
+}
+
+findConsecutive <- function(x) {
+    x <- sort(x)
+    d <- diff(x)
+    d2 <- rle(d)
+    eidx <- cumsum(d2$length) [which(d2$values==1)]+1
+    L.consecutive <- d2$length[which(d2$values==1)]
+    bidx <- eidx - L.consecutive
+    ans <- data.frame(first=x[bidx],end=x[eidx])
+    ans
+}
+
+expand <- function(first, end){
+    seq(from=first,to=end,by=1)
+}
+## x <- c(0,1,2,5,6,7,8,20,21,23,24)
+## res <- findConsecutive(x)
+## res2 <- unlist(apply(res,1,function(x) expand(x[1],x[2])))
+## identical(sort(x),res2)
+
+erger2 <- function (cid1, cid2, data)
+{## cid1 and cid2
+    data <- data[data$cid %in% c(cid1, cid2), c("cid", "fid",
+                                                "index1", "index2")]
+    ans <-  data.frame(fid=numeric(),cid=numeric(),index1=numeric(),index2=numeric())
+    fidList <- unique(data[data$cid %in% cid1, "fid"])
+    for (fid in fidList) {
+        tmpdat1 <- data[data$fid == fid & data$cid == cid1, ,
+                        drop = FALSE]
+        tmpdat2 <- data[data$fid == fid & data$cid == cid2, ,
+                        drop = FALSE]
+        if (nrow(tmpdat2) > 0 && nrow(tmpdat1) > 0) {
+            tmpdat1[,4] <- tmpdat1[,4] -1
+            tmpdat2[,4] <- tmpdat2[,4] -1
+            idx1 <- sort(unlist(apply(tmpdat1[,3:4],1,function(x)RQDA:::expand(x[1],x[2]))))
+            idx2 <- sort(unlist(apply(tmpdat2[,3:4],1,function(x)RQDA:::expand(x[1],x[2]))))
+            idx <- unique(intersect(idx1,idx2))
+            if (length(idx)>1) {
+                res <- RQDA:::findConsecutive(idx)
+                res <- data.frame(fid=fid,cid=tmpdat1$cid[1],index1=res$first,index2=res$end+1)
+                ans <- rbind(ans, res)
+            }
+        }
+    }
+    ans
 }

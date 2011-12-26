@@ -106,5 +106,5 @@ setFont <- function(default="Sans 11"){
     assign("font",ans,env=.rqda)
     dispose(g)
   })
-  g[2,2] <- gbutton("Cancle",handler=function(h,...) dispose(g))
+  g[2,2] <- gbutton("Cancel",handler=function(h,...) dispose(g))
 }

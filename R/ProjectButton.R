@@ -3,9 +3,10 @@ NewProjectButton <- function(container){
     path=gfile(type="save",text = "Type a name for the new project and click OK.")
     if (path!=""){
       ## if path="", then click "cancel".
-      Encoding(path) <- "UTF-8"
       new_proj(path,assignenv=.rqda)
-      path <- gsub("\\\\","/",dbGetInfo(.rqda$qdacon)$dbname,fixed=TRUE)
+      path <- dbGetInfo(.rqda$qdacon)$dbname
+      Encoding(path) <- "UTF-8"
+      path <- gsub("\\\\","/",path,fixed=TRUE)
       path <- gsub("/","/ ",path,fixed=TRUE)
       svalue(.rqda$.currentProj) <- gsub("/ ","/",paste(strwrap(path,60),collapse="\n"),fixed=TRUE)
       gtkWidgetSetSensitive(button$cloprob@widget@widget,TRUE)
@@ -71,7 +72,9 @@ openProject <- function(path,updateGUI=FALSE) {
         tryCatch(UpdateFileofCatWidget(),error=function(e){})
         tryCatch(AttrNamesUpdate(),error=function(e){})
         tryCatch(JournalNamesUpdate(),error=function(e){})
-        path <- gsub("\\\\","/",dbGetInfo(.rqda$qdacon)$dbname)
+        path <- dbGetInfo(.rqda$qdacon)$dbname
+        Encoding(path) <- "UTF-8"
+        path <- gsub("\\\\","/", path)
         path <- gsub("/","/ ",path)
         svalue(.rqda$.currentProj) <- gsub("/ ","/",paste(strwrap(path,50),collapse="\n"))
         gtkWidgetSetSensitive(button$cloprob@widget@widget,TRUE)
@@ -165,6 +168,7 @@ CloseProjectButton <- function(container){
     enabled(button$CasRenB) <- FALSE
     enabled(button$CasMarB) <- FALSE
     enabled(button$CasUnMarB) <- FALSE
+    enabled(button$CasAttrB) <- FALSE
     enabled(button$AddAttB) <- FALSE
     enabled(button$DelAttB) <- FALSE
     enabled(button$RenAttB) <- FALSE

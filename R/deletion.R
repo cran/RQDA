@@ -1,7 +1,7 @@
 list.deleted <- function(type=c("file","code","case","codecategory","filecategory")){
   ## list the tmp deleted file/code/case/codecategory/filecategory
   ## no need to list deleted coding
-  if (!isIdCurrent(.rqda$qdacon)) print("No project is open!")
+  if (!is_projOpen()) print("No project is open!")
   else {
     type <- match.arg(type)
     if (type=="file"){
@@ -15,7 +15,7 @@ list.deleted <- function(type=c("file","code","case","codecategory","filecategor
       ans <- dbGetQuery(.rqda$qdacon, "select name from codecat where status=0")
     } else if (type=="filecategory"){
       ans <- dbGetQuery(.rqda$qdacon, "select name from filecat where status=0")
-    } 
+    }
     if (nrow(ans)==0) {
       sprintf("No %s is deleted.",type)
     }  else {
@@ -28,19 +28,19 @@ list.deleted <- function(type=c("file","code","case","codecategory","filecategor
 
 
 pdelete <- function(type=c("file","code","case","codecategory","filecategory","coding"),ask=FALSE){
-  ## permanantly delete all the "deleted" files/codes/codings (those with status==0)
-  
+  ## permanantly delete all the "deleted" files/codes/codings (those with status=0)
+
   codingFun <- function(ask) {
     ## erase deleted coding by unmark button
     if (ask) {
       del <- gconfirm("Are you sure to clean the coding table?",icon="question")
     } else del <- TRUE
     if (del) {
-      dbGetQuery(.rqda$qdacon,"delete from coding where status == -1")
+      dbGetQuery(.rqda$qdacon,"delete from coding where status = -1")
       ## this is codings deleted by unmark button
     }
   }
-  
+
   fileFun <- function(del){
     ## delete files
     fid <- dbGetQuery(.rqda$qdacon, sprintf("select id from source where status=0 AND name in (%s)",
@@ -109,10 +109,10 @@ pdelete <- function(type=c("file","code","case","codecategory","filecategory","c
       ## caselinkage table
     }
   }
-  
+
   ## end of helper functions
-  
-  if (!isIdCurrent(.rqda$qdacon)) {
+
+  if (!is_projOpen()) {
     print("No project is open!")
   }  else {
     type <- match.arg(type)
@@ -149,7 +149,7 @@ CleanProject <- function(ask=FALSE){
   pdelete("codecategory",ask=ask)
   pdelete("filecategory",ask=ask)
   pdelete("coding",ask=ask)
-}                    
+}
 
 
 
@@ -219,8 +219,8 @@ undelete <- function(type=c("file","code","case","codecategory","filecategory"),
     }
   }
   ## end of helper functions
-  
-  if (!isIdCurrent(.rqda$qdacon)) {
+
+  if (!is_projOpen()) {
     print("No project is open!")
   }  else {
     type <- match.arg(type)

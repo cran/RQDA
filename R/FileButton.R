@@ -143,7 +143,7 @@ AddNewFileFun <- function(){
       Ftitle <- ginput("Enter the title", icon="info")
       if (!is.na(Ftitle)) {
         Ftitle <- enc(Ftitle,"UTF-8")
-        if (nrow(dbGetQuery(.rqda$qdacon,sprintf("select name from source where name=='%s'",Ftitle)))!=0) {
+        if (nrow(dbGetQuery(.rqda$qdacon,sprintf("select name from source where name='%s'",Ftitle)))!=0) {
           Ftitle <- paste("New",Ftitle)
         }## Make sure it is unique
         content <- svalue(textW)
@@ -216,15 +216,6 @@ FileNamesWidgetMenu$"Add To File Category ..."$handler <- function(h, ...) {
       UpdateFileofCatWidget()
     }
   }
-FileNamesWidgetMenu$"Add/modify Attributes of Selected File..."$handler <- function(h,...){
-  if (is_projOpen(env=.rqda,conName="qdacon")) {
-    Selected <- svalue(.rqda$.fnames_rqda)
-    if (length(Selected !=0 )){
-    fileId <- RQDAQuery(sprintf("select id from source where status=1 and name='%s'",
-                                enc(Selected)))[,1]
-    FileAttrFun(fileId=fileId,title=Selected)
-  }
-}}
 FileNamesWidgetMenu$"Add/modify Attributes of The Open File..."$handler <- function(h,...){
   if (is_projOpen(env=.rqda,conName="qdacon")) {
     Selected <- tryCatch(svalue(RQDA:::.rqda$.root_edit),error=function(e){NULL})
@@ -239,9 +230,25 @@ FileNamesWidgetMenu$"View Attributes"$handler <- function(h,...){
    viewFileAttr()
   }
 }
+FileNamesWidgetMenu$"Export File Attributes"$handler <- function(h,...){
+    if (is_projOpen(env=.rqda,conName="qdacon")) {
+        fName <- gfile(type='save',filter=list("csv"=list(pattern=c("*.csv"))))
+        Encoding(fName) <- "UTF-8"
+        if (length(grep(".csv$",fName))==0) fName <- sprintf("%s.csv",fName)
+        write.csv(GetAttr("file"), row.names=FALSE, file=fName, na="")
+    }
+}
 FileNamesWidgetMenu$"Edit Seleted File"$handler <- function(h, ...) {
   EditFileFun()
 }
+FileNamesWidgetMenu$"Export Coded file as HTML"$handler <- function(h, ...) {
+    if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
+        path=gfile(type="save",text = "Type a name for the exported codings and click OK.")
+        if (!is.na(path)){
+            Encoding(path) <- "UTF-8"
+            path <- sprintf("%s.html",path)
+            exportCodedFile(file=path,getFileIds(type="selected")[1])
+        }}}
 FileNamesWidgetMenu$"Find a word..."$handler <- function(h, ...) {
     if (exists(".openfile_gui",env=.rqda) && isExtant(.rqda$.openfile_gui)) {
         SearchButton(RQDA:::.rqda$.openfile_gui)
@@ -266,7 +273,7 @@ FileNamesWidgetMenu$"Open Selected File"$handler <- function(h,...){
 }
 FileNamesWidgetMenu$"Open Previous Coded File"$handler <- function(h,...){
   if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
-    fname <- RQDAQuery("select name from source where id in ( select fid from coding where rowid in (select max(rowid) from coding where status==1))")$name
+    fname <- RQDAQuery("select name from source where id in ( select fid from coding where rowid in (select max(rowid) from coding where status=1))")$name
     if (length(fname)!=0)  fname <- enc(fname,"UTF-8")
     ViewFileFunHelper(FileName=fname)
   }}
@@ -300,7 +307,7 @@ FileNamesWidgetMenu$"Show ..."$"Show Uncoded Files Sorted by Imported time"$hand
     }
   }
 FileNamesWidgetMenu$"Show ..."$"Show Files With Annotation"$handler <- function(h, ...) {
-  fileid <- RQDAQuery("select fid from annotation where status==1 group by fid")$fid
+  fileid <- RQDAQuery("select fid from annotation where status=1 group by fid")$fid
   if (length(fileid)!=0) {
     FileNameWidgetUpdate(FileNamesWidget=.rqda$.fnames_rqda,FileId=fileid)
   } else gmessage("No file with memo.",con=TRUE)
@@ -315,7 +322,7 @@ FileNamesWidgetMenu$"Show ..."$"Show Files With Memo"$handler <- function(h, ...
     }
   }
 FileNamesWidgetMenu$"Show ..."$"Show Files Without Annotation"$handler <- function(h, ...) {
-  fileid <- RQDAQuery("select id from source where status==1 and id not in (select fid from annotation where status==1 group by fid)")$id
+  fileid <- RQDAQuery("select id from source where status=1 and id not in (select fid from annotation where status=1 group by fid)")$id
   if (length(fileid)!=0) {
     FileNameWidgetUpdate(FileNamesWidget=.rqda$.fnames_rqda,FileId=fileid)
   } else gmessage("All files have annotation.",con=TRUE)
@@ -331,7 +338,7 @@ FileNamesWidgetMenu$"Show ..."$"Show Files Without Memo"$handler <- function(h, 
   }
 FileNamesWidgetMenu$"Show ..."$"Show Files Without File Category"$handler <- function(h, ...) {
     if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {
-        fileid <- RQDAQuery("select id from source where status==1 and id not in (select fid from treefile where status==1)")
+        fileid <- RQDAQuery("select id from source where status=1 and id not in (select fid from treefile where status=1)")
         if (nrow(fileid)!=0) {
             fileid <- fileid[[1]]
             FileNameWidgetUpdate(FileNamesWidget=.rqda$.fnames_rqda,FileId=fileid)

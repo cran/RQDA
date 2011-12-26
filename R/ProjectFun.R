@@ -36,14 +36,14 @@ new_proj <- function(path, conName="qdacon",assignenv=.rqda,...){
                                               id integer, status integer, color text)")
       if (dbExistsTable(con,"treecode")) dbRemoveTable(con, "treecode")
       ## tree-like strcuture of code (relationship between code and code-category[codecat])
-      dbGetQuery(con,"create table treecode  (cid integer, catid integer
-                                              owner text, date text, dateM text,
-                                              memo text, status integer)")
+      dbGetQuery(con,"create table treecode  (cid integer, catid integer,
+                                              date text, dateM text,
+                                              memo text, status integer, owner text)")
       if (dbExistsTable(con,"treefile")) dbRemoveTable(con, "treefile")
       ## tree-like structure of interview record  (relationship between file and file category [filecat])
-      dbGetQuery(con,"create table treefile  (fid integer, catid integer
-                                              owner text, date text,dateM text,
-                                              memo text, status integer)")
+      dbGetQuery(con,"create table treefile  (fid integer, catid integer,
+                                              date text,dateM text,
+                                              memo text, status integer,owner text)")
       if (dbExistsTable(con,"filecat")) dbRemoveTable(con, "filecat")
       ## file category
       dbGetQuery(con,"create table filecat  (name text,fid integer, catid integer, owner text,
@@ -67,7 +67,7 @@ new_proj <- function(path, conName="qdacon",assignenv=.rqda,...){
       ##                                       memo text,BOM integer)")
       dbGetQuery(con,"create table project  (databaseversion text, date text,dateM text,
                                              memo text,about text)")
-      dbGetQuery(con,sprintf("insert into project (databaseversion,date,about,memo) values ('0.2.0','%s',
+      dbGetQuery(con,sprintf("insert into project (databaseversion,date,about,memo) values ('0.2.2','%s',
                             'Database created by RQDA (http://rqda.r-forge.r-project.org/)','')",date()))
       if (dbExistsTable(con,"cases")) dbRemoveTable(con, "cases")
       dbGetQuery(con,"create table cases  (name text, memo text,
@@ -103,7 +103,7 @@ UpgradeTables <- function(){
   Fields <- dbListFields(.rqda$qdacon,"project")
   if (!"databaseversion" %in% Fields) {
     dbGetQuery(.rqda$qdacon,"alter table project add column databaseversion text")
-    dbGetQuery(.rqda$qdacon,"update project set databaseversion=='0.1.5'")
+    dbGetQuery(.rqda$qdacon,"update project set databaseversion='0.1.5'")
   }
   currentVersion <- dbGetQuery(.rqda$qdacon,"select databaseversion from project")[[1]]
   if (currentVersion=="0.1.5") {
@@ -127,8 +127,8 @@ UpgradeTables <- function(){
     RQDAQuery("alter table caseAttr add column status integer")
     RQDAQuery("alter table fileAttr add column status integer")
     RQDAQuery("alter table freecode add column color text")
-    RQDAQuery("update caseAttr set status==1")
-    RQDAQuery("update fileAttr set status==1")
+    RQDAQuery("update caseAttr set status=1")
+    RQDAQuery("update fileAttr set status=1")
     try(RQDAQuery("create table annotation (fid integer,position integer,annotation text, owner text, date text,dateM text, status integer)"),TRUE)
     RQDAQuery("create table image (name text, id integer, date text, dateM text, owner text,status integer)")
     RQDAQuery("create table imageCoding (cid integer,iid integer,x1 integer, y1 integer, x2 integer, y2 integer, memo text, date text, dateM text, owner text,status integer)")
@@ -140,10 +140,10 @@ UpgradeTables <- function(){
     RQDAQuery("alter table project add column imageDir text")
     try(RQDAQuery("alter table attributes add column class text"),TRUE)
     RQDAQuery("alter table caseAttr add column status integer")
-    RQDAQuery("update caseAttr set status==1")
+    RQDAQuery("update caseAttr set status=1")
     RQDAQuery("alter table fileAttr add column status integer")
     RQDAQuery("alter table freecode add column color text")
-    RQDAQuery("update fileAttr set status==1")
+    RQDAQuery("update fileAttr set status=1")
     try(RQDAQuery("create table annotation (fid integer,position integer,annotation text, owner text, date text,dateM text, status integer)"),TRUE)
     RQDAQuery("create table image (name text, id integer, date text, dateM text, owner text,status integer)")
     RQDAQuery("create table imageCoding (cid integer,iid integer,x1 integer, y1 integer, x2 integer, y2 integer, memo text, date text, dateM text, owner text,status integer)")
@@ -159,23 +159,31 @@ UpgradeTables <- function(){
                                             owner text, date text, memo text)")
     dbGetQuery(.rqda$qdacon,"update project set databaseversion='0.2.0'")
   }
+  if (currentVersion<"0.2.2"){
+      RQDAQuery("alter table treecode add column owner text")
+      RQDAQuery("alter table treefile add column owner text")
+      dbGetQuery(.rqda$qdacon,"update project set databaseversion='0.2.2'")
+  }
 }
-
 
 open_proj <- function(path,conName="qdacon",assignenv=.rqda,...){
-  tryCatch({ con <- get(conName,assignenv)
-             if (isIdCurrent(con)) dbDisconnect(con)
-           },
-           error=function(e){})
+  tryCatch( { con <- get(conName,assignenv)
+              pkg <- attr(attr(con,"class"),'package')
+              Open <- getFunction("isIdCurrent",where=sprintf("package:%s",pkg))(con)
+             if (open) dbDisconnect(con)
+              },
+            error=function(e){})
   ## Fist close the con if it exist, then open a new con.
   if (file.access(path, 2) == 0) {
-    assign(conName, dbConnect(drv=dbDriver("SQLite"),dbname=path),envi=assignenv)
+      Encoding(path) <- "unknown"
+      assign(conName, dbConnect(drv=dbDriver("SQLite"),dbname=path),envi=assignenv)
   } else if (file.access(path, 4) == 0){
-    assign(conName, dbConnect(drv=dbDriver("SQLite"),dbname=path),envi=assignenv)
-    gmessage("You don't have write access to the *.rqda file. You can only read the project.",con=TRUE,icon="warning")
+      Encoding(path) <- "unknown"
+      assign(conName, dbConnect(drv=dbDriver("SQLite"),dbname=path),envi=assignenv)
+      gmessage("You don't have write access to the *.rqda file. You can only read the project.",con=TRUE,icon="warning")
   } else {
-    gmessage("You don't have read access to the *.rqda file. Fail to open.",con=TRUE,icon="error")
-}
+      gmessage("You don't have read access to the *.rqda file. Fail to open.",con=TRUE,icon="error")
+  }
 }
 
 
@@ -183,7 +191,7 @@ open_proj <- function(path,conName="qdacon",assignenv=.rqda,...){
 closeProject <- function(conName="qdacon",assignenv=.rqda,...){
   tryCatch({
     con <- get(conName,assignenv)
-    if (isIdCurrent(con)) {
+    if (is_projOpen(message=FALSE)) {
         tryCatch(dispose(.rqda$.sfp),error=function(e){})
         tryCatch(dispose(.rqda$.root_edit),error=function(e){})
         WidgetList <- ls(envir=RQDA:::.rqda,pattern="^[.]codingsOf",all=TRUE)
@@ -202,8 +210,10 @@ is_projOpen <- function(env=.rqda,conName="qdacon",message=TRUE){
   open <- FALSE
   tryCatch({
     con <- get(conName,env)
-    open <- open + isIdCurrent(con)
-  } ,error=function(e){})
+    pkg <- attr(attr(con,"class"),'package')
+    Open2 <- getFunction("isIdCurrent",where=sprintf("package:%s",pkg))(con)
+    open <- open + Open2
+    } ,error=function(e){})
   if (!open & message) gmessage("No Project is Open.",icon="warning",con=TRUE)
   return(open)
 }
@@ -211,6 +221,7 @@ is_projOpen <- function(env=.rqda,conName="qdacon",message=TRUE){
 backup_proj <- function(con){
   ## con=.rqda$qdacon
   dbname <- dbGetInfo(con)$dbname
+  Encoding(dbname) <- "UTF-8"
   backupname <- sprintf("%s%s.rqda",gsub("rqda$","",dbname),format(Sys.time(), "%H%M%S%d%m%Y"))
   success <- file.copy(from=dbname, to=backupname , overwrite = FALSE)
   if (success) {
@@ -243,7 +254,7 @@ ProjectMemoWidget <- function(){
       newcontent <- svalue(W)
       ## Encoding(newcontent) <- "UTF-8"
       newcontent <- enc(newcontent,encoding="UTF-8") ## take care of double quote.
-      dbGetQuery(.rqda$qdacon,sprintf("update project set memo='%s' where rowid==1", ## only one row is needed
+      dbGetQuery(.rqda$qdacon,sprintf("update project set memo='%s' where rowid=1", ## only one row is needed
                                       newcontent)
                  ## have to quote the character in the sql expression
                  )

@@ -1,3 +1,100 @@
+2011-12-26
+	* clean up and prepare for release
+	
+2011-12-10
+	* new function of importAttr and rename GetAttr to getAttr
+	
+2011-12-08
+	* works even when other sql pakcages (e.g. RMySQL) are loaded
+	* fix various small bugs
+	
+2011-12-07
+	* export file attribute menu
+	* correct typo in Rd file
+	* codingBySearch allows flexible definition of analysis unit &
+	various improvements
+	* doc improvement & set toolkit before RQDA is launched.
+	
+2011-12-06
+	* doc of exportedCodedFile
+	
+2011-12-5
+	* add enhances file to description for MySQL
+	* coding: direct insert rather than dbWriteTable for RMySQL
+	
+2011-12-1
+	* minor bugfixes of backup (encoding issue) and journals
+	
+2011-11-30
+	* GUI menu for exporting case attributes
+	
+2011-11-14
+	* path can contain chinese for new created project
+	* 'save annotation' button is grayed out by default
+	
+2011-11-11
+	* non-assci character in project path / mame is acceptable now
+	
+2011-11-09
+	* new unmark buttons now supports CHS
+	
+2011-11-08
+	* update doc
+	
+2011-11-07
+	* using "click coding label" instead of exact selection to inform
+	the unmark action
+	* minor bugfixes and doc improvement
+	
+2011-11-02
+	* change == to = to make MySQL compatiable
+	* add rowid to mysql databse which does not have rowid by default
+	
+2011-10-27
+	* add exportCodedFile to context menu
+	
+2011-10-26
+	* add attribute button to case Tab
+	* optimise the size and position of attribute widget
+	* fix various bugs associated with encoding issues
+	
+2011-10-19
+	* improve codingBySearch to avoid duplicated codings
+	
+2011-10-17
+	* fix a new bug introduced by a bugfix
+	
+2011-10-11
+	* bugfix and Rd of codingBySearch
+	
+2011-10-09
+	* minor bugfix of rqda
+	
+2011-10-07
+	* add plot method to crossCodes matrix for visualization
+	* clean tables before getAttr; new functions of findConsecutive
+	and expand
+	
+2011-09-23
+	* new function of codingBySearch and minor bugfix of journal
+	
+2011-09-21
+	* fix a bug: tag "blue" conn't be found when a file is opened
+	
+2011-09-20
+	* crossCodes need to drop codes without codings first; improve
+	exportCodedFile
+	
+2011-09-19
+	* new function of exportCodedFile as requested by rqda community
+	* 
+2011-09-16
+	* minor bugfixes on highligh and save button 
+	* codings are underlined when memo exists
+	
+2011-09-13
+	* fix a bug in the treecode and treefile tables
+	
 2011-09-10 (version 0.2-1)
 	* tidy up Rd files for release.
 	

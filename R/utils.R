@@ -5,12 +5,12 @@ rename <- function(from,to,table=c("source","freecode","cases","codecat","fileca
   ## source is the file name, freecode is the free code name
   table <- match.arg(table)
   if (to!=""){ ## if to is "", makes no sense to rename
-      exists <- dbGetQuery(.rqda$qdacon, sprintf("select * from %s where name == '%s' ",table, enc(to)))
+      exists <- dbGetQuery(.rqda$qdacon, sprintf("select * from %s where name = '%s' ",table, enc(to)))
       ## should check it there is any dupliation in the table
       if (nrow(exists) > 0) {
           gmessage("The new name is duplicated. Please use another new name.",container=TRUE)
       } else {
-          dbGetQuery(.rqda$qdacon, sprintf("update '%s' set name = '%s' where name == '%s' ",table, enc(to), enc(from)))
+          dbGetQuery(.rqda$qdacon, sprintf("update '%s' set name = '%s' where name = '%s' ",table, enc(to), enc(from)))
       }
   }
 }
@@ -154,7 +154,7 @@ MemoWidget <- function(prefix,widget,dbTable){
 GetCodingTable <- function(){
   ## test when any table is empty
   ## http://archives.postgresql.org/pgsql-sql/2004-01/msg00160.php
-  if ( isIdCurrent(.rqda$qdacon)) {
+  if ( is_projOpen()) {
    ## Codings <- dbGetQuery(.rqda$qdacon,"select freecode.name as codename, freecode.id as cid,
    ##         coding.cid as cid2,coding.fid as fid,source.id as fid2, source.name as filename,
    ##         coding.selend - coding.selfirst as CodingLength,coding.selend, coding.selfirst
@@ -180,7 +180,7 @@ GetCodingTable <- function(){
 
 summaryCodings <-
 SummaryCoding <- function(byFile=FALSE,...){
-  if ( isIdCurrent(.rqda$qdacon)) {
+  if ( is_projOpen() ) {
     Codings <- GetCodingTable()
     if (nrow(Codings)>0){
       NumOfCoding <- table(Codings$codename,...) ## how many coding for each code
@@ -223,14 +223,14 @@ SearchFiles <- function(pattern,content=FALSE,Fid=NULL,Widget=NULL,is.UTF8=FALSE
 ##SearchFiles("file like '%新民晚报%'")
 ##SearchFiles("name like '%物权法%'")
 ##SearchFiles("file like '%新民晚报%'",Widget=.rqda$.fnames_rqda)
-    if ( isIdCurrent(.rqda$qdacon)) {
+    if ( is_projOpen() ) {
         if(!is.UTF8){ pattern <- iconv(pattern,to="UTF-8")}
         Encoding(pattern) <- "unknown"
         if (!is.null(Fid)) pattern <- sprintf("(%s) and id in (%s)",pattern,paste(shQuote(Fid),collapse=","))
         if (content){
-            ans <- dbGetQuery(.rqda$qdacon,sprintf("select id, name,file from source where status==1 and %s",pattern))
+            ans <- dbGetQuery(.rqda$qdacon,sprintf("select id, name,file from source where status=1 and %s",pattern))
         } else {
-            ans <- dbGetQuery(.rqda$qdacon,sprintf("select id, name from source where status==1 and %s",pattern))
+            ans <- dbGetQuery(.rqda$qdacon,sprintf("select id, name from source where status=1 and %s",pattern))
         }
         if (nrow(ans)>0) Encoding(ans$name) <- "UTF-8"
         if (!is.null(ans$file)) Encoding(ans$file) <- "UTF-8"
@@ -345,11 +345,11 @@ casesCodedByAnd <- function(cid){
   ## cid can be splitted across files, but still on the same case
   Ncid <- length(cid)
   cid <- paste(cid,collapse=',')
-  fid <- RQDAQuery(sprintf("select fid,cid from coding where status==1 and cid in (%s)",cid))
+  fid <- RQDAQuery(sprintf("select fid,cid from coding where status=1 and cid in (%s)",cid))
   if (nrow(fid)>0) {
     fidUnique <- unique(fid$fid)
     fidUnique <- paste(fidUnique,collapse=',')
-    case <- RQDAQuery(sprintf("select fid, caseid from caselinkage where status==1 and fid in (%s)",fidUnique))
+    case <- RQDAQuery(sprintf("select fid, caseid from caselinkage where status=1 and fid in (%s)",fidUnique))
     codes <- tapply(case$fid, case$caseid,FUN=function(x) unique(fid[fid$fid %in% unique(x),]$cid))
     ans <- sapply(codes,length)
     ans <- as.numeric(names(ans)[ans==Ncid])
@@ -429,7 +429,7 @@ ShowFileProperty <- function(Fid = GetFileId(,"selected"),focus=TRUE) {
 
 filesCodedByAnd <- function(cid, codingTable=c("coding","coding2")){
     cid <- paste(cid,collapse=',')
-    fid <- RQDAQuery(sprintf("select fid,cid from %s where status==1 and cid in (%s)",codingTable, cid))
+    fid <- RQDAQuery(sprintf("select fid,cid from %s where status=1 and cid in (%s)",codingTable, cid))
     if (nrow(fid)>0) {
         fidList <- by(fid,factor(fid$cid),FUN=function(x) unique(x$fid))
         fid <- Reduce(intersect,fidList)
@@ -440,7 +440,7 @@ filesCodedByAnd <- function(cid, codingTable=c("coding","coding2")){
 
 filesCodedByOr <- function(cid, codingTable=c("coding","coding2")){
     cid <- paste(cid,collapse=',')
-    fid <- RQDAQuery(sprintf("select fid from %s where status==1 and cid in (%s)",codingTable, cid))$fid
+    fid <- RQDAQuery(sprintf("select fid from %s where status=1 and cid in (%s)",codingTable, cid))$fid
     if (length(fid)==0) {fid <- integer(0)}
     class(fid) <- c("RQDA.vector","fileId")
     fid
@@ -448,7 +448,7 @@ filesCodedByOr <- function(cid, codingTable=c("coding","coding2")){
 
 filesCodedByNot <- function(cid, codingTable=c("coding","coding2")){
     codedfid <- filesCodedByOr(cid)
-    allfid <- RQDAQuery(sprintf("select fid from %s where status==1 group by fid",codingTable))$fid
+    allfid <- RQDAQuery(sprintf("select fid from %s where status=1 group by fid",codingTable))$fid
     fid <- setdiff(allfid,codedfid)
     if (length(fid)==0) {fid <- integer(0)}
     class(fid) <- c("RQDA.vector","fileId")
@@ -457,8 +457,9 @@ filesCodedByNot <- function(cid, codingTable=c("coding","coding2")){
 
 nCodedByTwo <- function(FUN, codeList=NULL, print=TRUE,...){
     ## codeList is character vector of codes.
+    if (!is_projOpen(message=FALSE)) stop("No project is opened.")
     FUN <- match.fun(FUN)
-    Cid_Name <- RQDAQuery("select id, name from freecode where status==1")
+    Cid_Name <- RQDAQuery("select id, name from freecode where status=1")
     if (is.null(codeList)) {
         codeList <- gselect.list(Cid_Name$name,multiple=TRUE)
     }
@@ -525,7 +526,7 @@ QueryFile <- function(or=NULL,and=NULL,not=NULL,names=TRUE){
   class(ans) <- c("RQDA.vector","fileId")
   if (names) {
     if (length(ans)>0){
-      ans <- RQDAQuery(sprintf("select name from source where status==1 and id in (%s)", paste(ans,collapse=',')))$name
+      ans <- RQDAQuery(sprintf("select name from source where status=1 and id in (%s)", paste(ans,collapse=',')))$name
       Encoding(ans) <- "UTF-8"
     } else {
       ans <- character(0)
@@ -539,8 +540,8 @@ QueryFile <- function(or=NULL,and=NULL,not=NULL,names=TRUE){
 UpdateCoding <- function(){
     rowid <- RQDAQuery("select rowid from coding")$rowid
     for (i in rowid) {
-    RQDAQuery(sprintf("update coding set seltext==(select substr(source.file,coding.selfirst+1,coding.selend-coding.selfirst)
-        from coding inner join source on coding.fid==source.id where coding.ROWID==%i) where coding.ROWID==%i",i,i))
+    RQDAQuery(sprintf("update coding set seltext=(select substr(source.file,coding.selfirst+1,coding.selend-coding.selfirst)
+        from coding inner join source on coding.fid=source.id where coding.ROWID=%i) where coding.ROWID=%i",i,i))
 }}
 #UpdateCoding()
 
@@ -548,10 +549,10 @@ UpdateCoding <- function(){
 filesByCodes <- function(codingTable=c("coding","coding2")){
   codingTable <- match.arg(codingTable)
   if (codingTable=="coding"){
-    ans <- RQDAQuery("select coding.fid as fid, freecode.name as codename, source.name as filename from coding left join freecode on (coding.cid=freecode.id)left join source on (coding.fid=source.id) where coding.status==1 and source.status=1 and freecode.status=1")
+    ans <- RQDAQuery("select coding.fid as fid, freecode.name as codename, source.name as filename from coding left join freecode on (coding.cid=freecode.id)left join source on (coding.fid=source.id) where coding.status=1 and source.status=1 and freecode.status=1")
   }
   if (codingTable=="coding2"){
-    ans <- RQDAQuery("select coding2.fid as fid, freecode.name as codename, source.name as filename from coding2 left join freecode on (coding2.cid=freecode.id)left join source on (coding2.fid=source.id) where coding2.status==1 and source.status=1 and freecode.status=1")
+    ans <- RQDAQuery("select coding2.fid as fid, freecode.name as codename, source.name as filename from coding2 left join freecode on (coding2.cid=freecode.id)left join source on (coding2.fid=source.id) where coding2.status=1 and source.status=1 and freecode.status=1")
   }
   if (nrow(ans)!=0){
     Encoding(ans$codename) <- Encoding(ans$filename) <- "UTF-8"
@@ -563,15 +564,3 @@ filesByCodes <- function(codingTable=c("coding","coding2")){
 }
 
 
-## use cam name conventions; duplicated the original functions for smooth transition.
-## must in ultis.R
-crossCodes <- CrossCode
-crossTwoCodes <- CrossTwo
-exportCodings <- ExportCoding
-getCaseNames <- GetCaseName
-getCaseIds <- GetCaseId
-getCodingTable <- GetCodingTable
-queryFiles <- QueryFile
-getFileNames <- GetFileName
-getFileIds <- GetFileId
-getFileIdSets <- GetFileIdSets

@@ -25,9 +25,9 @@ DeleteCaseButton <- function(label="Delete"){
     if (isTRUE(del)){
       SelectedCase <- svalue(.rqda$.CasesNamesWidget)
       Encoding(SelectedCase) <- "UTF-8"
-      caseid <- dbGetQuery(.rqda$qdacon,sprintf("select id from cases where name=='%s'",
+      caseid <- dbGetQuery(.rqda$qdacon,sprintf("select id from cases where name='%s'",
                                                 enc(SelectedCase)))$id
-      dbGetQuery(.rqda$qdacon,sprintf("update cases set status=0 where name=='%s'",
+      dbGetQuery(.rqda$qdacon,sprintf("update cases set status=0 where name='%s'",
                                       enc(SelectedCase)))
       ## set status in table freecode to 0
       dbGetQuery(.rqda$qdacon,sprintf("update caselinkage set status=0 where caseid=%i",caseid))
@@ -81,15 +81,15 @@ MarkCaseFun <- function(){
         ## when selected no text, makes on sense to do anything.
         SelectedCase <- svalue(.rqda$.CasesNamesWidget)
         SelectedCase <- enc(SelectedCase,encoding="UTF-8")
-        currentCid <-  dbGetQuery(con,sprintf("select id from cases where name=='%s'",
+        currentCid <-  dbGetQuery(con,sprintf("select id from cases where name='%s'",
                                               SelectedCase))[,1]
         SelectedFile <- svalue(.rqda$.root_edit)
         ##Encoding(SelectedFile) <- "UTF-8"
         SelectedFile <- enc(SelectedFile,encoding="UTF-8")
-        currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'",
+        currentFid <-  dbGetQuery(con,sprintf("select id from source where name='%s'",
                                               SelectedFile))[,1]
         ## Query of caselinkage
-        ExistLinkage <-  dbGetQuery(con,sprintf("select rowid, selfirst, selend,status from caselinkage where caseid==%i and fid=%i and status=1",currentCid,currentFid))
+        ExistLinkage <-  dbGetQuery(con,sprintf("select rowid, selfirst, selend,status from caselinkage where caseid=%i and fid=%i and status=1",currentCid,currentFid))
         DAT <- data.frame(cid=currentCid,fid=currentFid,
                           selfirst=ans$start,selend=ans$end,status=1,
                           owner=.rqda$owner,date=date(),memo="")
@@ -146,19 +146,19 @@ CaseUnMark_Button<-function(label="Unmark"){
       SelectedCase <- svalue(.rqda$.CasesNamesWidget)
       if (length(SelectedCase)==0) {gmessage("Select a case first.",con=TRUE)} else{
         SelectedCase <- enc(SelectedCase,"UTF-8")
-        caseid <-  dbGetQuery(.rqda$qdacon,sprintf("select id from cases where name=='%s'",SelectedCase))[,1]
+        caseid <-  dbGetQuery(.rqda$qdacon,sprintf("select id from cases where name='%s'",SelectedCase))[,1]
         SelectedFile <- svalue(.rqda$.root_edit)
         SelectedFile <- enc(SelectedFile,"UTF-8")
-        currentFid <-  dbGetQuery(con,sprintf("select id from source where name=='%s'", SelectedFile))[,1]
-        codings_index <-  dbGetQuery(con,sprintf("select rowid, caseid, fid, selfirst, selend from caselinkage where caseid==%i and fid==%i", caseid, currentFid))
+        currentFid <-  dbGetQuery(con,sprintf("select id from source where name='%s'", SelectedFile))[,1]
+        codings_index <-  dbGetQuery(con,sprintf("select rowid, caseid, fid, selfirst, selend from caselinkage where caseid=%i and fid=%i", caseid, currentFid))
         ## should only work with those related to current case and current file.
         rowid <- codings_index$rowid[(codings_index$selfirst  >= sel_index$startN) &
                                      (codings_index$selend  <= sel_index$endN)]
         if (is.numeric(rowid)) for (j in rowid) {
           dbGetQuery(con,sprintf("update caselinkage set status=0 where rowid=%i", j))
         }
-        coding.idx <- RQDAQuery(sprintf("select selfirst,selend from coding where fid=%i and status==1",currentFid))
-        anno.idx <- RQDAQuery(sprintf("select position from annotation where fid=%i and status==1",currentFid))$position
+        coding.idx <- RQDAQuery(sprintf("select selfirst,selend from coding where fid=%i and status=1",currentFid))
+        anno.idx <- RQDAQuery(sprintf("select position from annotation where fid=%i and status=1",currentFid))$position
         allidx <- unlist(coding.idx,anno.idx)
         if (!is.null(allidx)){
           startN<- sel_index$startN +  sum(allidx <= sel_index$startN)
@@ -175,6 +175,19 @@ CaseUnMark_Button<-function(label="Unmark"){
   assign("CasUnMarB",CasUnMarB,env=button)
   enabled(CasUnMarB) <- FALSE
   CasUnMarB
+}
+
+CaseAttribute_Button <- function(label="Attribute"){
+    CasAttrB <- gbutton(text=label, handler = function(h, ...) {
+        SelectedCase <- svalue(.rqda$.CasesNamesWidget)
+        if (length(SelectedCase!=0)){
+            SelectedCase <- enc(SelectedCase,"UTF-8")
+            caseid <- dbGetQuery(.rqda$qdacon,sprintf("select id from cases where status=1 and name='%s'",SelectedCase))[,1]
+            CaseAttrFun(caseId=caseid,title=SelectedCase)
+        }})
+     assign("CasAttrB", CasAttrB, env = button)
+     enabled(button$CasAttrB) <- FALSE
+     CasAttrB
 }
 
 CaseNamesWidgetMenu <- list()
@@ -234,6 +247,14 @@ CaseNamesWidgetMenu$"View Attributes"$handler <- function(h,...){
    viewCaseAttr()
   }
 }
+CaseNamesWidgetMenu$"Export Case Attributes"$handler <- function(h,...){
+    if (is_projOpen(env=.rqda,conName="qdacon")) {
+        fName <- gfile(type='save',filter=list("csv"=list(pattern=c("*.csv"))))
+        Encoding(fName) <- "UTF-8"
+        if (length(grep(".csv$",fName))==0) fName <- sprintf("%s.csv",fName)
+        write.csv(GetAttr("case"), row.names=FALSE, file=fName, na="")
+    }
+}
 CaseNamesWidgetMenu$"Sort All by Created Time"$handler <- function(h,...){
   CaseNamesUpdate(.rqda$.CasesNamesWidget,sortByTime = TRUE)
 }
@@ -291,7 +312,7 @@ FileofCaseWidgetMenu$"Drop Selected File(s)"$handler <- function(h, ...) {
         caseid <- dbGetQuery(.rqda$qdacon,sprintf("select id from cases where status=1 and name='%s'",SelectedCase))[,1]
         for (i in FileOfCat){
           fid <- dbGetQuery(.rqda$qdacon,sprintf("select id from source where status=1 and name='%s'",i))[,1]
-          dbGetQuery(.rqda$qdacon,sprintf("update caselinkage set status==0 where caseid==%i and fid==%i",caseid,fid))
+          dbGetQuery(.rqda$qdacon,sprintf("update caselinkage set status=0 where caseid=%i and fid=%i",caseid,fid))
         }
         ## update Widget
         UpdateFileofCaseWidget()

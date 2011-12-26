@@ -1,14 +1,14 @@
-export("%and%","%or%","%not%", and, CleanProject,closeProject,
+export("%and%","%or%","%not%", and, CleanProject,closeProject,codingBySearch,
        crossCodes,crossTwoCodes,exportCodings,
        casesCodedByAnd, casesCodedByOr,casesCodedByNot,
-       filesByCodes,
+       exportCodedFile, filesByCodes,
        filesCodedByAnd, filesCodedByOr,filesCodedByNot,
-       gselect.list,GetAttr,getCaseIds,getCaseNames,
+       gselect.list,getAttr,getCaseIds,getCaseNames,
        getCases, getCodingsByOne, getFiles,
        getCodingTable,getFileIds,getFileIdSets,getFileNames,
        list.deleted,nCodedByTwo, not, or, openProject,
        pdelete,queryFiles,relation,retrieval,RQDA,RQDAQuery,
-       SearchFiles,ShowSubset,summaryCodings,undelete,
+       SearchFiles,showSubset,summaryCodings,undelete,
        ViewPlainFile,write.FileList)
 S3method("%and%",RQDA.vector)
 S3method("%and%",codingsByOne)
@@ -22,5 +22,6 @@ S3method(ShowSubset,CaseAttr)
 S3method(ShowSubset, caseName)
 S3method(ShowSubset,FileAttr)
 S3method(print,codingsByOne)
+S3method(plot, crossCodes)
 import(RGtk2)
 import(gWidgetsRGtk2)

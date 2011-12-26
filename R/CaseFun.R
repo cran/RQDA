@@ -1,7 +1,7 @@
 CaseNamesUpdate <- function(CaseNamesWidget=.rqda$.CasesNamesWidget,
                             sortByTime=FALSE,decreasing=FALSE,...)
 {
-  if (isIdCurrent(.rqda$qdacon)){
+  if (is_projOpen()){
     ## CaseName <- dbGetQuery(.rqda$qdacon, "select name, id,date from cases where status=1 order by lower(name)")
     CaseName <- dbGetQuery(.rqda$qdacon, "select name, id,date from cases where status=1")
     if (nrow(CaseName)==0) {
@@ -28,7 +28,7 @@ AddCase <- function(name,conName="qdacon",assignenv=.rqda,...) {
     if (nextid==1){
       write <- TRUE
     } else {
-      dup <- dbGetQuery(con,sprintf("select name from cases where name=='%s'",enc(name)))
+      dup <- dbGetQuery(con,sprintf("select name from cases where name='%s'",enc(name)))
       if (nrow(dup)==0) write <- TRUE
     }
     if (write ) {
@@ -60,7 +60,7 @@ AddFileToCaselinkage <- function(Widget=.rqda$.fnames_rqda){
           Encoding(Selected) <- "UTF-8"
           caseid <- cases$id[cases$name %in% Selected]
           for (i in caseid) {
-              exist <- RQDAQuery(sprintf("select fid from caselinkage where status=1 and fid in (%s) and caseid==%i",paste("'",fid,"'",sep="",collapse=","),i))
+              exist <- RQDAQuery(sprintf("select fid from caselinkage where status=1 and fid in (%s) and caseid=%i",paste("'",fid,"'",sep="",collapse=","),i))
               if (nrow(exist)!=length(fid)){
                   ## write only when the selected file associated with specific case is not in the caselinkage table
                   DAT <- data.frame(caseid=caseid, fid=fid[!fid %in% exist$fid], selfirst=0, selend=selend[!fid %in% exist$fid], status=1,owner=.rqda$owner,data=date(),memo='')
@@ -95,9 +95,9 @@ UpdateFileofCaseWidget <- function(con=.rqda$qdacon,Widget=.rqda$.FileofCase,sor
   if (length(Selected)!=0){
     caseid <- dbGetQuery(.rqda$qdacon,sprintf("select id from cases where status=1 and name='%s'",
                                               enc(Selected)))[,1]
-    Total_fid <- dbGetQuery(con,sprintf("select fid from caselinkage where status==1 and caseid==%i",caseid))
+    Total_fid <- dbGetQuery(con,sprintf("select fid from caselinkage where status=1 and caseid=%i",caseid))
     if (nrow(Total_fid)!=0){
-      items <- dbGetQuery(con,"select name,id,date from source where status==1")
+      items <- dbGetQuery(con,"select name,id,date from source where status=1")
       if (nrow(items)!=0) {
         if (sortByTime){
           items <- items[items$id %in% Total_fid$fid,c("name","date")]
@@ -117,14 +117,14 @@ UpdateFileofCaseWidget <- function(con=.rqda$qdacon,Widget=.rqda$.FileofCase,sor
 HL_Case <- function(){
   if (is_projOpen(env=.rqda,conName="qdacon")) {
     SelectedFile <- svalue(.rqda$.root_edit)
-    currentFid <-  RQDAQuery(sprintf("select id from source where name=='%s'",
+    currentFid <-  RQDAQuery(sprintf("select id from source where name='%s'",
                                      enc(SelectedFile)))[,1]
     if (length(currentFid)!=0) {
       caseName <- svalue(.rqda$.CasesNamesWidget)
-      caseid <- RQDAQuery(sprintf("select id from cases where name=='%s'",enc(caseName)))[,1]
-      idx <- RQDAQuery(sprintf("select selfirst,selend from caselinkage where fid=%i and status==1 and caseid=%i",currentFid,caseid))
-      coding.idx <- RQDAQuery(sprintf("select selfirst,selend from coding where fid=%i and status==1",currentFid))
-      anno.idx <- RQDAQuery(sprintf("select position from annotation where fid=%i and status==1",currentFid))$position
+      caseid <- RQDAQuery(sprintf("select id from cases where name='%s'",enc(caseName)))[,1]
+      idx <- RQDAQuery(sprintf("select selfirst,selend from caselinkage where fid=%i and status=1 and caseid=%i",currentFid,caseid))
+      coding.idx <- RQDAQuery(sprintf("select selfirst,selend from coding where fid=%i and status=1",currentFid))
+      anno.idx <- RQDAQuery(sprintf("select position from annotation where fid=%i and status=1",currentFid))$position
       allidx <- unlist(coding.idx,anno.idx)
       if (nrow(idx)!=0){
         if (!is.null(allidx)){
