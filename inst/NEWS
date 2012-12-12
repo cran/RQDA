@@ -1,3 +1,12 @@
+RQDA 0.2-3
+* can import PDF highlights now [Jabref XMP imported as memo, reliant on rjpod - available on r-forge]
+* improvement of "search a word" in the opened file [Files]
+* sort codes according to frequency [Codes]
+* show number of codings [Codes]
+* add "Save as" button [Project]
+* fix bugs related to encoding issues
+* comment out the support for MySQL [perhaps need a seperate package]
+
 RQDA 0.2-2
 * easier to uncode a coding (major change in GUI behaviour)
 * rename of GetAttr to getAttr

@@ -37,7 +37,7 @@ print.codingsByOne <- function (x,...)
     }
 
     if (nrow(x) == 0)
-      gmessage("No Codings.", con = TRUE)
+      gmessage("No Codings.", container = TRUE)
     else {
         x <-x[order(x$fid,x$index1,x$index2),]
         fid <- unique(x$fid)
@@ -53,13 +53,14 @@ print.codingsByOne <- function (x,...)
                        width = getOption("widgetSize")[1], height = getOption("widgetSize")[2])
         mainIcon <- system.file("icon", "mainIcon.png", package = "RQDA")
         .gw@widget@widget$SetIconFromFile(mainIcon)
-        assign(sprintf(".codingsOf%s","codingsByone"), .gw, env = .rqda)
+        assign(sprintf(".codingsOf%s","codingsByone"), .gw, envir = .rqda)
         .retreivalgui <- gtext(container = .gw)
         font <- pangoFontDescriptionFromString(.rqda$font)
         gtkWidgetModifyFont(.retreivalgui@widget@widget,font)
         .retreivalgui@widget@widget$SetPixelsBelowLines(5)
         .retreivalgui@widget@widget$SetPixelsInsideWrap(5)
         buffer <- .retreivalgui@widget@widget$GetBuffer()
+        buffer$createTag("red", foreground = "red")
         iter <- buffer$getIterAtOffset(0)$iter
         apply(x, 1, function(x) {
             metaData <- sprintf("%s [%i:%i]", x[["filename"]],as.numeric(x[["index1"]]), as.numeric(x[["index2"]]))

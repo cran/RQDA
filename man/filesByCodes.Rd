@@ -19,6 +19,5 @@ that variable is 1, otherwise is 0.
 A data frame.
 }
 \author{Ronggui HUANG}
-\seealso{}
-\examples{
-}
+%\seealso{}
+%\examples{}

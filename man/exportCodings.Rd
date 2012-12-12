@@ -1,6 +1,5 @@
 \name{exportCodings}
 \Rdversion{1.1}
-\alias{ExportCoding}
 \alias{exportCodings}
 \title{
 Export codings to a HTML file.

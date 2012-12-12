@@ -1,5 +1,5 @@
-\name{ViewPlainFile}
-\alias{ViewPlainFile}
+\name{viewPlainFile}
+\alias{viewPlainFile}
 \title{
 View the file content of the selected file in File Widget without displaying the codings and annotations etc.
 }
@@ -7,7 +7,7 @@ View the file content of the selected file in File Widget without displaying the
 This function displays a data file in its bare form. The codings, annotations or other modifications done in RQDA won't be displayed.
 }
 \usage{
-ViewPlainFile(FileNameWidget = .rqda$.fnames_rqda)
+viewPlainFile(FileNameWidget = .rqda$.fnames_rqda)
 }
 \arguments{
   \item{FileNameWidget}{Users should leave it as it is.

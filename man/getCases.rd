@@ -1,8 +1,6 @@
 \name{getCases}
 \Rdversion{1.1}
-\alias{GetCaseId}
 \alias{getCaseIds}
-\alias{GetCaseName}
 \alias{getCaseNames}
 \alias{getCases}
 \title{
@@ -53,7 +51,7 @@ getCases(fid, names = TRUE)
   HUANG Ronggui
 }
 \seealso{
-  See Also \code{\link{GetFileId}}
+  See Also \code{\link{getFileIds}}
 }
 \examples{
 \dontrun{

@@ -44,7 +44,7 @@ not(CT1, CT2)
   Ronggui HUANG
 }
 \seealso{
-  \code{\link{relation}}, \code{\link{GetCodingTable}}, \code{\link{\%and\%}}
+  \code{\link{relation}}, \code{\link{getCodingTable}}, \code{\link{\%and\%}}
 }
 \examples{
 \dontrun{

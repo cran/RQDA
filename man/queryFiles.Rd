@@ -1,6 +1,5 @@
 \name{queryFiles}
 \Rdversion{1.1}
-\alias{QueryFile}
 \alias{queryFiles}
 \title{
 Retrieval of file names according to their codings.

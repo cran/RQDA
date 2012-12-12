@@ -1,9 +1,6 @@
 \name{crossCodes}
 \alias{crossCodes}
-\alias{CrossCode}
 \alias{crossTwoCodes}
-\alias{CrossTwo}
-\docType{data}
 \title{ Inter-codes relationship}
 \description{
  Return a matrix, give a summary of inter-codes relationship.

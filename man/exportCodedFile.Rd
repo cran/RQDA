@@ -21,9 +21,7 @@ When TRUE, the file widget is closed after export.}
 \value{
 No returned value, for its side effect only.
 }
-\references{
-%% ~put references to the literature/web site here ~
-}
+%\references{}
 \author{
 Ronggui HUANG
 }

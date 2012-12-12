@@ -6,19 +6,19 @@
   R-based Qualitative Data Analysis package
 }
 \description{
-  Qualitative Data Analysis based on R language. Current version only supports plain text.
+  Qualitative Data Analysis based on R language. Current version
+  supports plain text. In addition, it can import PDF highlights.
 }
 \details{
 \tabular{ll}{
 Package: \tab RQDA\cr
 Type: \tab Package\cr
-Version: \tab 0.2-2\cr
-Date: \tab 2011-12-26\cr
+Version: \tab 0.2-3\cr
+Date: \tab 2012-12-12\cr
 Depends: \tab R (>= 2.8.0), DBI, RSQLite, gWidgets (>= 0.0-31),
 gWidgetsRGtk2 (>= 0.0-36), igraph \cr
 Imports: \tab RGtk2 (>= 2.20), methods \cr
-Enhances: \tab RMySQL \cr
-Suggests: \tab vcd, tcltk \cr
+Enhances: \tab RMySQL, rjpod, rpdfclown, tcltk \cr
 License: \tab New style BSD License\cr
 LazyLoad: \tab yes\cr
 URL: \tab \url{http://rqda.r-forge.r-project.org/} \cr
@@ -43,7 +43,11 @@ options("widgetSize"=c(x,y)), where x and y is integer specifying width and heig
 }
 
 \references{
-Kelle, U. (ed). 1995. "Computer-aided qualitative data analysis: theory, methods and practice." Sage Publications.
+Kelle, U. (ed). 1995. "Computer-aided qualitative data analysis: theory,
+methods and practice." Sage Publications.
+
+Lewins, A. & Silver, C.2007. Using Software in Qualitative Research : A
+Step-by-Step Guide. Sage Publications.
 }
 \keyword{ package }
 \examples{

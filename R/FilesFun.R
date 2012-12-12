@@ -92,7 +92,7 @@ LineNumber.expose <- function(da,event,data){
 ViewFileFun <- function(FileNameWidget,hightlight=TRUE){
     ## FileNameWidget=.rqda$.fnames_rqda in Files Tab
     ## FileNameWidget=.rqda$.FileofCat in F-CAT Tab
-    if (is_projOpen(env = .rqda, conName = "qdacon")) {
+    if (is_projOpen(envir = .rqda, conName = "qdacon")) {
         if (length(svalue(FileNameWidget)) == 0) {
             gmessage("Select a file first.", icon = "error",con = TRUE)
         } else {
@@ -102,7 +102,7 @@ ViewFileFun <- function(FileNameWidget,hightlight=TRUE){
 
 
 ViewFileFunHelper <- function(FileName,hightlight=TRUE,codingTable=.rqda$codingTable, annotation=TRUE){
-  if (exists(".root_edit",env=.rqda) && isExtant(.rqda$.root_edit)) {
+  if (exists(".root_edit",envir=.rqda) && isExtant(.rqda$.root_edit)) {
     dispose(.rqda$.root_edit)
   }
   SelectedFileName <- FileName
@@ -114,14 +114,14 @@ ViewFileFunHelper <- function(FileName,hightlight=TRUE,codingTable=.rqda$codingT
   mainIcon <- system.file("icon", "mainIcon.png", package = "RQDA")
   gw@widget@widget$SetIconFromFile(mainIcon)
   getToolkitWidget(gw)$Move(getOption("widgetCoordinate")[1],getOption("widgetCoordinate")[2])
-  assign(".root_edit", gw, env = .rqda)
+  assign(".root_edit", gw, envir = .rqda)
   .root_edit <- get(".root_edit", .rqda)
   tmp <- gtext(container=.root_edit)
   font <- pangoFontDescriptionFromString(.rqda$font)
   gtkWidgetModifyFont(tmp@widget@widget,font)
   tmp@widget@widget$SetPixelsBelowLines(5) ## set the spacing
   tmp@widget@widget$SetPixelsInsideWrap(5) ## so the text looks more confortable.
-  assign(".openfile_gui", tmp, env = .rqda)
+  assign(".openfile_gui", tmp, envir= .rqda)
   Encoding(SelectedFileName) <- "unknown"
   IDandContent <- RQDAQuery(sprintf("select id, file from source where name='%s'",
                                     enc(SelectedFileName))
@@ -142,20 +142,22 @@ ViewFileFunHelper <- function(FileName,hightlight=TRUE,codingTable=.rqda$codingT
   buffer$createTag(fore.col,foreground = fore.col)
   buffer$createTag(sprintf("%s.background",back.col),background = back.col)
   ## create buffer tag, which is created by defualt since gwidgetRGtk2 changes its API
+  N <- nrow(markidx)
   if (nrow(markidx)!=0){ ## make sense only when there is coding there
-    apply(markidx[,1:3],1,function(x){
-      iter <- gtkTextBufferGetIterAtOffset(buffer, x["selfirst"]) ## index to iter
-      buffer$CreateMark(sprintf("%s.1",x["rowid"]),where=iter$iter) ## insert marks
-      iter <- gtkTextBufferGetIterAtOffset(buffer, x["selend"])
-      buffer$CreateMark(sprintf("%s.2",x["rowid"]),where=iter$iter)
-      ## the second iter is used to HL coding
-    })} ## create marks
+      for (i in 1:N){
+          iter <- gtkTextBufferGetIterAtOffset(buffer, markidx[i,"selfirst"]) ## index to iter
+          buffer$CreateMark(sprintf("%s.1",markidx[i,"rowid"]),where=iter$iter) ## insert marks
+          iter <- gtkTextBufferGetIterAtOffset(buffer, markidx[i,"selend"])
+          buffer$CreateMark(sprintf("%s.2",markidx[i, "rowid"]),where=iter$iter)
+          ## the second iter is used to HL coding
+      }
+  } ## create marks
   if (annotation){
       if (nrow(anno)!=0){
-          apply(anno,1,function(x){
-              iter <- gtkTextBufferGetIterAtOffset(buffer, x["position"]) ## index to iter
-              buffer$CreateMark(sprintf("%s.3",x["rowid"]),where=iter$iter) ## insert marks
-          })} ## creat marks for annotation
+          for (i in 1:nrow(anno)) {
+              iter <- gtkTextBufferGetIterAtOffset(buffer, anno[i,"position"]) ## index to iter
+              buffer$CreateMark(sprintf("%s.3",anno[i,"rowid"]),where=iter$iter) ## insert marks
+          }} ## creat marks for annotation
   }
   if (nrow(markidx)!=0){
     sapply(markidx[, "rowid"], FUN = function(x) {
@@ -221,7 +223,7 @@ ViewFileFunHelper <- function(FileName,hightlight=TRUE,codingTable=.rqda$codingT
 EditFileFun <- function(FileNameWidget=.rqda$.fnames_rqda){
   ## FileNameWidget=.rqda$.fnames_rqda in Files Tab
   ## FileNameWidget=.rqda$.FileofCat in F-CAT Tab
-  if (is_projOpen(env = .rqda, conName = "qdacon")) {
+  if (is_projOpen(envir=.rqda, conName = "qdacon")) {
     SelectedFileName <- svalue(FileNameWidget)
     if (length(svalue(FileNameWidget)) == 0) {
       gmessage("Select a file first.", icon = "error", con = TRUE)
@@ -233,9 +235,9 @@ EditFileFun <- function(FileNameWidget=.rqda$.fnames_rqda){
                     )
       mainIcon <- system.file("icon", "mainIcon.png", package = "RQDA")
       gw@widget@widget$SetIconFromFile(mainIcon)
-      assign(".root_edit",gw,env=.rqda)
-      assign(".root_edit2",gpanedgroup(horizontal = FALSE, con=.rqda$.root_edit),env=.rqda)
-      EdiFilB <- gbutton("Save File",con=.rqda$.root_edit2,handler=function(h,...){
+      assign(".root_edit",gw,envir=.rqda)
+      assign(".root_edit2",gpanedgroup(horizontal = FALSE, container=.rqda$.root_edit),envir=.rqda)
+      EdiFilB <- gbutton("Save File",container=.rqda$.root_edit2,handler=function(h,...){
         content <-  svalue(.rqda$.openfile_gui)
         RQDAQuery(sprintf("update source set file='%s', dateM='%s' where name='%s'",
                           enc(content,"UTF-8"),date(),enc(svalue(.rqda$.root_edit),"UTF-8"))) ## update source table
@@ -296,12 +298,12 @@ EditFileFun <- function(FileNameWidget=.rqda$.fnames_rqda){
         enabled(button$EdiFilB) <- FALSE
       })## end of save button
 
-      assign("EdiFilB",EdiFilB,env=button)
+      assign("EdiFilB",EdiFilB,envir=button)
       enabled(EdiFilB) <- FALSE
       tmp <- gtext(container=.rqda$.root_edit2)
       font <- pangoFontDescriptionFromString(.rqda$font)
       gtkWidgetModifyFont(tmp@widget@widget,font)
-      assign(".openfile_gui", tmp, env = .rqda)
+      assign(".openfile_gui", tmp, envir= .rqda)
       Encoding(SelectedFileName) <- "unknown"
       IDandContent <- dbGetQuery(.rqda$qdacon, sprintf("select id, file from source where name='%s'",enc(SelectedFileName)))
       content <- IDandContent$file
@@ -404,12 +406,12 @@ write.FileList <- function(FileList,encoding=.rqda$encoding,con=.rqda$qdacon,...
       WriteToTable(FileNames[i],FileList[[i]])
     }
     FileNamesUpdate(FileNamesWidget=.rqda$.fnames_rqda)
-    } else gmessage("Open a project first.", con=TRUE)
+    } else gmessage("Open a project first.", container=TRUE)
 }
 
 
 ProjectMemoWidget <- function(){
-  if (is_projOpen(env=.rqda,"qdacon")) {
+  if (is_projOpen(envir=.rqda,"qdacon")) {
     ## use enviroment, so you can refer to the same object easily, this is the beauty of environment
     ## if project is open, then continue
     tryCatch(dispose(.rqda$.projmemo),error=function(e) {})
@@ -420,11 +422,11 @@ ProjectMemoWidget <- function(){
                    width = getOption("widgetSize")[1],
                    height = getOption("widgetSize")[2]
                    ),
-           env=.rqda)
+           envir=.rqda)
     .projmemo <- get(".projmemo",.rqda)
-    .projmemo2 <- gpanedgroup(horizontal = FALSE, con=.projmemo)
+    .projmemo2 <- gpanedgroup(horizontal = FALSE, container=.projmemo)
     ## use .projmemo2, so can add a save button to it.
-    gbutton("Save memo",con=.projmemo2,handler=function(h,...){
+    gbutton("Save memo",container=.projmemo2,handler=function(h,...){
       ## send the new content of memo back to database
       newcontent <- svalue(W)
       ## Encoding(newcontent) <- "UTF-8"
@@ -438,7 +440,7 @@ ProjectMemoWidget <- function(){
     tmp <- gtext(container=.projmemo2)
     font <- pangoFontDescriptionFromString(.rqda$font)
     gtkWidgetModifyFont(tmp@widget@widget,font)
-    assign(".projmemocontent",tmp,env=.rqda)
+    assign(".projmemocontent",tmp,envir=.rqda)
     prvcontent <- dbGetQuery(.rqda$qdacon, "select memo from project")[1,1]
     ## [1,1]turn data.frame to 1-length character. Existing content of memo
     if (length(prvcontent)==0) {
@@ -521,7 +523,7 @@ GetFileId <- function(condition=c("unconditional","case","filecategory","both"),
       if (length(Selected)==0){
         ans <- NULL
       } else {
-        if (length(Selected)>1) {gmessage("select one file category only.",con=TRUE)
+        if (length(Selected)>1) {gmessage("select one file category only.",container=TRUE)
                                  stop("more than one file categories are selected")
                                }
         caseid <- RQDAQuery(sprintf("select id from cases where status=1 and name='%s'",
@@ -619,7 +621,7 @@ AddToFileCategory <- function(Widget=.rqda$.fnames_rqda,updateWidget=TRUE){
   Encoding(query$file) <- "UTF-8"
   ## select a F-cat name -> F-cat id
   Fcat <- dbGetQuery(.rqda$qdacon,"select catid, name from filecat where status=1")
-  if (nrow(Fcat)==0){gmessage("Add File Categroy first.",con=TRUE)} else{
+  if (nrow(Fcat)==0){gmessage("Add File Categroy first.",container=TRUE)} else{
     Encoding(Fcat$name) <- "UTF-8"
     Selecteds <- gselect.list(Fcat$name,multiple=TRUE)
     if (length(Selecteds)>0 && Selecteds!=""){
@@ -647,7 +649,7 @@ AddToFileCategory <- function(Widget=.rqda$.fnames_rqda,updateWidget=TRUE){
 
 
 ## library(RGtk2)
-searchWord <- function(str,widget,from=0,col="green"){
+searchWord <- function(str,widget,from=0,col="green", verbose=FALSE){
     tview <- slot(widget,"widget")@widget
     buffer <- tview$GetBuffer()
     Iter0 <- buffer$GetIterAtOffset(from)$iter
@@ -658,29 +660,32 @@ searchWord <- function(str,widget,from=0,col="green"){
         buffer$ApplyTagByName(sprintf("%s.background", col),ans$match.start, ans$match.end)
         ans$match.end$GetOffset()
     } else {
+        if (verbose) gmessage("Reach the end.")
         invisible(NULL)
     }
 }
 
 SearchButton <- function(widget){
 ## widget=RQDA:::.rqda$.openfile_gui)
-    assign("searchFrom",0,env=RQDA:::.rqda)
+    assign("searchFrom",0,envir=RQDA:::.rqda)
     group <- ggroup(horizontal=FALSE, container=gwindow(width=50,height=20,title="Search a word"))
     kwdW <- gedit("", container=group)
-    gbutton("Search", container = group,handler=function(h,...){
+    gbutton("Search next", container = group,handler=function(h,...){
         if (!is.null(RQDA:::.rqda$searchFrom)){
             str <- svalue(h$action)
             Encoding(str) <- "UTF-8"
-            res <- searchWord(str,widget=widget,from=RQDA:::.rqda$searchFrom)
-            assign("searchFrom",res,env=RQDA:::.rqda)
+            res <- searchWord(str,widget=widget,from=RQDA:::.rqda$searchFrom, verbose=TRUE)
+            assign("searchFrom",res,envir=RQDA:::.rqda)
         }},action=kwdW)
+     gbutton("Restart", container = group,handler=function(h,...){
+         assign("searchFrom",0,envir=RQDA:::.rqda)
+     })
 }
 
 
 
-
-ViewPlainFile <- function(FileNameWidget=.rqda$.fnames_rqda){
-    if (is_projOpen(env = .rqda, conName = "qdacon")) {
+viewPlainFile <- function(FileNameWidget=.rqda$.fnames_rqda){
+    if (is_projOpen(envir= .rqda, conName = "qdacon")) {
         if (length(svalue(FileNameWidget)) == 0) {
             gmessage("Select a file first.", icon = "error",con = TRUE)
         } else {

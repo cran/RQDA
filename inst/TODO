@@ -11,3 +11,5 @@ pdelete function for journal table.
 dbBeginTransaction(RQDA:::.rqda$qdacon)
 ....
 dbRollback(RQDA:::.rqda$qdacon) or dbCommit(RQDA:::.rqda$qdacon)
+
+collect all code memo into a widget with information like date etc.

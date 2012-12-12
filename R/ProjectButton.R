@@ -1,16 +1,20 @@
 NewProjectButton <- function(container){
   gbutton("New Project",container=container,handler=function(h,...){
     path=gfile(type="save",text = "Type a name for the new project and click OK.")
+    if (Encoding(path) != "UTF-8") {
+        Encoding(path) <- "UTF-8"
+    }
     if (path!=""){
-      ## if path="", then click "cancel".
-      new_proj(path,assignenv=.rqda)
-      path <- dbGetInfo(.rqda$qdacon)$dbname
-      Encoding(path) <- "UTF-8"
-      path <- gsub("\\\\","/",path,fixed=TRUE)
-      path <- gsub("/","/ ",path,fixed=TRUE)
+     ## if path="", then click "cancel".
+     new_proj(path,assignenv=.rqda)
+     path <- dbGetInfo(.rqda$qdacon)$dbname
+     Encoding(path) <- "UTF-8" ## path created by gfile is in utf8 encoding
+     path <- gsub("\\\\","/",path,fixed=TRUE)
+     path <- gsub("/","/ ",path,fixed=TRUE)
       svalue(.rqda$.currentProj) <- gsub("/ ","/",paste(strwrap(path,60),collapse="\n"),fixed=TRUE)
       gtkWidgetSetSensitive(button$cloprob@widget@widget,TRUE)
       gtkWidgetSetSensitive(button$BacProjB@widget@widget,TRUE)
+      enabled(button$saveAsB) <- TRUE
       gtkWidgetSetSensitive(button$proj_memo@widget@widget,TRUE)
       gtkWidgetSetSensitive(button$CleProB@widget@widget,TRUE)
       gtkWidgetSetSensitive(button$CloAllCodB@widget@widget,TRUE)
@@ -79,6 +83,7 @@ openProject <- function(path,updateGUI=FALSE) {
         svalue(.rqda$.currentProj) <- gsub("/ ","/",paste(strwrap(path,50),collapse="\n"))
         gtkWidgetSetSensitive(button$cloprob@widget@widget,TRUE)
         gtkWidgetSetSensitive(button$BacProjB@widget@widget,TRUE)
+        enabled(button$saveAsB) <- TRUE
         gtkWidgetSetSensitive(button$proj_memo@widget@widget,TRUE)
         gtkWidgetSetSensitive(button$CleProB@widget@widget,TRUE)
         gtkWidgetSetSensitive(button$CloAllCodB@widget@widget,TRUE)
@@ -101,8 +106,7 @@ openProject <- function(path,updateGUI=FALSE) {
     }
 }
 
-CloseProjectButton <- function(container){
-  cloprob <- gbutton("Close Project",container=container,handler=function(h,...){
+closeProjBF <- function(){
     svalue(.rqda$.currentProj) <- "Closing ..."
     tryCatch(.rqda$.codes_rqda[]<-NULL,error=function(e){})
     tryCatch(.rqda$.fnames_rqda[]<-NULL,error=function(e){})
@@ -114,7 +118,6 @@ CloseProjectButton <- function(container){
     tryCatch(.rqda$.FileofCat[]<-NULL,error=function(e){})
     tryCatch(.rqda$.AttrNamesWidget[] <- NULL,error=function(e){})
     tryCatch(.rqda$.JournalNamesWidget[] <- NULL,error=function(e){})
-    closeProject(assignenv=.rqda)
     svalue(.rqda$.currentProj) <- "No project is open."
     names(.rqda$.fnames_rqda) <- "Files"
     names(.rqda$.codes_rqda) <- "Codes List"
@@ -137,6 +140,7 @@ CloseProjectButton <- function(container){
     enabled(.rqda$.FileofCat) <- FALSE
     gtkWidgetSetSensitive(button$cloprob@widget@widget,FALSE)
     gtkWidgetSetSensitive(button$BacProjB@widget@widget,FALSE)
+    enabled(button$saveAsB) <- FALSE
     gtkWidgetSetSensitive(button$proj_memo@widget@widget,FALSE)
     gtkWidgetSetSensitive(button$CleProB@widget@widget,FALSE)
     gtkWidgetSetSensitive(button$CloAllCodB@widget@widget,FALSE)
@@ -180,9 +184,15 @@ CloseProjectButton <- function(container){
     enabled(button$FilCatMemB) <- FALSE
     enabled(button$FilCatAddToB) <- FALSE
     enabled(button$FilCatDroFromB) <- FALSE
+}
+
+CloseProjectButton <- function(container){
+  cloprob <- gbutton("Close Project",container=container,handler=function(h,...){
+  closeProjBF()
+  closeProject(assignenv=.rqda)
   }
                      )
-  assign("cloprob",cloprob,env=button)
+  assign("cloprob",cloprob,envir=button)
   gtkWidgetSetSensitive(button$cloprob@widget@widget,FALSE)
 }
 
@@ -191,7 +201,7 @@ BackupProjectButton <- function(container){
     backup_proj(con=.rqda$qdacon)
   }
                       )
-  assign("BacProjB",BacProjB,env=button)
+  assign("BacProjB",BacProjB,envir=button)
   gtkWidgetSetSensitive(button$BacProjB@widget@widget,FALSE)
 }
 
@@ -201,30 +211,30 @@ Proj_MemoButton <- function(label="Porject Memo",container,...){
   ## The memo in dataset is UTF-8
   ## label of button
   ## name of contaianer or TRUE
-  proj_memo <- gbutton(label, contain=container, handler=function(h,...) {
+  proj_memo <- gbutton(label, container=container, handler=function(h,...) {
     ProjectMemoWidget()
   }
                        )
-  assign("proj_memo",proj_memo,env=button)
+  assign("proj_memo",proj_memo,envir=button)
   gtkWidgetSetSensitive(button$proj_memo@widget@widget,FALSE)
 }
 
 
 CleanProjButton <- function(label="Clean Project",container,...){
-  CleProB <- gbutton(label, contain=container, handler=function(h,...) {
+  CleProB <- gbutton(label, container=container, handler=function(h,...) {
     CleanProject(ask=FALSE)
   }
                      )
-  assign("CleProB",CleProB,env=button)
+  assign("CleProB",CleProB,envir=button)
   gtkWidgetSetSensitive(button$CleProB@widget@widget,FALSE)
 }
 
 CloseAllCodingsButton <- function(label="Close All Codings",container,...){
-  CloAllCodB <- gbutton(label, contain=container, handler=function(h,...) {
+  CloAllCodB <- gbutton(label, container=container, handler=function(h,...) {
     close_AllCodings()
   }
                         )
-  assign("CloAllCodB",CloAllCodB,env=button)
+  assign("CloAllCodB",CloAllCodB,envir=button)
   gtkWidgetSetSensitive(button$CloAllCodB@widget@widget,FALSE)
 }
 
@@ -234,11 +244,11 @@ CloseAllCodingsButton <- function(label="Close All Codings",container,...){
 ####################
 ## ProjectInforButton <- function(container){
 ## gbutton("Current Project",container=container,handler=function(h,...){
-##     if (is_projOpen(env=.rqda,conName="qdacon")) {
+##     if (is_projOpen(envir=.rqda,conName="qdacon")) {
 ##       con <- .rqda$qdacon
 ##       dbname <- dbGetInfo(.rqda$qdacon)$dbname
 ##       ##substr(dbname, nchar(dbname)-15,nchar(dbname))
-##       gmessage(dbname,title="Info about current project.",con=TRUE)
+##       gmessage(dbname,title="Info about current project.",container=TRUE)
 ##     }
 ##   },
 ##                              action=list(env=.rqda,conName="qdacon")

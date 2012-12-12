@@ -3,7 +3,7 @@ ViewImage <- function(file,width=800,height=600,...){
   env <- new.env()
   img <- gdkPixbufNewFromFile(file)$retval
   expose_event <- function(widget,event,data){
-    assign("drawable",widget[["window"]],env=env)
+    assign("drawable",widget[["window"]],envir=env)
     gdkDrawPixbuf(env$drawable, gc = NULL, pixbuf=data$img,
                   event[["area"]][["x"]], event[["area"]][["y"]],
                   event[["area"]][["x"]], event[["area"]][["y"]],

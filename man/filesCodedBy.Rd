@@ -33,7 +33,7 @@ a vector of file IDs, with class of "RQDA.vector" and "fileId".
 Ronggui HUANG
 }
 \seealso{
-\code{\link{GetFileName}}
+\code{\link{getFileNames}}
 }
 \examples{
 \dontrun{

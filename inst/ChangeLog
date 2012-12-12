@@ -1,3 +1,65 @@
+2012-12-12
+	* cleanup as official release of RQDA 0.2-3
+	* comment out the support for MySQL [perhaps need a seperate package]
+
+2012-12-11
+	* new function of parseRelationNet and fix its bugs
+	* pdfXMP, RQDA uses rjpod instead of rpdfclown
+	* update Description file
+
+2012-12-04
+	* update importPDFHL
+
+2012-11-20
+	* show number of files with a case
+
+2012-11-19
+	* sort codes according to frequency
+	* get codings of multiple codes
+	* show codes with selected file
+	* add new file to selected case
+	* show coding frequency
+
+2012-11-15
+	* minor bugfixes
+
+2012-11-08
+	* refine "find a word" function
+	* new function of getAnno
+
+2012-10-30
+	* add rqda-help to main GUI
+
+2012-10-09
+	* more tidy-up
+	* print summary of searchFiles result
+
+2012-10-08
+	* tidy-up code and Rd
+
+2012-10-07
+	* add getMemos.Rd
+	* tidy all Rd files (older files are removed)
+
+2012-09-09
+	* initial function of importPDF
+
+2012-05-24
+	* minor bugfix
+
+2012-05-19
+	* "save as" button added
+
+2012-05-17
+	* RQDA: make project path legible
+	* dynamically change attribute button label according to No. of attributes at work
+	* correct encoding in ploting code category
+
+2012-05-15
+	* clean "file of case" when a case is deleted.
+	* coding highlighting works for RGtk2 2.20.23. (use "for" instead of "apply")
+	* rename print.memos to print.Info4Widget, for generic use.
+
 2011-12-26
 	* clean up and prepare for release
 	

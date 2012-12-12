@@ -34,7 +34,7 @@ a vector of file IDs, with class of "RQDA.vector" and "caseId".
 Ronggui HUANG
 }
 \seealso{
-\code{\link{GetCaseName}}
+\code{\link{getCaseNames}}
 }
 \examples{\dontrun{
 filesCodedByAnd(1:2) ## coded by code 1 and 2

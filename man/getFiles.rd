@@ -1,7 +1,5 @@
 \name{getFiles}
-\alias{GetFileId}
 \alias{getFileIds}
-\alias{GetFileName}
 \alias{getFileNames}
 \alias{getFiles}
 \title{ Get the ids or names of files list }
@@ -44,7 +42,7 @@ Normally, it is a numeric vector of file id. If condition is "case" or "filecate
 \code{\link{getFiles}} returns a vector of file IDs (with class of "RQDA.vector" and "fileId") when names is FALSE, and a vector of file names ((with class of "RQDA.vector" and "fileName") when names is TRUE.
 }
 \author{ HUANG Ronggui}
-\seealso{ \code{\link{retrieval}}, \code{\link{GetFileIdSets}}}
+\seealso{ \code{\link{retrieval}}, \code{\link{getFileIdSets}}}
 \examples{
 \dontrun{
 GetFileId() ## Id of all files

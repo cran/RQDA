@@ -38,7 +38,7 @@ that in \code{subset} function.
 \author{HUANG Ronggui}
 \note{
 All the variables in the data frame is of class "character", you need to
-convert to suitable class when conduct statistical analysis.
+convert to suitable class when conducting statistical analysis.
 }
 \examples{
 \dontrun{

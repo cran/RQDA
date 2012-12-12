@@ -23,4 +23,4 @@ retrieval(Fid = NULL, order = c("fname", "ftime", "ctime"),
 A \code{\link[gWidgets]{gtext}} widget is open and all the codings are pushed into that widget.
 }
 \author{HUANG Ronggui}
-\seealso{\code{\link{GetFileId}}}
+\seealso{\code{\link{getFileIds}}}

@@ -1,19 +1,18 @@
 \name{summaryCodings}
-\alias{SummaryCoding}
 \alias{summaryCodings}
-\alias{print.SummaryCoding}
+\alias{print.summaryCodings}
 \title{Summary of codings}
 \description{
 Give a summary of codings of current project.
 }
 \usage{
 summaryCodings(byFile = FALSE, ...)
-\method{print}{SummaryCoding}(x, ...)
+\method{print}{summaryCodings}(x, ...)
 }
 \arguments{
   \item{byFile}{When it is FALSE, return the summary of current project. 
 When it is TRUE, return the summary of coding for each coded file.}
-  \item{x}{An object returned by \code{SummaryCoding}.}
+  \item{x}{An object returned by \code{summaryCoding}.}
   \item{\dots}{Other possible arguments.}
 }
 %\details{

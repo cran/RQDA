@@ -1,12 +1,11 @@
-\name{SearchFiles}
-\alias{SearchFiles}
-%- Also NEED an '\alias' for EACH other topic documented here.
-\title{ Search files}
+\name{searchFiles}
+\alias{searchFiles}
+\title{Search files}
 \description{
   Search files according to the pattern.
 }
 \usage{
-SearchFiles(pattern, content = FALSE, Fid = NULL, Widget = NULL,is.UTF8 = FALSE)
+searchFiles(pattern, content = FALSE, Fid = NULL, Widget = NULL,is.UTF8 = FALSE)
 }
 \arguments{
   \item{pattern}{ The criterion of search, see examples section for examples.}
@@ -23,7 +22,7 @@ SearchFiles(pattern, content = FALSE, Fid = NULL, Widget = NULL,is.UTF8 = FALSE)
 This function use select statment of sql to search files (from source database table). The pattern is the WHERE clause (without the keyword WHERE). For more information, please refer to the website of SQLite syntax. All data in *.rqda use UTF-8 encoding, so the encoding of pattern matters. It will be converted to UTF-8 if it is not (is.UTF8=FALSE).
 }
 \value{
-A data frame with variables:
+A data frame with variables (which is \code{invisible} and you need to print it explicitly):
   \item{id }{The file id.}
   \item{name }{The file name.}
   \item{file }{The file content. Only return when content is TRUE.}
@@ -33,13 +32,13 @@ A data frame with variables:
 \seealso{\code{\link[gWidgets]{gtable}},  \code{\link[utils]{localeToCharset}}}
 \examples{
 \dontrun{
-SearchFiles("file like '\%keyword\%'") 
+searchFiles("file like '\%keyword\%'") 
 ## search for files who contain the word of "keyword"
-SearchFiles("file like 'keyword\%'") 
+searchFiles("file like 'keyword\%'") 
 ## search for files whose conent begin with the word of "keyword"
-SearchFiles("name like '\%keyword'") 
+searchFiles("name like '\%keyword'") 
 ## search for files whose name end with the word of "keyword"
-SearchFiles("name like '\%keyword one' and file like '\%keyword tow\%'") 
+searchFiles("name like '\%keyword one' and file like '\%keyword tow\%'") 
 ## combined conidtions
 }
 }

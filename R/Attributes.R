@@ -132,7 +132,7 @@ saveFUN4CaseAttr <- function(button,data){
 
 CaseAttrFun <- function(caseId,title=NULL,attrs=svalue(.rqda$.AttrNamesWidget)){
   if (length(attrs)==0) attrs <-  dbGetQuery(.rqda$qdacon,"select name from attributes where status=1")$name
-  if (is.null(attrs)) gmessage("add attribute in Attrs Tabe first.",con=T) else{
+  if (is.null(attrs)) gmessage("add attribute in Attrs Tabe first.",container=TRUE) else{
     attrs2 <- data.frame(variable=attrs,value="NA",stringsAsFactors=FALSE)
     variables <- dbGetQuery(.rqda$qdacon,sprintf("select variable, value from caseAttr where caseID=%i and variable in (%s) and status=1", caseId,paste(shQuote(attrs),collapse=",")))
     if (nrow(variables)!=0){
@@ -186,7 +186,7 @@ saveFUN4FileAttr <- function(button,data){
 
 FileAttrFun <- function(fileId,title=NULL,attrs=svalue(.rqda$.AttrNamesWidget)){
   if (length(attrs)==0) attrs <-  dbGetQuery(.rqda$qdacon,"select name from attributes where status=1")$name
-  if (is.null(attrs)) gmessage("add attribute in Attrs Tabe first.",con=T) else{
+  if (is.null(attrs)) gmessage("add attribute in Attrs Tabe first.",container=TRUE) else{
     Encoding(attrs) <- 'UTF-8'
     attrs2 <- data.frame(variable=attrs,value="NA",stringsAsFactors=FALSE)
     variables <- dbGetQuery(.rqda$qdacon,sprintf("select variable, value from fileAttr where fileID=%i and variable in (%s) and status=1",fileId,paste(shQuote(attrs),collapse=",")))
@@ -238,10 +238,10 @@ AddAttrButton <- function(label="ADD"){
       Encoding(AttrName) <- "UTF-8"
       invalid <- grepl("'",AttrName)
       if (invalid) {
-        gmessage("Attribute should NOT contain '.",con=TRUE)
+        gmessage("Attribute should NOT contain '.",container=TRUE)
       } else {
         if (AttrName %in% c("fileID","caseID")) {
-          gmessage("This is a reserved keyword.",con=TRUE)
+          gmessage("This is a reserved keyword.",container=TRUE)
         } else{
           AddAttrNames(AttrName)
           AttrNamesUpdate()
@@ -250,7 +250,7 @@ AddAttrButton <- function(label="ADD"){
     }
   }
                      )
-  assign("AddAttB",AddAttB,env=button)
+  assign("AddAttB",AddAttB,envir=button)
   enabled(AddAttB) <- FALSE
   AddAttB
 }
@@ -269,7 +269,7 @@ DeleteAttrButton <- function(label="Delete"){
     }
   }
                      )
-  assign("DelAttB",DelAttB,env=button)
+  assign("DelAttB",DelAttB,envir=button)
   enabled(DelAttB) <- FALSE
   DelAttB
 }
@@ -284,7 +284,7 @@ RenameAttrButton <- function(label="Rename"){
       selected <- enc(selected,encoding="UTF-8")
       invalid <- grepl("'",NewName)
       if (invalid) {
-        gmessage("Attribute should NOT contain '.",con=TRUE)
+        gmessage("Attribute should NOT contain '.",container=TRUE)
       } else {
         exists <- dbGetQuery(.rqda$qdacon, sprintf("select * from attributes where name = '%s' ",NewName))
         if (nrow(exists) > 0 ){
@@ -299,7 +299,7 @@ RenameAttrButton <- function(label="Rename"){
     }
   }
                      )
-  assign("RenAttB",RenAttB,env=button)
+  assign("RenAttB",RenAttB,envir=button)
   enabled(RenAttB) <- FALSE
   RenAttB
 }
@@ -309,34 +309,34 @@ AttrMemoButton <- function(label="Memo"){
     MemoWidget("Attributes",.rqda$.AttrNamesWidget,"attributes")
   }
                      )
-  assign("AttMemB",AttMemB,env=button)
+  assign("AttMemB",AttMemB,envir=button)
   enabled(AttMemB) <- FALSE
   AttMemB
 }
 
 viewCaseAttr <- function(){
   DF <- dbGetQuery(.rqda$qdacon,"select variable,value, caseId from caseAttr where status=1")
-  DF <- reshape(DF,v.name="value",idvar="caseID",direction="wide",timevar="variable")
+  DF <- reshape(DF,v.names="value",idvar="caseID",direction="wide",timevar="variable")
   names(DF) <- gsub("^value.","",names(DF))
   caseName <- dbGetQuery(.rqda$qdacon,"select name,id from cases where status=1")
   if (nrow(caseName)!=0){
     names(caseName) <- c("case","caseID")
     Encoding(caseName$case) <- "UTF-8"
     DF <- merge(caseName,DF)
-    gtable(DF,con=TRUE)
+    gtable(DF,container=TRUE)
   }
 }
 
 viewFileAttr <- function(){
   DF <- dbGetQuery(RQDA:::.rqda$qdacon,"select variable,value, fileId from fileAttr where status=1")
-  DF <- reshape(DF,v.name="value",idvar="fileID",direction="wide",timevar="variable")
+  DF <- reshape(DF,v.names="value",idvar="fileID",direction="wide",timevar="variable")
   names(DF) <- gsub("^value.","",names(DF))
   fileName <- dbGetQuery(.rqda$qdacon,"select name,id from source where status=1")
   if (nrow(fileName)!=0){
     names(fileName) <- c("file","fileID")
     Encoding(fileName$file) <- "UTF-8"
     DF <- merge(fileName,DF)
-    gtable(DF,con=TRUE)
+    gtable(DF,container=TRUE)
   }
 }
 
@@ -352,7 +352,7 @@ GetAttr <- function(type=c("case","file"),attrs=svalue(.rqda$.AttrNamesWidget),s
     DF <- dbGetQuery(.rqda$qdacon,sprintf("select variable,value, caseId from caseAttr %s",inClause))
     if (nrow(DF) > 0 ){
     Encoding(DF$variable) <- Encoding(DF$value) <- "UTF-8"
-    DF <- reshape(DF,v.name="value",idvar="caseID",direction="wide",timevar="variable")
+    DF <- reshape(DF,v.names="value",idvar="caseID",direction="wide",timevar="variable")
     names(DF) <- gsub("^value.","",names(DF))
     caseName <- dbGetQuery(.rqda$qdacon,"select name,id from cases where status=1")
     if (nrow(caseName)!=0){
@@ -367,7 +367,7 @@ GetAttr <- function(type=c("case","file"),attrs=svalue(.rqda$.AttrNamesWidget),s
     DF <- dbGetQuery(RQDA:::.rqda$qdacon,sprintf("select variable,value, fileId from fileAttr %s",inClause))
     if (nrow(DF) > 0 ){
     Encoding(DF$variable) <- Encoding(DF$value) <- "UTF-8"
-    DF <- reshape(DF,v.name="value",idvar="fileID",direction="wide",timevar="variable")
+    DF <- reshape(DF,v.names="value",idvar="fileID",direction="wide",timevar="variable")
     names(DF) <- gsub("^value.","",names(DF))
     fileName <- dbGetQuery(.rqda$qdacon,"select name,id from source where status=1")
     if (nrow(fileName)!=0){
@@ -397,7 +397,7 @@ SetAttrClsButton <- function(label="Class"){
   }
                  )
   gtkWidgetSetTooltipText(getToolkitWidget(ans),"Set class of selected attribute.\nIt can be 'numeric' or 'character'.")
-  assign("SetAttClsB",ans,env=button)
+  assign("SetAttClsB",ans,envir=button)
   enabled(ans) <- FALSE
   ans
 }
@@ -417,10 +417,10 @@ setAttrType <- function() {
       items <- c("numeric","character")
       idx <- which (items %in%  oldCls)
     }
-    w <- gwindow("Type of attributes",heigh=30,width=150)
+    w <- gwindow("Type of attributes",height=30,width=150)
     gp <- ggroup(horizontal=FALSE,container=w)
-    rb <- gradio(items,idx,horizontal=TRUE, cont=gp)
-    gbutton("OK",con=gp,handler=function(h,...){
+    rb <- gradio(items,idx,horizontal=TRUE, container=gp)
+    gbutton("OK",container=gp,handler=function(h,...){
       if ((newCls <- svalue(rb))!= "unspecified"){
         dbGetQuery(.rqda$qdacon,sprintf("update attributes set class='%s' where status=1 and name='%s'",newCls,Selected))
       }

@@ -12,9 +12,9 @@
                                                 c(gdkScreenHeight(),gdkScreenWidth()-300)
                                                 ))
   options(andMethod=c("overlap","exact","inclusion"))
-  assign("optOld",optOld,env=.rqda)
+  assign("optOld",optOld,envir=.rqda)
   if (interactive()) {
-     packageStartupMessage("\nUse 'RQDA()' to start the programe.\n")
+     packageStartupMessage("\nUse 'RQDA()' to start the programme.\n")
      RQDA()
    }
 }

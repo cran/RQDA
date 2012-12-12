@@ -2,7 +2,7 @@ setColor <- function(currentColor="gold"){
   currentColor <- gdkColorParse(currentColor)$color
   colorDA <- gtkDrawingAreaNew()
   colorDA$modifyBg("normal", currentColor)
-  g <-glayout(con=gwindow(wid=50,hei=20,parent=getOption("widgetCoordinate")),hom=T,title="Change color.")
+  g <-glayout(container=gwindow(width=50,height=20,parent=getOption("widgetCoordinate")),homogeneous=TRUE,title="Change color.")
   g[1,1:3] <- colorDA
   g[2,1] <- gbutton("Select Color",handler=function(h,...){
   dialog <- gtkColorSelectionDialogNew("Changing color", show=T)
@@ -14,7 +14,7 @@ setColor <- function(currentColor="gold"){
   if (response == GtkResponseType["ok"])
     {
       currentColor <- colorsel$getCurrentColor()$color
-      colorString <- gdkColorToString(currentColor)     
+      colorString <- gdkColorToString(currentColor)
       colorDA$modifyBg("normal", currentColor)
     }
   dialog$destroy()
