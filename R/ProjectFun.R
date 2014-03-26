@@ -200,7 +200,7 @@ closeProject <- function(conName="qdacon",assignenv=.rqda,...){
     if (is_projOpen(message=FALSE)) {
         tryCatch(dispose(.rqda$.sfp),error=function(e){})
         tryCatch(dispose(.rqda$.root_edit),error=function(e){})
-        WidgetList <- ls(envir=RQDA:::.rqda,pattern="^[.]codingsOf",all.names=TRUE)
+        WidgetList <- ls(envir=.rqda,pattern="^[.]codingsOf",all.names=TRUE)
         for (i in WidgetList) tryCatch(dispose(get(i,envir=.rqda)),error=function(e){})
         closeProjBF() ## update all widgets
         if (!dbDisconnect(con)) {
@@ -245,7 +245,7 @@ ProjectMemoWidget <- function(){
     tryCatch(dispose(.rqda$.projmemo),error=function(e) {})
     ## Close the open project memo first, then open a new one
     ## .projmemo is the container of .projmemocontent,widget for the content of memo
-    wnh <- size(RQDA:::.rqda$.root_rqdagui) ## size of the main window
+    wnh <- size(.rqda$.root_rqdagui) ## size of the main window
     gw <- gwindow(title="Project Memo", parent=c(wnh[1]+10,2),
                 width = min(c(gdkScreenWidth()- wnh[1]-20,getOption("widgetSize")[1])),
                 height = min(c(wnh[2],getOption("widgetSize")[2]))

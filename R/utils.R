@@ -370,7 +370,7 @@ gselect.list <- function(list,multiple=TRUE,title=NULL,width=200, height=500,...
           assign("selected",value,envir=h$action$env)
           },action=list(envir=ans))
       x2<-gtable(list,multiple=multiple,container=dlg,expand=TRUE)
-      dlg@widget@widget$Move(size(RQDA:::.rqda$.root_rqdagui)[1],2)
+      dlg@widget@widget$Move(size(.rqda$.root_rqdagui)[1],2)
       size(dlg) <- c(width,height)
       visible(dlg, set=TRUE)
       ans

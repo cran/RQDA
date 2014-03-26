@@ -330,7 +330,7 @@ retrieval <- function(Fid=NULL,order=c("fname","ftime","ctime"),CodeNameWidget=.
       Ncodings <- nrow(retrieval)
       title <- sprintf(ngettext(Ncodings,"%i Retrieved coding: \"%s\" from %s %s","%i Retrieved codings: \"%s\" from %s %s"),Ncodings,currentCode2,Nfiles,ngettext(Nfiles,"file","files"))
       tryCatch(eval(parse(text=sprintf("dispose(.rqda$.codingsOf%s)",currentCid))),error=function(e){})
-      wnh <- size(RQDA:::.rqda$.root_rqdagui) ## size of the main window
+      wnh <- size(.rqda$.root_rqdagui) ## size of the main window
       .gw <- gwindow(title=title, parent=c(wnh[1]+10,2),
                      width = min(c(gdkScreenWidth()- wnh[1]-20,getOption("widgetSize")[1])),
                      height = min(c(wnh[2],getOption("widgetSize")[2]))
@@ -603,7 +603,7 @@ DeleteAnnotationAnchorByMark <- function(markname){
 
 openAnnotation <- function(New=TRUE,pos,fid,rowid,AnchorPos=NULL){
     tryCatch(dispose(.rqda$.annotation),error=function(e) {})
-    wnh <- size(RQDA:::.rqda$.root_rqdagui)
+    wnh <- size(.rqda$.root_rqdagui)
     .annotation <- gwindow(title="Annotation",parent=c(wnh[1]+10,2),
                            width = min(c(gdkScreenWidth()- wnh[1]-20,getOption("widgetSize")[1])),
                            height = min(c(wnh[2],getOption("widgetSize")[2]))

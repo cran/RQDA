@@ -20,7 +20,7 @@ NewProjectButton <- function(container){
       gtkWidgetSetSensitive(button$CloAllCodB@widget@widget,TRUE)
       gtkWidgetSetSensitive(button$ImpFilB@widget@widget,TRUE)
       enabled(button$NewFilB) <- TRUE
-      gtkWidgetSetSensitive(RQDA:::.rqda$.fnames_rqda@widget@widget,TRUE)
+      gtkWidgetSetSensitive(.rqda$.fnames_rqda@widget@widget,TRUE)
       enabled(button$AddJouB) <- TRUE
       enabled(button$AddCodB) <- TRUE
       enabled(button$AddCodCatB) <- TRUE
@@ -89,7 +89,7 @@ openProject <- function(path,updateGUI=FALSE) {
         gtkWidgetSetSensitive(button$CloAllCodB@widget@widget,TRUE)
         gtkWidgetSetSensitive(button$ImpFilB@widget@widget,TRUE)
         enabled(button$NewFilB) <- TRUE
-        gtkWidgetSetSensitive(RQDA:::.rqda$.fnames_rqda@widget@widget,TRUE)
+        gtkWidgetSetSensitive(.rqda$.fnames_rqda@widget@widget,TRUE)
         enabled(button$AddJouB) <- TRUE
         enabled(button$AddCodB) <- TRUE
         enabled(button$AddCodCatB) <- TRUE
@@ -127,7 +127,7 @@ closeProjBF <- function(){
     names(.rqda$.FileofCase)<-"Files of This Case"
     names(.rqda$.FileCatWidget)<-"File Category"
     names(.rqda$.FileofCat)<-"Files of This Category"
-    gtkWidgetSetSensitive(RQDA:::.rqda$.fnames_rqda@widget@widget,FALSE)
+    gtkWidgetSetSensitive(.rqda$.fnames_rqda@widget@widget,FALSE)
     enabled(.rqda$.JournalNamesWidget) <- FALSE
     enabled(.rqda$.codes_rqda) <- FALSE
     enabled(.rqda$.SettingsGui) <- FALSE

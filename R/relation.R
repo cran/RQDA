@@ -123,16 +123,16 @@ crossCodes <- CrossCode <- function(relation=c("overlap","inclusion","exact","pr
 plot.crossCodes <- function(x, ...){
     colnames(x) <- rownames(x)
     if (all(x==0,na.rm=T)) x <- x + 0.5
-    cmG <- igraph:::graph.adjacency(x,mode="upper",diag=FALSE,weighted=TRUE)
-    ew <- igraph:::get.edge.attribute(cmG,"weight")
-    igraph:::set.edge.attribute(cmG, "color",V(cmG)[ew==1], "green")
-    igraph:::set.edge.attribute(cmG, "color",V(cmG)[ew==2], "yellow")
-    igraph:::set.edge.attribute(cmG, "color",V(cmG)[ew==3], "orange")
-    igraph:::set.edge.attribute(cmG, "color",V(cmG)[ew>3], "red")
-    tryCatch(igraph:::tkplot(cmG,edge.width=sqrt(igraph:::get.edge.attribute(cmG,"weight")),
-                             vertex.label=igraph:::get.vertex.attribute(cmG,"name"),
-                             edge.label=floor(igraph:::get.edge.attribute(cmG,"weight"))
+    cmG <- igraph::graph.adjacency(x,mode="upper",diag=FALSE,weighted=TRUE)
+    ew <- igraph::get.edge.attribute(cmG,"weight")
+    igraph::set.edge.attribute(cmG, "color",V(cmG)[ew==1], "green")
+    igraph::set.edge.attribute(cmG, "color",V(cmG)[ew==2], "yellow")
+    igraph::set.edge.attribute(cmG, "color",V(cmG)[ew==3], "orange")
+    igraph::set.edge.attribute(cmG, "color",V(cmG)[ew>3], "red")
+    tryCatch(igraph::tkplot(cmG,edge.width=sqrt(igraph::get.edge.attribute(cmG,"weight")),
+                             vertex.label=igraph::get.vertex.attribute(cmG,"name"),
+                             edge.label=floor(igraph::get.edge.attribute(cmG,"weight"))
                              ), error=function(e){
-        plot(cmG,edge.width=sqrt(igraph:::E(cmG)$weight),vertex.label=igraph:::V(cmG)$CodeName)
+        plot(cmG,edge.width=sqrt(igraph::E(cmG)$weight),vertex.label=igraph::V(cmG)$CodeName)
     })
 }

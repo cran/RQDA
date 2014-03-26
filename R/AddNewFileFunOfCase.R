@@ -1,7 +1,7 @@
 AddNewFileFunOfCase <- function ()
 {
     updateCaseLink <- function(fid){
-        SelectedCase <- svalue(RQDA:::.rqda$.CasesNamesWidget)
+        SelectedCase <- svalue(.rqda$.CasesNamesWidget)
         SelectedCase <- enc(SelectedCase,"UTF-8")
         caseid <- dbGetQuery(.rqda$qdacon,sprintf("select id from cases where status=1 and name='%s'",SelectedCase))$id
         content <- RQDAQuery(sprintf("select file from source where id=%s", fid))$file

@@ -208,9 +208,9 @@ where treecode.status=1 and codecat.status=1 and freecode.status=1
 and treecode.catid=codecat.catid and freecode.id=treecode.cid and codecat.name in (%s)",paste(shQuote(parent),collapse=",")))
     Encoding(ans$parent) <- "UTF-8"
     Encoding(ans$child) <- "UTF-8"
-    g <- igraph:::graph.data.frame(ans)
-    tryCatch(igraph:::tkplot(g,vertex.label=igraph:::V(g)$name),error=function(e){
-        igraph:::plot.igraph(g,vertex.label=igraph:::V(g)$name)
+    g <- igraph::graph.data.frame(ans)
+    tryCatch(igraph::tkplot(g,vertex.label=igraph::V(g)$name),error=function(e){
+        igraph::plot.igraph(g,vertex.label=igraph::V(g)$name)
     })
 }
 
@@ -250,17 +250,20 @@ CodeCatWidgetMenu$"Add New Code to Selected Category"$handler <- function(h,...)
             codename <- enc(codename,encoding="UTF-8")
             addcode(codename)
             CodeNamesUpdate(sortByTime=FALSE)
-            cid <- RQDAQuery(sprintf("select id from freecode where status=1 and name='%s'",codename))
+            cid <- RQDAQuery(sprintf("select id from freecode where status=1 and name='%s'",codename))$id
             ## end of add a new code to free code.
             SelectedCodeCat <- svalue(.rqda$.CodeCatWidget)
             if (length(SelectedCodeCat)==0) {gmessage("Select a code category first.",container=TRUE)} else{
                 catid <- dbGetQuery(.rqda$qdacon,sprintf("select catid from codecat where status=1 and name='%s'",SelectedCodeCat))[,1]
                 ## CodeList and the id (table freecode): sql -> name and id where status==1
-                Dat <- data.frame(cid=cid,catid=catid,date=date(),dateM=date(),memo="",status=1)
+                Dat <- data.frame(cid=cid,catid=catid,date=date(),dateM=date(),memo="",
+                                  status=1, owner=.rqda$owner)
                 ## Push selected codeList to table treecode
-                dbWriteTable(.rqda$qdacon,"treecode",Dat,row.names=FALSE,append=TRUE)
+                ok <- dbWriteTable(.rqda$qdacon,"treecode",Dat,row.names=FALSE,append=TRUE)
+                if (ok) {
                 ## update .CodeofCat Widget
-                UpdateCodeofCatWidget()
+                    UpdateCodeofCatWidget()
+                } else gmessage("Failed to assign code category")
             }
         }
     }

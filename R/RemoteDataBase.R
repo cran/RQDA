@@ -109,7 +109,7 @@
 ##         gtkWidgetSetSensitive(button$CloAllCodB@widget@widget,TRUE)
 ##         gtkWidgetSetSensitive(button$ImpFilB@widget@widget,TRUE)
 ##         enabled(button$NewFilB) <- TRUE
-##         gtkWidgetSetSensitive(RQDA:::.rqda$.fnames_rqda@widget@widget,TRUE)
+##         gtkWidgetSetSensitive(RQDA.rqda$.fnames_rqda@widget@widget,TRUE)
 ##         enabled(button$AddJouB) <- TRUE
 ##         enabled(button$AddCodB) <- TRUE
 ##         enabled(button$AddCodCatB) <- TRUE

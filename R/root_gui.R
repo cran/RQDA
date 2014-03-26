@@ -392,7 +392,7 @@ AddHandler <- function(){
                     )
 
   addHandlerClicked(.rqda$.CodeCatWidget,handler <- function(h,...){
-      if ((ncc <- length(svalue(RQDA:::.rqda$.CodeCatWidget))) != 0) {
+      if ((ncc <- length(svalue(.rqda$.CodeCatWidget))) != 0) {
           enabled(.rqda$.CodeofCat) <- TRUE
           enabled(button$DelCodCatB) <- TRUE
           enabled(button$CodCatMemB) <- TRUE

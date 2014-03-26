@@ -106,7 +106,7 @@ ViewFileFunHelper <- function(FileName,hightlight=TRUE,codingTable=.rqda$codingT
     dispose(.rqda$.root_edit)
   }
   SelectedFileName <- FileName
-  wnh <- size(RQDA:::.rqda$.root_rqdagui) ## size of the main window
+  wnh <- size(.rqda$.root_rqdagui) ## size of the main window
   gw <- gwindow(title = SelectedFileName,parent = wnh, ## .rqda$.root_rqdagui,
                 width = min(c(gdkScreenWidth()- wnh[1]-20,getOption("widgetSize")[1])),
                 height = min(c(wnh[2],getOption("widgetSize")[2]))
@@ -165,7 +165,7 @@ ViewFileFunHelper <- function(FileName,hightlight=TRUE,codingTable=.rqda$codingT
       Encoding(code) <- "UTF-8"
       codeColor <- markidx[markidx$rowid == x, "color"]
       if (is.na(codeColor)) {
-        codeColor <-  DefaultCodeColor[as.numeric(markidx[markidx$rowid == x, "id"]) %% length(RQDA:::DefaultCodeColor)+1]
+        codeColor <-  DefaultCodeColor[as.numeric(markidx[markidx$rowid == x, "id"]) %% length(DefaultCodeColor)+1]
       }
       m1 <- buffer$GetMark(sprintf("%s.1", x))
       iter1 <- buffer$GetIterAtMark(m1)
@@ -666,19 +666,19 @@ searchWord <- function(str,widget,from=0,col="green", verbose=FALSE){
 }
 
 SearchButton <- function(widget){
-## widget=RQDA:::.rqda$.openfile_gui)
-    assign("searchFrom",0,envir=RQDA:::.rqda)
+## widget=.rqda$.openfile_gui)
+    assign("searchFrom",0,envir=.rqda)
     group <- ggroup(horizontal=FALSE, container=gwindow(width=50,height=20,title="Search a word"))
     kwdW <- gedit("", container=group)
     gbutton("Search next", container = group,handler=function(h,...){
-        if (!is.null(RQDA:::.rqda$searchFrom)){
+        if (!is.null(.rqda$searchFrom)){
             str <- svalue(h$action)
             Encoding(str) <- "UTF-8"
-            res <- searchWord(str,widget=widget,from=RQDA:::.rqda$searchFrom, verbose=TRUE)
-            assign("searchFrom",res,envir=RQDA:::.rqda)
+            res <- searchWord(str,widget=widget,from=.rqda$searchFrom, verbose=TRUE)
+            assign("searchFrom",res,envir=.rqda)
         }},action=kwdW)
      gbutton("Restart", container = group,handler=function(h,...){
-         assign("searchFrom",0,envir=RQDA:::.rqda)
+         assign("searchFrom",0,envir=.rqda)
      })
 }
 
@@ -691,7 +691,7 @@ viewPlainFile <- function(FileNameWidget=.rqda$.fnames_rqda){
         } else {
             SelectedFileName <- svalue(FileNameWidget)
 
-  wnh <- size(RQDA:::.rqda$.root_rqdagui) ## size of the main window
+  wnh <- size(.rqda$.root_rqdagui) ## size of the main window
   gw <- gwindow(title = SelectedFileName,parent = wnh, ## .rqda$.root_rqdagui,
                 width = min(c(gdkScreenWidth()- wnh[1]-20,getOption("widgetSize")[1])),
                 height = min(c(wnh[2],getOption("widgetSize")[2]))

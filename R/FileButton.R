@@ -218,7 +218,7 @@ FileNamesWidgetMenu$"Add To File Category ..."$handler <- function(h, ...) {
   }
 FileNamesWidgetMenu$"Add/modify Attributes of The Open File..."$handler <- function(h,...){
   if (is_projOpen(envir=.rqda,conName="qdacon")) {
-    Selected <- tryCatch(svalue(RQDA:::.rqda$.root_edit),error=function(e){NULL})
+    Selected <- tryCatch(svalue(.rqda$.root_edit),error=function(e){NULL})
     if (!is.null(Selected)){
       fileId <- RQDAQuery(sprintf("select id from source where status=1 and name='%s'",
                                   enc(Selected)))[,1]
@@ -230,6 +230,16 @@ FileNamesWidgetMenu$"View Attributes"$handler <- function(h,...){
    viewFileAttr()
   }
 }
+
+FileNamesWidgetMenu$"Codings of selected file(s)"$handler <- function(h,...){
+  if (is_projOpen(envir=.rqda,conName="qdacon")) {
+      fid =getFileIds(type="selected")
+      if (length(fid)>0) {
+         getCodingsFromFiles(Fid=fid)
+      } else gmessage("No coded file is selected.")
+  }
+}
+
 FileNamesWidgetMenu$"Export File Attributes"$handler <- function(h,...){
     if (is_projOpen(envir=.rqda,conName="qdacon")) {
         fName <- gfile(type='save',filter=list("csv"=list(pattern=c("*.csv"))))
@@ -286,7 +296,7 @@ FileNamesWidgetMenu$"Open Previous Coded File"$handler <- function(h,...){
   }}
 FileNamesWidgetMenu$"Search for a Word"$handler <- function(h, ...) {
     if (exists(".openfile_gui",envir=.rqda) && isExtant(.rqda$.openfile_gui)) {
-        SearchButton(RQDA:::.rqda$.openfile_gui)
+        SearchButton(.rqda$.openfile_gui)
     }
 }
 FileNamesWidgetMenu$"Search all files ..."$handler <- function(h, ...) {

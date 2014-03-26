@@ -1,4 +1,4 @@
-2012-12-12
+2012-12-12 (rev 492)
 	* cleanup as official release of RQDA 0.2-3
 	* comment out the support for MySQL [perhaps need a seperate package]
 

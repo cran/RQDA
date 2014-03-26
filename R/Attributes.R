@@ -328,7 +328,7 @@ viewCaseAttr <- function(){
 }
 
 viewFileAttr <- function(){
-  DF <- dbGetQuery(RQDA:::.rqda$qdacon,"select variable,value, fileId from fileAttr where status=1")
+  DF <- dbGetQuery(.rqda$qdacon,"select variable,value, fileId from fileAttr where status=1")
   DF <- reshape(DF,v.names="value",idvar="fileID",direction="wide",timevar="variable")
   names(DF) <- gsub("^value.","",names(DF))
   fileName <- dbGetQuery(.rqda$qdacon,"select name,id from source where status=1")
@@ -364,7 +364,7 @@ GetAttr <- function(type=c("case","file"),attrs=svalue(.rqda$.AttrNamesWidget),s
   } else if (type=="file"){
     RQDAQuery("delete from fileAttr where value='NA'")
     RQDAQuery("delete from fileAttr where value=''") ## clean the table
-    DF <- dbGetQuery(RQDA:::.rqda$qdacon,sprintf("select variable,value, fileId from fileAttr %s",inClause))
+    DF <- dbGetQuery(.rqda$qdacon,sprintf("select variable,value, fileId from fileAttr %s",inClause))
     if (nrow(DF) > 0 ){
     Encoding(DF$variable) <- Encoding(DF$value) <- "UTF-8"
     DF <- reshape(DF,v.names="value",idvar="fileID",direction="wide",timevar="variable")
@@ -407,7 +407,7 @@ setAttrType <- function() {
     Selected <- enc(svalue(.rqda$.AttrNamesWidget),encoding="UTF-8")
     oldCls <- tryCatch(dbGetQuery(.rqda$qdacon,sprintf("select class from attributes where status=1 and name='%s'",Selected))[1,1],
                        error=function(e){
-                         dbGetQuery(RQDA:::.rqda$qdacon, "alter table attributes add column class text")
+                         dbGetQuery(.rqda$qdacon, "alter table attributes add column class text")
                          dbGetQuery(.rqda$qdacon,sprintf("select class from attributes where status=1 and name='%s'",Selected))[1,1]
                        })
     if (is.null(oldCls)||is.na(oldCls)) {
