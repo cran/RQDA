@@ -214,6 +214,17 @@ and treecode.catid=codecat.catid and freecode.id=treecode.cid and codecat.name i
     })
 }
 
+d3CodeCategory <-function(parent=NULL){
+  if (is.null(parent)) parent <- svalue(.rqda$.CodeCatWidget)
+  ans <- RQDAQuery(sprintf("select codecat.name as parent,freecode.name as child from treecode, codecat,freecode
+where treecode.status=1 and codecat.status=1 and freecode.status=1
+and treecode.catid=codecat.catid and freecode.id=treecode.cid and codecat.name in (%s)",paste(shQuote(parent),collapse=",")))
+  Encoding(ans$parent) <- "UTF-8"
+  Encoding(ans$child) <- "UTF-8"
+  file = paste(tempfile(), "html", sep=".")
+  d3Network::d3SimpleNetwork(ans, width = 400, height = 250,file=file)
+  browseURL(file)
+}
 
 getCodingsByCategory <- function(catid=NULL, fid = NULL, codingTable = c("coding", "coding2")){
     if (is.null(catid)) catid <- RQDAQuery(sprintf("select catid from codecat where name = '%s'", enc(svalue(.rqda$.CodeCatWidget))))$catid
@@ -286,6 +297,7 @@ CodeCatWidgetMenu$Memo$handler <- function(h,...){
 ## need to manually set the toolkit
 ##CodeCatWidgetMenu$"Plot Selected Code Category" <- psccItem
 CodeCatWidgetMenu$"Plot Selected Code Categories"$handler <- function(h,...){plotCodeCategory()}
+CodeCatWidgetMenu$"Plot Selected Code Categories with d3"$handler <- function(h,...){d3CodeCategory()}
 
 CodeCatWidgetMenu$"Sort by created time"$handler <- function(h,...){
  if (is_projOpen(envir=.rqda,conName="qdacon")) {

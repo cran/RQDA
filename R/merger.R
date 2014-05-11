@@ -11,6 +11,7 @@ mergeCodes <- function(cid1,cid2){ ## cid1 and cid2 are two code IDs.
       if (!any(Exist$Relation=="exact")){
         ## if they are axact, do nothing; -> if they are not exact, do something. The following lines record meta info.
         Exist$WhichMin <- sapply(Relations,FUN=function(x)x$WhichMin)
+        Exist$WhichMax <- sapply(Relations,FUN=function(x)x$WhichMax)
         Exist$Start <- sapply(Relations,FUN=function(x)x$UnionIndex[1])
         Exist$End <- sapply(Relations,FUN=function(x)x$UnionIndex[2])
         if (all(Exist$Relation=="proximity")){ ## if there are no overlap in any kind, just write to database
@@ -28,16 +29,17 @@ mergeCodes <- function(cid1,cid2){ ## cid1 and cid2 are two code IDs.
                 ## delete the adjacent one.
             }
         } else { ## if not proximate, pass to else branch.
-          del1 <- (Exist$Relation =="inclusion" & any(Exist$WhichMin==2,Exist$WhichMax==2))
+          ## del1 <- (Exist$Relation =="inclusion" & any(Exist$WhichMin==2,Exist$WhichMax==2))
           ## ==2 -> take care of NA. Here 2 means From according to how Relations is returned.
+          del1 <- Exist$Relation =="inclusion"
           del2 <- Exist$Relation =="overlap"
           ## if overlap or inclusion [Exist nested in From] -> delete codings in Exist
           del <- (del1 | del2) ## index of rows in Exist that should be deleted.
           if (any(del)){
             ## no rowid in Exist by sql of select, so add rowid to it (That is ToDat data frame).
-            oldmemo <- dbGetQuery(.rqda$qdacon,sprintf("select memo from coding where rowid in (%s)",
+            To_memo <- dbGetQuery(.rqda$qdacon,sprintf("select memo from coding where rowid in (%s)",
                                                     paste(Exist$rowid[del],collapse=",",sep="")))$memo
-            memo <- paste(c(oldmemo,From$memo),collapse="\n",sep="") ## merge the old memo from From
+            memo <- paste(c(To_memo,From$memo),collapse="\n",sep="") ## merge the To_memo from From
             dbGetQuery(.rqda$qdacon,sprintf("delete from coding where rowid in (%s)",
                                             paste(Exist$rowid[del],collapse=",",sep=""))) ## delete codings
             tt <-   dbGetQuery(.rqda$qdacon,sprintf("select file from source where id='%i'", From$fid))[1,1]

@@ -14,7 +14,7 @@ crossTwoCodes(cid1,cid2,data,relation=c("overlap","inclusion","exact","proximity
 \arguments{
  \item{relation}{The relation between codes}
  \item{codeList}{A character vector, the codes list on which the inter-code relationship is based}
- \item{data}{Data frame return by \code{GetCodingTable},may be subset of the full coding table}
+ \item{data}{Data frame return by \code{getCodingTable},may be subset of the full coding table}
  \item{print}{When TRUE, print the results automatically}
  \item{cid1}{Length-1 code id. It is numeric.}
  \item{cid2}{Length-1 code id. It is numeric.}

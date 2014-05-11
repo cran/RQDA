@@ -10,19 +10,6 @@
   supports plain text. In addition, it can import PDF highlights.
 }
 \details{
-\tabular{ll}{
-Package: \tab RQDA\cr
-Type: \tab Package\cr
-Version: \tab 0.2-5\cr
-Date: \tab 2014-03-26\cr
-Depends: \tab R (>= 2.8.0), DBI, RSQLite, gWidgets (>= 0.0-31),
-gWidgetsRGtk2 (>= 0.0-36), igraph \cr
-Imports: \tab RGtk2 (>= 2.20), methods \cr
-Enhances: \tab RMySQL, rjpod, rpdfclown, tcltk \cr
-License: \tab New style BSD License\cr
-LazyLoad: \tab yes\cr
-URL: \tab \url{http://rqda.r-forge.r-project.org/} \cr
-}
 The workhorse function for end-user is the RQDA(), you can use RQDA() to
 start the GUI after library(QRDA). Please Refer to the documentation
 section of the project homepage for the usage of RQDA.

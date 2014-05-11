@@ -1,3 +1,6 @@
+RQDA 0.2-6
+* code categores visualisation with d3.
+
 RQDA 0.2-3
 * can import PDF highlights now [Jabref XMP imported as memo, reliant on rjpod - available on r-forge]
 * improvement of "search a word" in the opened file [Files]
