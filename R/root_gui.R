@@ -129,7 +129,8 @@ if (isTRUE(.rqda$isLaunched)) {
   ##.case_buttons[1,4] <- CaseMemoButton()
   .case_buttons[1,4] <- CaseUnMark_Button("Unlink")
   .case_buttons[1,5] <- CaseMark_Button(" Link ")
-  .case_buttons[1,6] <- CaseAttribute_Button("Attribute")
+  .case_buttons[2,1] <- CaseAttribute_Button("Attribute")
+  .case_buttons[2,2] <- prof_mat_Button("Profile")
   ##.case_buttons[2,3] <- AddWebSearchButton("WebSearch") # use popup menu instead
 
 ########################### GUI for Attributes

@@ -33,23 +33,23 @@ relation <- function(index1,index2){
         }
       }
     } else {
-      if (min(index1) < min(index2) &&
-          max(index1) > min(index2)) {
+      if (min(index1) <= min(index2) &&
+          max(index1) >= min(index2)) {
         ans$Relation <- "overlap"
         ans$OverlapIndex <- c(min(index2),max(index1))
         ans$UnionIndex <- c(min(index1),max(index2))
       }
-      if (min(index2) < min(index1) &&
-          max(index2) > min(index1)) {
+      if (min(index2) <= min(index1) &&
+          max(index2) >= min(index1)) {
         ans$Relation <- "overlap"
         ans$OverlapIndex<- c(min(index1),max(index2))
         ans$UnionIndex<- c(min(index2),max(index1))
       }
-      if (max(index1) <= min(index2)){
+      if (max(index1) < min(index2)){
         ans$Relation <- "proximity"
         ans$Distance <- min(index2) -max(index1)
       }
-      if (max(index2) <= min(index1)){
+      if (max(index2) < min(index1)){
         ans$Relation <- "proximity"
         ans$Distance <- min(index1) -max(index2)
       }

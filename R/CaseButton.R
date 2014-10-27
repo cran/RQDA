@@ -191,6 +191,14 @@ CaseAttribute_Button <- function(label="Attribute"){
      CasAttrB
 }
 
+prof_mat_Button <- function(label="prof_mat"){
+  profmatB <- gbutton(text=label, handler = function(h, ...) {
+    prof_mat()
+    })
+  assign("profmatB", profmatB, envir=button)
+  profmatB
+}
+
 CaseNamesWidgetMenu <- list()
 CaseNamesWidgetMenu$"Add File(s)"$handler <- function(h, ...) {
   if (is_projOpen(env = .rqda, conName = "qdacon", message = FALSE)) {

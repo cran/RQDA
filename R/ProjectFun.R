@@ -175,7 +175,7 @@ UpgradeTables <- function(){
 open_proj <- function(path,conName="qdacon",assignenv=.rqda,...){
   tryCatch( { con <- get(conName,assignenv)
               pkg <- attr(attr(con,"class"),'package')
-              Open <- getFunction("isIdCurrent",where=sprintf("package:%s",pkg))(con)
+              Open <- getFunction("dbIsValid",where=sprintf("package:%s",pkg))(con)
              if (open) dbDisconnect(con)
               },
             error=function(e){})
@@ -218,7 +218,7 @@ is_projOpen <- function(envir=.rqda,conName="qdacon",message=TRUE){
   tryCatch({
     con <- get(conName,envir)
     pkg <- attr(attr(con,"class"),'package')
-    Open2 <- getFunction("isIdCurrent",where=sprintf("package:%s",pkg))(con)
+    Open2 <- getFunction("dbIsValid",where=sprintf("package:%s",pkg))(con)
     open <- open + Open2
     } ,error=function(e){})
   if (!open & message) gmessage("No Project is Open.",icon="warning",container=TRUE)
@@ -227,7 +227,7 @@ is_projOpen <- function(envir=.rqda,conName="qdacon",message=TRUE){
 
 backup_proj <- function(con){
   ## con=.rqda$qdacon
-  dbname <- dbGetInfo(con)$dbname
+  dbname <- con@dbname
   Encoding(dbname) <- "UTF-8"
   backupname <- sprintf("%s%s.rqda",gsub("rqda$","",dbname),format(Sys.time(), "%H%M%S%d%m%Y"))
   success <- file.copy(from=dbname, to=backupname , overwrite = FALSE)

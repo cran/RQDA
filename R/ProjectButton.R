@@ -7,7 +7,7 @@ NewProjectButton <- function(container){
     if (path!=""){
      ## if path="", then click "cancel".
      new_proj(path,assignenv=.rqda)
-     path <- dbGetInfo(.rqda$qdacon)$dbname
+     path <- .rqda$qdacon@dbname
      Encoding(path) <- "UTF-8" ## path created by gfile is in utf8 encoding
      path <- gsub("\\\\","/",path,fixed=TRUE)
      path <- gsub("/","/ ",path,fixed=TRUE)
@@ -76,7 +76,7 @@ openProject <- function(path,updateGUI=FALSE) {
         tryCatch(UpdateFileofCatWidget(),error=function(e){})
         tryCatch(AttrNamesUpdate(),error=function(e){})
         tryCatch(JournalNamesUpdate(),error=function(e){})
-        path <- dbGetInfo(.rqda$qdacon)$dbname
+        path <- .rqda$qdacon@dbname
         Encoding(path) <- "UTF-8"
         path <- gsub("\\\\","/", path)
         path <- gsub("/","/ ",path)
@@ -96,6 +96,7 @@ openProject <- function(path,updateGUI=FALSE) {
         enabled(button$AddCasB) <- TRUE
         enabled(button$AddAttB) <- TRUE
         enabled(button$AddFilCatB) <- TRUE
+        enabled(button$profmatB) <- TRUE        
         enabled(.rqda$.JournalNamesWidget) <- TRUE
         enabled(.rqda$.codes_rqda) <- TRUE
         enabled(.rqda$.SettingsGui) <- TRUE
@@ -173,6 +174,7 @@ closeProjBF <- function(){
     enabled(button$CasMarB) <- FALSE
     enabled(button$CasUnMarB) <- FALSE
     enabled(button$CasAttrB) <- FALSE
+    enabled(button$profmatB) <- FALSE 
     enabled(button$AddAttB) <- FALSE
     enabled(button$DelAttB) <- FALSE
     enabled(button$RenAttB) <- FALSE
