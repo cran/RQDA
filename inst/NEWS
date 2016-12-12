@@ -1,5 +1,10 @@
+RQDA 0.2-8
+* improvement of Profile matrix.
+* Facilitator of recoding coded text segment into a new code.
+
 RQDA 0.2-7
 * comdifications for RSQLite 1.0.0.
+* Profile matrix.
 
 RQDA 0.2-6
 * code categores visualisation with d3.
