@@ -1,4 +1,4 @@
-809706ab8dae8897e0f4fc51b3c7c1ea *DESCRIPTION
+b470489905d5cdbf08c2f6c0e7ea0438 *DESCRIPTION
 ae0ff5a25e8043db0d64d6124fc02133 *LICENSE
 00c6f570368ebdfde69d41e006a76409 *NAMESPACE
 3e228e45a61b3b1b41120a56d06a44b2 *R/AddNewFileFunOfCase.R
@@ -8,10 +8,10 @@ f50892e41a28399ab5086f10614c4906 *R/Attributes.R
 dd1e782dae9f368507efe3af4036de68 *R/CaseFun.R
 75cc459cd2be1aa90571731b86469542 *R/CodeCatButton.R
 9b92c90395fdac14859c224e302713ef *R/CodesFun.R
-f75145684080c799736d60b5e8e78809 *R/Coding_Buttons.R
+92a90d909465313b97e9a27cd4cb0046 *R/Coding_Buttons.R
 f6ce82abf553317adbca146027f7a65b *R/FileButton.R
 44b5f7eb95e3c07291cdfa19444a7f2a *R/FileCatButton.R
-b5172065d92837fd73e8a21781345863 *R/FilesFun.R
+edef3bb87d422dc471553274f32866bd *R/FilesFun.R
 d21156474e2167a5b24d98ef43dd8633 *R/Image.R
 0e200d8a8bfe1471bf2b4b07466e4ec6 *R/Journal.R
 051d2cb85d1d4a485ba5ce41c7789c84 *R/Profile_Matrix.R
@@ -35,12 +35,12 @@ edfa2094a55d6b99a7a88201be70bff5 *R/root_gui.R
 ef8a7a4f5aeddf0c757cc60a74ff01a9 *R/sysdata.rda
 30ef75274fef24f42ee265e9c0d675bc *R/utils.R
 164c6fbd10c2ef1273f16c09f418f45b *R/zzz.R
-9f9e87e4288c0c379a1370c3d326daee *README.md
+c405e076e1ed081d0f0e370740d8798f *README.md
 9066b4e13a69dffd109d11e1129c0cf1 *inst/CITATION
 9be44ed52f82243c8d5a927be0b295c6 *inst/ChangeLog
 a7b543234e06c5f2332687685a3cbdc5 *inst/Contributors
 471bdb36b03dc95bca038a7852fbd0a8 *inst/KnownBugs
-f16400e9fe6d65b9833ca8919cd5c5f8 *inst/NEWS
+cf9bb217ddf3601ef75d5b6c688d8973 *inst/NEWS
 a0f74920a3d93c6be7a2aa32dd7be6cb *inst/THANKS
 6ad5388b2509be6adbea718ebffb7fef *inst/TODO
 b6c1cdbf002d954ffc1774c6701d0ad2 *inst/icon/mainIcon.png
@@ -49,7 +49,7 @@ b00b5b170207b49622f40187b0bf0f8e *man/GetAttr.Rd
 7a85ca06bf369d3370a0083c1d492149 *man/Ops.RQDA.rd
 a9615b8d2e6954249657aa246e8dad9f *man/Ops.codings.Rd
 efae088fee789da8d96dd5c5365c0a5c *man/RQDA-package.Rd
-101efdd23dc4209cbe965bbc6c349148 *man/RQDAQuery.rd
+0e3d5977b88b141a83456f76b87a9399 *man/RQDAQuery.rd
 4b9863f00485f71ff680804e3467b59f *man/RQDATables.rd
 ae4f66c2550c19d0808712bb4a97be6b *man/SearchFiles.rd
 57381eec95b4aa1ca19c4779ad084b66 *man/ViewPlainFile.Rd
