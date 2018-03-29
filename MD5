@@ -1,4 +1,4 @@
-b470489905d5cdbf08c2f6c0e7ea0438 *DESCRIPTION
+7d1a7c97139d0338db674160d3ab8e06 *DESCRIPTION
 ae0ff5a25e8043db0d64d6124fc02133 *LICENSE
 00c6f570368ebdfde69d41e006a76409 *NAMESPACE
 3e228e45a61b3b1b41120a56d06a44b2 *R/AddNewFileFunOfCase.R
@@ -9,7 +9,7 @@ dd1e782dae9f368507efe3af4036de68 *R/CaseFun.R
 75cc459cd2be1aa90571731b86469542 *R/CodeCatButton.R
 9b92c90395fdac14859c224e302713ef *R/CodesFun.R
 92a90d909465313b97e9a27cd4cb0046 *R/Coding_Buttons.R
-f6ce82abf553317adbca146027f7a65b *R/FileButton.R
+a87e5842113d5c9e95b21808a765355a *R/FileButton.R
 44b5f7eb95e3c07291cdfa19444a7f2a *R/FileCatButton.R
 edef3bb87d422dc471553274f32866bd *R/FilesFun.R
 d21156474e2167a5b24d98ef43dd8633 *R/Image.R
@@ -35,12 +35,12 @@ edfa2094a55d6b99a7a88201be70bff5 *R/root_gui.R
 ef8a7a4f5aeddf0c757cc60a74ff01a9 *R/sysdata.rda
 30ef75274fef24f42ee265e9c0d675bc *R/utils.R
 164c6fbd10c2ef1273f16c09f418f45b *R/zzz.R
-c405e076e1ed081d0f0e370740d8798f *README.md
+3419c35f27e8f993cc438d3a986e122c *README.md
 9066b4e13a69dffd109d11e1129c0cf1 *inst/CITATION
 9be44ed52f82243c8d5a927be0b295c6 *inst/ChangeLog
 a7b543234e06c5f2332687685a3cbdc5 *inst/Contributors
 471bdb36b03dc95bca038a7852fbd0a8 *inst/KnownBugs
-cf9bb217ddf3601ef75d5b6c688d8973 *inst/NEWS
+e2545918cca05fc63ed74eb8b5fbfa58 *inst/NEWS
 a0f74920a3d93c6be7a2aa32dd7be6cb *inst/THANKS
 6ad5388b2509be6adbea718ebffb7fef *inst/TODO
 b6c1cdbf002d954ffc1774c6701d0ad2 *inst/icon/mainIcon.png
@@ -48,14 +48,14 @@ ec4a8eef062a4e95efde7b30429c7642 *man/CrossCodes.rd
 b00b5b170207b49622f40187b0bf0f8e *man/GetAttr.Rd
 7a85ca06bf369d3370a0083c1d492149 *man/Ops.RQDA.rd
 a9615b8d2e6954249657aa246e8dad9f *man/Ops.codings.Rd
-efae088fee789da8d96dd5c5365c0a5c *man/RQDA-package.Rd
+c765c158876f27d3320b05e2886f34bd *man/RQDA-package.Rd
 0e3d5977b88b141a83456f76b87a9399 *man/RQDAQuery.rd
 4b9863f00485f71ff680804e3467b59f *man/RQDATables.rd
 ae4f66c2550c19d0808712bb4a97be6b *man/SearchFiles.rd
 57381eec95b4aa1ca19c4779ad084b66 *man/ViewPlainFile.Rd
 1b99b026221419e720531477463bb395 *man/casesCodedBy.Rd
 43762ee6af76a9fea2461d8e515ffe6b *man/codingBySearch.Rd
-400e1904ec02390002338d3f9bd10090 *man/exportCodedFile.Rd
+a07acc85e4408145af8912c5396c59ff *man/exportCodedFile.Rd
 2e36a7f3ed7619817211dc9a085fb3b9 *man/exportCodings.Rd
 ce0872982e02a64909f91bd61b993ac2 *man/filesByCodes.Rd
 32aa5ab2a3bf611e4f9502f5a1d2e141 *man/filesCodedBy.Rd
@@ -75,5 +75,7 @@ e98ba0545886b23313bffc0720629453 *man/nCodedByTwo.Rd
 ed921a90fadc7cb38e098a6ea6b71414 *man/summaryCodings.rd
 0eb8719ab400c37325b6d6838d3f8118 *man/write.FileList.rd
 1d22d355b7e2229219b6e2fa6910d2b3 *po/R-RQDA.pot
+ce0228b883713bb509c7810a038e853d *po/R-ca_CA.po
+b5cecf3e9d76b518ad2ae3dfca1465bd *po/R-es_ES.po
 b832db3042fc30be135d0828c2d60aa8 *po/R-pt_BR.po
 17eb946e4a36c882a0903c365cf30645 *po/R-pt_PT.po
